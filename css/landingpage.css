@@ -6,7 +6,6 @@
 @font-face {
     font-family: 'Poppins Fallback';
     src: local('Arial'), local('Helvetica'), local('sans-serif');
-    size-adjust: 100%;
     ascent-override: 105%;
     descent-override: 35%;
     line-gap-override: 10%;
@@ -56,7 +55,6 @@ h1, h2, h3 {
 
 /* Improved Glass Morphism */
 .glass {
-    background: rgba(26, 26, 26, 0.8); /* Fallback für Browser ohne backdrop-filter */
     background: rgba(0, 199, 139, 0.03);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -230,7 +228,7 @@ h1, h2, h3 {
 }
 
 /* WebP support for hero background */
-@supports (background-image: url('image.webp')) {
+@supports (background-image: url('../img/background-header.webp')) {
     .hero-bg-layer {
         background-image: url('../img/background-header.webp');
     }
@@ -562,7 +560,7 @@ h1, h2, h3 {
 }
 
 /* WebP support for premium features background */
-@supports (background-image: url('image.webp')) {
+@supports (background-image: url('../img/flashlights.webp')) {
     .premium-features-section::before {
         background-image: url('../img/flashlights.webp');
     }
@@ -751,12 +749,12 @@ h1, h2, h3 {
 /* Final Premium CTA */
 .final-premium-cta {
     padding: 180px 60px;
-    background: url('../flashlights.jpg') center center/cover no-repeat fixed;
+    background: url('../img/flashlights.jpg') center center/cover no-repeat fixed;
     position: relative;
 }
 
 /* WebP support for final CTA background */
-@supports (background-image: url('image.webp')) {
+@supports (background-image: url('../img/flashlights.webp')) {
     .final-premium-cta {
         background-image: url('../img/flashlights.webp');
     }
@@ -817,11 +815,10 @@ footer {
 
 .footer-premium-grid {
     max-width: 1600px;
-    margin: 0 auto;
+    margin: 0 auto 60px;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 80px;
-    margin-bottom: 60px;
 }
 
 .footer-brand-premium h3 {
@@ -924,15 +921,13 @@ footer {
 
 /* Premium CTA Inline */
 .premium-cta-inline {
-    margin-top: 80px;
+    margin: 80px auto 0;
     text-align: center;
     padding: 60px 40px;
     background: rgba(0, 199, 139, 0.05);
     border: 2px solid var(--turquoise-border);
     border-radius: 25px;
     max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .premium-cta-inline h3 {
