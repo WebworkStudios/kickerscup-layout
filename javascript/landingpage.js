@@ -123,7 +123,6 @@ document.querySelectorAll('.benefit-item, .gallery-item').forEach(el => {
 
 const KickerscupApp = (() => {
     // Private variables
-    let scrollTimeout = null;
     let loadingTimeouts = new Map();
 
     // DOM element cache
@@ -283,7 +282,14 @@ const KickerscupApp = (() => {
         document.querySelectorAll('.btn-premium-large, .btn-nav-premium').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                openRegisterModal();
+                const href = btn.getAttribute('href');
+
+                // Open appropriate modal based on href
+                if (href === '#login') {
+                    openLoginModal();
+                } else {
+                    openRegisterModal();
+                }
             });
         });
 
