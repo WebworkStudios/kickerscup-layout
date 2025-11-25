@@ -40,19 +40,10 @@
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap"
-          rel="stylesheet"
-          media="print"
-          onload="this.media='all'">
+          rel="stylesheet">
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     </noscript>
-
-    <link rel="preload" as="image" href="background-header.webp" type="image/webp"
-          fetchpriority="high"
-          media="(min-width: 769px)">
-    <link rel="preload" as="image" href="background-header-mobile.webp" type="image/webp"
-          fetchpriority="high"
-          media="(max-width: 768px)">
 
     <!-- Externes CSS -->
     <link rel="stylesheet" href="css/landingpage.css">
@@ -67,7 +58,7 @@
             <a href="#features">Features</a>
             <a href="#gallery">Gallery</a>
             <a href="#benefits">Benefits</a>
-            <a href="#login" class="btn-nav-premium" onclick="openLoginModal()">Anmelden</a>
+            <a href="#login" class="btn-nav-premium">Anmelden</a>
         </div>
     </div>
 </nav>
@@ -104,7 +95,7 @@
             </div>
 
             <div class="hero-buttons-premium">
-                <a href="#register" class="btn-premium-large btn-gold-gradient" onclick="openRegisterModal()">Jetzt Starten</a>
+                <a href="#register" class="btn-premium-large btn-gold-gradient">Jetzt Starten</a>
                 <a href="#features" class="btn-premium-large btn-outline-gold">Mehr Erfahren</a>
             </div>
         </div>
@@ -213,7 +204,7 @@
                 <div class="benefit-check">✓</div>
                 <div class="benefit-text">
                     <strong>9er Premium-Turnier</strong> Teilnahme möglich<br>
-                    <span class="stats">(Voraussetzung: 5x 9er Spieler)</span>
+                    <span class="stats">(Voraussetzung: 5x 9er-Spieler)</span>
                 </div>
             </div>
         </div>
@@ -252,15 +243,15 @@
                             type="image/jpeg">
                     <source
                             media="(max-width: 767px)"
-                            srcset="img/background-header-mobile.jpg"
+                            srcset="img/background-header.jpg"
                             type="image/jpeg">
                     <img
                             src="img/background-header.jpg"
                             alt="Stadium Match"
                             loading="lazy"
                             decoding="async"
-                            width="800"
-                            height="405">
+                            width="1920"
+                            height="971">
                 </picture>
                 <div class="gallery-overlay">
                     <h3>Premier Stadium</h3>
@@ -282,15 +273,15 @@
                             type="image/jpeg">
                     <source
                             media="(max-width: 767px)"
-                            srcset="img/flashlights-mobile.jpg"
+                            srcset="img/flashlights.jpg"
                             type="image/jpeg">
                     <img
                             src="img/flashlights.jpg"
                             alt="Stadium Lights"
                             loading="lazy"
                             decoding="async"
-                            width="800"
-                            height="450">
+                            width="1920"
+                            height="1080">
                 </picture>
                 <div class="gallery-overlay">
                     <h3>Night Match Atmosphere</h3>
@@ -364,7 +355,7 @@
     <div class="final-cta-content">
         <h2>BEREIT FÜR DEINE MANAGER-KARRIERE?</h2>
         <p>Starte jetzt und schreibe deine eigene Erfolgsgeschichte – vom Underdog zur Legende!</p>
-        <a href="#register" class="btn-premium-large btn-gold-gradient" onclick="openRegisterModal()">Jetzt Loslegen</a>
+        <a href="#register" class="btn-premium-large btn-gold-gradient">Jetzt Loslegen</a>
     </div>
 </section>
 
@@ -408,26 +399,27 @@
 
 <div class="modal-container" id="authModal">
     <div class="modal-header">
-        <button class="modal-close">×</button>
+        <button class="modal-close" aria-label="Modal schließen">×</button>
         <div class="modal-logo">KICKERSCUP</div>
         <div class="modal-subtitle">Football Management Game</div>
     </div>
 
     <div class="modal-tabs">
-        <button class="tab-btn active">Login</button>
-        <button class="tab-btn">Registrieren</button>
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Registrieren</button>
     </div>
 
     <div class="modal-body">
         <div class="tab-content active" id="loginTab">
+            <div id="login"></div>
             <div class="social-login">
                 <div class="social-login-title">Schnell anmelden mit</div>
                 <div class="social-buttons">
-                    <button class="btn-social google">
+                    <button class="btn-social google" aria-label="Mit Google anmelden">
                         <span>🔴</span>
                         Google
                     </button>
-                    <button class="btn-social facebook">
+                    <button class="btn-social facebook" aria-label="Mit Facebook anmelden">
                         <span>📘</span>
                         Facebook
                     </button>
@@ -440,17 +432,17 @@
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label class="form-label">E-Mail <span class="required">*</span></label>
-                    <input type="email" class="form-input" placeholder="deine@email.de" required>
+                    <label for="loginEmail" class="form-label">E-Mail <span class="required">*</span></label>
+                    <input type="email" id="loginEmail" name="email" class="form-input" placeholder="deine@email.de" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Passwort <span class="required">*</span></label>
-                    <input type="password" class="form-input" placeholder="••••••••" required>
+                    <label for="loginPassword" class="form-label">Passwort <span class="required">*</span></label>
+                    <input type="password" id="loginPassword" name="password" class="form-input" placeholder="••••••••" required>
                 </div>
 
                 <div class="form-checkbox">
-                    <input type="checkbox" id="rememberMe">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
                     <label for="rememberMe">Angemeldet bleiben</label>
                 </div>
 
@@ -459,14 +451,15 @@
         </div>
 
         <div class="tab-content" id="registerTab">
+            <div id="register"></div>
             <div class="social-login">
                 <div class="social-login-title">Schnell registrieren mit</div>
                 <div class="social-buttons">
-                    <button class="btn-social google">
+                    <button class="btn-social google" aria-label="Mit Google registrieren">
                         <span>🔴</span>
                         Google
                     </button>
-                    <button class="btn-social facebook">
+                    <button class="btn-social facebook" aria-label="Mit Facebook registrieren">
                         <span>📘</span>
                         Facebook
                     </button>
@@ -479,27 +472,27 @@
 
             <form id="registerForm">
                 <div class="form-group">
-                    <label class="form-label">E-Mail <span class="required">*</span></label>
-                    <input type="email" class="form-input" placeholder="deine@email.de" required>
+                    <label for="registerEmail" class="form-label">E-Mail <span class="required">*</span></label>
+                    <input type="email" id="registerEmail" name="email" class="form-input" placeholder="deine@email.de" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Benutzername <span class="required">*</span></label>
-                    <input type="text" class="form-input" placeholder="DeinManagerName" required>
+                    <label for="registerUsername" class="form-label">Benutzername <span class="required">*</span></label>
+                    <input type="text" id="registerUsername" name="username" class="form-input" placeholder="DeinManagerName" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Passwort <span class="required">*</span></label>
-                    <input type="password" class="form-input" placeholder="Mindestens 8 Zeichen" required>
+                    <label for="registerPassword" class="form-label">Passwort <span class="required">*</span></label>
+                    <input type="password" id="registerPassword" name="password" class="form-input" placeholder="Mindestens 8 Zeichen" required>
                 </div>
 
                 <div class="form-checkbox">
-                    <input type="checkbox" id="newsletter">
+                    <input type="checkbox" id="newsletter" name="newsletter">
                     <label for="newsletter">Newsletter und Updates erhalten</label>
                 </div>
 
                 <div class="form-checkbox">
-                    <input type="checkbox" id="terms" required>
+                    <input type="checkbox" id="terms" name="terms" required>
                     <label for="terms">
                         Ich akzeptiere die
                         <a href="#agb">AGB</a> und
