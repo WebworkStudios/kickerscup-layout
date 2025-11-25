@@ -278,18 +278,20 @@ const KickerscupApp = (() => {
             });
         });
 
-        // CTA buttons - for opening register modal
+        // CTA buttons - only open modals for #login and #register links
         document.querySelectorAll('.btn-premium-large, .btn-nav-premium').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.preventDefault();
                 const href = btn.getAttribute('href');
 
-                // Open appropriate modal based on href
+                // Only prevent default and open modal for #login and #register
                 if (href === '#login') {
+                    e.preventDefault();
                     openLoginModal();
-                } else {
+                } else if (href === '#register') {
+                    e.preventDefault();
                     openRegisterModal();
                 }
+                // For other hrefs like #features, #gallery, #benefits - let the smooth scroll work naturally
             });
         });
 
