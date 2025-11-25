@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Kickerscup ist das ultimative Fußball-Management-Spiel. Übernimm die Kontrolle über deinen Club, entwickle Strategien und führe dein Team zum Ruhm. Jetzt kostenlos starten!">
+    <title>Kickerscup | Football Management Game</title>
+
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' 'unsafe-inline';
+                   style-src 'self' 'unsafe-inline' fonts.googleapis.com;
+                   font-src 'self' fonts.gstatic.com;
+                   img-src 'self' data:;
+                   connect-src 'self';">
+
+    <!-- SEO & Social Media Meta Tags -->
+    <meta property="og:title" content="Kickerscup | Football Management Game">
+    <meta property="og:description" content="Kickerscup ist das ultimative Fußball-Management-Spiel. Übernimm die Kontrolle über deinen Club, entwickle Strategien und führe dein Team zum Ruhm.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kickerscup.com">
+    <meta property="og:image" content="https://kickerscup.com/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kickerscup | Football Management Game">
+    <meta name="twitter:description" content="Das ultimative Fußball-Management-Spiel. Jetzt kostenlos starten!">
+    <meta name="twitter:image" content="https://kickerscup.com/twitter-image.jpg">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0d0d0d">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap"
+          rel="stylesheet"
+          media="print"
+          onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    </noscript>
+
+    <link rel="preload" as="image" href="background-header.webp" type="image/webp"
+          fetchpriority="high"
+          media="(min-width: 769px)">
+    <link rel="preload" as="image" href="background-header-mobile.webp" type="image/webp"
+          fetchpriority="high"
+          media="(max-width: 768px)">
+
+    <style>
+        /* [CSS bleibt unverändert] */
+        /* ⚡ PERFORMANCE: Font Face mit font-display optional für sofortiges Rendering */
+        @font-face {
+            font-family: 'Poppins Fallback';
+            src: local('Arial'), local('Helvetica'), local('sans-serif');
+            size-adjust: 100%;
+            ascent-override: 105%;
+            descent-override: 35%;
+            line-gap-override: 10%;
+        }
+
+        :root {
+            /* Optimierte Türkis-Palette - dunklere Grüntöne */
+            --gold-primary: #00c78b;
+            --gold-light: #00965b;
+            --platinum: #00e6a0;
+            --dark-primary: #0d0d0d;
+            --dark-secondary: #1a1a1a;
+            --text-white: #ffffff;
+            --text-muted: #b8b8b8;
+            --accent-blue: #00c78b;
+            --accent-green: #00c78b;
+            --accent-dark: #007a5e;
+
+            /* Türkis-Effekte */
+            --turquoise-glow: rgba(0, 199, 139, 0.3);
+            --turquoise-border: rgba(0, 199, 139, 0.4);
+            --turquoise-shadow: rgba(0, 199, 139, 0.2);
+            --turquoise-light: rgba(0, 230, 160, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* ⚡ PERFORMANCE: System-Font-Fallback für schnelleres Initial Rendering */
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--dark-primary);
+            color: var(--text-white);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            /* ⚡ PERFORMANCE: System-Font-Fallback für Headlines */
+            font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Improved Glass Morphism */
+        .glass {
+            background: rgba(26, 26, 26, 0.8); /* Fallback für Browser ohne backdrop-filter */
+            background: rgba(0, 199, 139, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--turquoise-border);
+        }
+
+        /* Navigation */
+        .premium-nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 3000;
+            padding: 25px 0;
+            transition:
+                    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    border-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .premium-nav.scrolled {
+            background: rgba(13, 13, 13, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 15px 0;
+            box-shadow: 0 10px 50px rgba(0, 199, 139, 0.1);
+            border-bottom: 1px solid var(--turquoise-border);
+        }
+
+        .nav-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            position: relative;
+            transition:
+                    letter-spacing 0.3s ease,
+                    filter 0.3s ease;
+        }
+
+        .brand-logo:hover {
+            letter-spacing: 5px;
+            filter: drop-shadow(0 0 10px var(--turquoise-glow));
+        }
+
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-primary), transparent);
+            transition: width 0.3s;
+        }
+
+        .brand-logo:hover::after {
+            width: 100px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--text-white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition:
+                    color 0.3s ease,
+                    text-shadow 0.3s ease;
+            position: relative;
+            padding: 10px 5px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--gold-primary);
+            transition: width 0.3s;
+            box-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .nav-menu a:hover {
+            color: var(--gold-primary);
+            text-shadow: 0 0 20px var(--turquoise-glow);
+        }
+
+        .nav-menu a:hover::before {
+            width: 100%;
+        }
+
+        .btn-nav-premium {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            color: var(--dark-primary);
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 30px var(--turquoise-glow);
+            transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease,
+                    border-color 0.3s ease;
+            border: 2px solid transparent;
+            min-height: 44px;
+        }
+
+        .btn-nav-premium:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                    0 12px 40px var(--turquoise-glow),
+                    0 0 40px var(--turquoise-shadow),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: var(--platinum);
+        }
+
+        /* Hero Premium */
+        .hero-premium {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-bg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('background-header.jpg') center center/cover no-repeat;
+            animation: kenBurns 30s ease-in-out infinite alternate;
+            /* ⚡ PERFORMANCE: will-change für bessere Animation-Performance */
+            will-change: transform;
+        }
+
+        /* ⚡ PERFORMANCE: Ken Burns Animation auf Mobile deaktivieren */
+        @media (max-width: 768px) {
+            .hero-bg-layer {
+                animation: none;
+                will-change: auto;
+            }
+        }
+
+        /* WebP support for hero background */
+        @supports (background-image: url('image.webp')) {
+            .hero-bg-layer {
+                background-image: url('background-header.webp');
+            }
+
+            /* ⚡ PERFORMANCE: Mobile-optimiertes Bild (~60% kleiner) */
+            @media (max-width: 768px) {
+                .hero-bg-layer {
+                    background-image: url('background-header-mobile.webp');
+                }
+            }
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1) translateX(0); }
+            100% { transform: scale(1.15) translateX(-5%); }
+        }
+
+        .hero-overlay-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                    135deg,
+                    rgba(13, 13, 13, 0.95) 0%,
+                    rgba(13, 13, 13, 0.7) 50%,
+                    rgba(13, 13, 13, 0.9) 100%
+            );
+        }
+
+        /* Zusätzlicher Türkis-Glow-Layer */
+        .hero-premium::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                    ellipse at 30% 50%,
+                    var(--turquoise-light) 0%,
+                    transparent 50%
+            );
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-content-grid {
+            position: relative;
+            z-index: 100;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 60px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .hero-main-content {
+            max-width: 800px;
+        }
+
+        .hero-pre-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--turquoise-light);
+            border: 1px solid var(--turquoise-border);
+            padding: 12px 30px;
+            border-radius: 50px;
+            margin-bottom: 40px;
+            animation: slideInFromLeft 1s ease-out;
+            box-shadow: 0 5px 20px var(--turquoise-shadow);
+        }
+
+        @keyframes slideInFromLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero-pre-title span {
+            color: var(--gold-primary);
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .hero-title-premium {
+            font-size: 92px;
+            line-height: 0.95;
+            margin-bottom: 35px;
+            background: linear-gradient(135deg, var(--gold-primary) 0%, var(--accent-green) 50%, var(--platinum) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInFromLeft 1s ease-out 0.2s both;
+            filter: drop-shadow(0 0 30px var(--turquoise-glow));
+        }
+
+        .hero-subtitle-premium {
+            font-size: 22px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 50px;
+            animation: slideInFromLeft 1s ease-out 0.4s both;
+        }
+
+        .hero-premium-stats {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 50px;
+            animation: slideInFromLeft 1s ease-out 0.6s both;
+        }
+
+        .premium-stat-box {
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .premium-stat-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .premium-stat-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--gold-primary), var(--accent-dark));
+            box-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .premium-stat-box .stat-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--gold-primary);
+            line-height: 1;
+            margin-bottom: 10px;
+            margin-left: 15px;
+            text-shadow: 0 0 20px var(--turquoise-glow);
+        }
+
+        .premium-stat-box .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-left: 15px;
+        }
+
+        .hero-buttons-premium {
+            display: flex;
+            gap: 25px;
+            animation: slideInFromLeft 1s ease-out 0.8s both;
+        }
+
+        .btn-premium-large {
+            padding: 22px 55px;
+            border-radius: 40px;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-premium-large::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-premium-large:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-gold-gradient {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            color: var(--dark-primary);
+            box-shadow: 0 15px 50px var(--turquoise-glow);
+            border: 2px solid transparent;
+        }
+
+        .btn-gold-gradient:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                    0 20px 60px var(--turquoise-glow),
+                    0 0 40px var(--turquoise-shadow),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: var(--platinum);
+        }
+
+        .btn-outline-gold {
+            background: transparent;
+            border: 2px solid var(--gold-primary);
+            color: var(--gold-primary);
+            box-shadow: 0 0 20px var(--turquoise-shadow);
+        }
+
+        .btn-outline-gold:hover {
+            background: var(--gold-primary);
+            color: var(--dark-primary);
+            box-shadow: 0 15px 50px var(--turquoise-glow);
+            text-shadow: none;
+        }
+
+        /* Hero Player Showcase */
+        .hero-player-section {
+            position: relative;
+            animation: slideInFromRight 1s ease-out 0.5s both;
+        }
+
+        @keyframes slideInFromRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .player-card-premium {
+            position: relative;
+            background: rgba(0, 199, 139, 0.05);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--turquoise-border);
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow:
+                    0 30px 80px rgba(0, 0, 0, 0.5),
+                    0 0 60px var(--turquoise-shadow);
+            transition: all 0.4s;
+        }
+
+        .player-card-premium:hover {
+            transform: translateY(-10px);
+            box-shadow:
+                    0 40px 100px rgba(0, 0, 0, 0.6),
+                    0 0 80px var(--turquoise-glow);
+        }
+
+        /* 🛠️ FIX CLS / Non-Composited Animation: Die 'shimmer' Animation auf background-position
+           wurde entfernt, da sie nicht zusammengesetzt (non-composited) ist und den CLS-Wert erhöhen kann.
+           Das ::before-Element dient nun als statischer Grenz-Glow. */
+        .player-card-premium::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--gold-primary), transparent, var(--platinum));
+            border-radius: 30px;
+            opacity: 0.4;
+            z-index: -1;
+            /* animation: shimmer 3s linear infinite; <-- ENTFERNT */
+        }
+
+        /* @keyframes shimmer {
+               0% { background-position: 0% 50%; }
+               50% { background-position: 100% 50%; }
+               100% { background-position: 0% 50%; }
+           }
+           <-- GESAMTE KEYFRAMES-DEFINITION ENTFERNT
+        */
+
+        @keyframes levitate {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-25px); }
+        }
+
+        .player-info-overlay {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            right: 50px;
+            background: rgba(13, 13, 13, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--turquoise-border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px var(--turquoise-shadow);
+        }
+
+        /* FIX ACCESSIBILITY: New class for the non-heading title to keep styles */
+        .player-info-overlay .player-title {
+            font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--gold-primary);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .player-info-overlay h3 {
+            /* This rule is now obsolete for the player title, but kept for potential future h3 usage */
+            font-size: 24px;
+            color: var(--gold-primary);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .player-info-overlay p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Premium Features */
+        .premium-features-section {
+            padding: 150px 60px;
+            background: linear-gradient(to bottom, var(--dark-primary) 0%, var(--dark-secondary) 100%);
+            position: relative;
+        }
+
+        .premium-features-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('flashlights.jpg') center center/cover no-repeat fixed;
+            opacity: 0.05;
+        }
+
+        /* WebP support for premium features background */
+        @supports (background-image: url('image.webp')) {
+            .premium-features-section::before {
+                background-image: url('flashlights.webp');
+            }
+        }
+
+        .premium-features-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .premium-section-header {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: var(--turquoise-light);
+            border: 1px solid var(--turquoise-border);
+            color: var(--gold-primary);
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px var(--turquoise-shadow);
+            animation: float-badge 3s ease-in-out infinite;
+        }
+
+        @keyframes float-badge {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .premium-section-header h2 {
+            font-size: 72px;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px var(--turquoise-glow));
+        }
+
+        .premium-section-header p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Stadium Gallery */
+        .stadium-gallery-section {
+            padding: 150px 60px;
+            background: var(--dark-primary);
+        }
+
+        .stadium-gallery-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 25px;
+            overflow: hidden;
+            height: 400px;
+            cursor: pointer;
+            transition: all 0.4s;
+            border: 2px solid transparent;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 30px 80px var(--turquoise-glow);
+            border-color: var(--gold-primary);
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 199, 139, 0.9) 0%, transparent 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-overlay h3 {
+            font-size: 32px;
+            color: var(--text-white);
+            text-shadow: 0 0 20px var(--turquoise-glow);
+        }
+
+        /* Exclusive Benefits */
+        .exclusive-benefits {
+            padding: 150px 60px;
+            background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-primary) 100%);
+        }
+
+        .benefits-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .benefit-item {
+            background: rgba(0, 199, 139, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--turquoise-border);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            transition: all 0.3s;
+        }
+
+        .benefit-item:hover {
+            border-color: var(--gold-primary);
+            transform: translateX(10px);
+            box-shadow: 0 15px 50px var(--turquoise-glow);
+            background: rgba(0, 199, 139, 0.08);
+        }
+
+        .benefit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--accent-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            flex-shrink: 0;
+            box-shadow: 0 10px 30px var(--turquoise-glow);
+            transition: all 0.3s;
+        }
+
+        .benefit-item:hover .benefit-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        /* FIX ACCESSIBILITY: Update h4 selector to h3 */
+        .benefit-content h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: var(--text-white);
+        }
+
+        .benefit-content p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        /* Final Premium CTA */
+        .final-premium-cta {
+            padding: 180px 60px;
+            background: url('flashlights.jpg') center center/cover no-repeat fixed;
+            position: relative;
+        }
+
+        /* WebP support for final CTA background */
+        @supports (background-image: url('image.webp')) {
+            .final-premium-cta {
+                background-image: url('flashlights.webp');
+            }
+        }
+
+        .final-premium-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(13, 13, 13, 0.95), rgba(26, 26, 26, 0.9));
+        }
+
+        .final-premium-cta::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, var(--turquoise-light) 0%, transparent 70%);
+        }
+
+        .final-cta-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .final-cta-content h2 {
+            font-size: 82px;
+            margin-bottom: 35px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--accent-green), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 40px var(--turquoise-glow));
+        }
+
+        .final-cta-content p {
+            font-size: 24px;
+            color: var(--text-muted);
+            margin-bottom: 60px;
+            line-height: 1.7;
+        }
+
+        /* Footer Premium */
+        footer {
+            background: rgba(13, 13, 13, 0.98);
+            border-top: 2px solid var(--turquoise-border);
+            padding: 100px 60px 50px;
+            box-shadow: 0 -10px 50px var(--turquoise-shadow);
+        }
+
+        .footer-premium-grid {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 80px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand-premium h3 {
+            font-size: 42px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 10px var(--turquoise-glow));
+        }
+
+        .footer-column h4 {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: var(--gold-primary);
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .footer-brand-premium p {
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .footer-column a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+            position: relative;
+            padding-left: 0;
+        }
+
+        .footer-column a::before {
+            content: '→';
+            position: absolute;
+            left: -20px;
+            opacity: 0;
+            transition: all 0.3s;
+            color: var(--gold-primary);
+        }
+
+        .footer-column a:hover {
+            color: var(--gold-primary);
+            padding-left: 25px;
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        .footer-column a:hover::before {
+            left: 0;
+            opacity: 1;
+        }
+
+        .footer-bottom-premium {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding-top: 50px;
+            border-top: 1px solid var(--turquoise-border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Scroll Progress Indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--platinum));
+            z-index: 9999;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content-grid { grid-template-columns: 1fr; }
+            .hero-title-premium { font-size: 52px; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .benefits-grid { grid-template-columns: 1fr; }
+            .footer-premium-grid { grid-template-columns: 1fr; }
+            .nav-menu { display: none; }
+            .hero-premium-stats { flex-direction: column; gap: 30px; }
+        }
+
+        /* Loading Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        body {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* =======================
+           PREMIUM BENEFITS GRID
+           ======================= */
+
+        /* Premium Details Section */
+        .premium-details-section {
+            margin-top: 100px;
+            padding-top: 80px;
+            border-top: 1px solid var(--turquoise-border);
+        }
+
+        /* Premium CTA Inline */
+        .premium-cta-inline {
+            margin-top: 80px;
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(0, 199, 139, 0.05);
+            border: 2px solid var(--turquoise-border);
+            border-radius: 25px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .premium-cta-inline h3 {
+            font-size: 42px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .premium-cta-inline p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 35px;
+        }
+
+        .premium-details-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .premium-details-header h3 {
+            font-size: 48px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .premium-details-header p {
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        .premium-benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .premium-benefit-box {
+            background: rgba(0, 199, 139, 0.05);
+            border: 1px solid var(--turquoise-border);
+            border-radius: 15px;
+            padding: 25px 30px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .premium-benefit-box:hover {
+            background: rgba(0, 199, 139, 0.08);
+            border-color: var(--gold-primary);
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px var(--turquoise-shadow);
+        }
+
+        .premium-benefit-box.highlight {
+            background: rgba(0, 199, 139, 0.1);
+            border: 2px solid var(--gold-primary);
+            box-shadow: 0 5px 20px var(--turquoise-shadow);
+        }
+
+        .premium-benefit-box.highlight:hover {
+            box-shadow: 0 15px 40px var(--turquoise-glow);
+        }
+
+        .benefit-check {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--accent-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-primary);
+            font-weight: 900;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 5px 15px var(--turquoise-shadow);
+        }
+
+        .benefit-text {
+            flex: 1;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .benefit-text strong {
+            color: var(--text-white);
+            font-weight: 700;
+        }
+
+        .benefit-text .stats {
+            display: block;
+            margin-top: 5px;
+            font-size: 14px;
+            color: var(--gold-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .premium-benefits-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* =======================
+           AUTH MODALS STYLES
+           ======================= */
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Container */
+        .modal-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 9999;
+            width: 90%;
+            max-width: 520px;
+            background: var(--dark-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--turquoise-border);
+            box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 100px var(--turquoise-glow);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-container.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Custom Scrollbar */
+        .modal-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .modal-container::-webkit-scrollbar-thumb {
+            background: var(--gold-primary);
+            border-radius: 10px;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            padding: 40px 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--turquoise-border);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--gold-primary);
+            color: var(--dark-primary);
+            transform: rotate(90deg);
+        }
+
+        .modal-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Tabs */
+        .modal-tabs {
+            display: flex;
+            padding: 0 40px;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .tab-btn:hover {
+            color: var(--gold-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--gold-primary);
+            border-bottom-color: var(--gold-primary);
+            text-shadow: 0 0 10px var(--turquoise-glow);
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 40px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: modalFadeIn 0.4s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Social Login Buttons */
+        .social-login {
+            margin-bottom: 30px;
+        }
+
+        .social-login-title {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .social-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-social {
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-social:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--gold-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-social.google:hover {
+            background: rgba(234, 67, 53, 0.1);
+            border-color: #EA4335;
+        }
+
+        .btn-social.facebook:hover {
+            background: rgba(24, 119, 242, 0.1);
+            border-color: #1877F2;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-white);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-label .required {
+            color: var(--gold-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-white);
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px var(--turquoise-glow);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--gold-primary);
+        }
+
+        .form-checkbox label {
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .form-checkbox label a {
+            color: var(--gold-primary);
+            text-decoration: none;
+        }
+
+        .form-checkbox label a:hover {
+            text-decoration: underline;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            /* 🛠️ FIX: Feste Dimensionen, um dynamischen Umbruch durch Textänderung zu verhindern */
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Ende FIX */
+            padding: 18px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            color: var(--dark-primary);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 8px 30px var(--turquoise-glow);
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                    0 12px 40px var(--turquoise-glow),
+                    0 0 40px var(--turquoise-shadow);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 20px 40px 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .modal-footer a {
+            color: var(--gold-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .modal-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal Responsive */
+        @media (max-width: 768px) {
+            .modal-container {
+                max-width: 95%;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 25px;
+                padding-right: 25px;
+            }
+
+            .modal-tabs {
+                padding: 0 25px;
+            }
+
+            .social-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ⚡ PERFORMANCE: Reduced Motion für Accessibility und Low-End Devices */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<nav class="premium-nav" id="premiumNav">
+    <div class="nav-wrapper">
+        <div class="brand-logo">KICKERSCUP</div>
+        <div class="nav-menu">
+            <a href="#features">Features</a>
+            <a href="#gallery">Gallery</a>
+            <a href="#benefits">Benefits</a>
+            <a href="#login" class="btn-nav-premium" onclick="openLoginModal()">Anmelden</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-premium">
+    <div class="hero-bg-layer"></div>
+    <div class="hero-overlay-gradient"></div>
+
+    <div class="hero-content-grid">
+        <div class="hero-main-content">
+            <div class="hero-pre-title">
+                <span>🏆 FOOTBALL MANAGEMENT GAME</span>
+            </div>
+
+            <h1 class="hero-title-premium">VOM UNDERDOG ZUR LEGENDE</h1>
+
+            <p class="hero-subtitle-premium">
+                Übernimm das Ruder deines eigenen Fußballclubs! Stelle dein Team auf, entwickle deine Taktik und kämpfe um Titel in der Welt des virtuellen Fußballs. Dein Klub, deine Regeln, dein Erfolg!
+            </p>
+
+            <div class="hero-premium-stats">
+                <div class="premium-stat-box">
+                    <div class="stat-value">12.487</div>
+                    <div class="stat-label">Aktive Manager</div>
+                </div>
+                <div class="premium-stat-box">
+                    <div class="stat-value">248</div>
+                    <div class="stat-label">Aktive Ligen</div>
+                </div>
+                <div class="premium-stat-box">
+                    <div class="stat-value">37</div>
+                    <div class="stat-label">Länder</div>
+                </div>
+            </div>
+
+            <div class="hero-buttons-premium">
+                <a href="#register" class="btn-premium-large btn-gold-gradient" onclick="openRegisterModal()">Jetzt Starten</a>
+                <a href="#features" class="btn-premium-large btn-outline-gold">Mehr Erfahren</a>
+            </div>
+        </div>
+
+        <div class="hero-player-section">
+            <div class="player-card-premium">
+                <picture>
+                    <source
+                            srcset="img-player.webp"
+                            type="image/webp">
+                    <source
+                            srcset="img-player.png"
+                            type="image/png">
+                    <img
+                            src="img-player.png"
+                            alt="Star Spieler"
+                            class="player-showcase-img"
+                            width="569"
+                            height="733"
+                            loading="lazy"
+                            decoding="async">
+                </picture>
+                <div class="player-info-overlay">
+                    <div class="player-title">Dein Star-Spieler</div>
+                    <p>Entwickle Talente zu Weltklasse-Spielern</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="premium-features-section" id="features">
+    <div class="premium-features-content">
+        <div class="premium-section-header">
+            <span class="section-badge">SPIELFEATURES</span>
+            <h2>DEINE WERKZEUGE ZUM ERFOLG</h2>
+            <p>Alles was du brauchst, um deinen Club an die Spitze zu führen</p>
+        </div>
+
+        <div class="premium-benefits-grid">
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>15 Mio. Taler</strong> Premiumbonus zum Start
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Torjägerliste</strong> Gewinnoption automatisch freigeschaltet
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Spielebeobachter</strong> Manageroption verfügbar
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Mannschaftsarzt</strong> Manageroption verfügbar
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Rechtsanwalt</strong> Manageroption verfügbar
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Co-Trainer</strong> Manageroption verfügbar
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Teamnamen-Einsatzanzeige</strong> freigeschaltet
+                </div>
+            </div>
+
+            <div class="premium-benefit-box">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Rasen-Qualitätsanzeige</strong> freigeschaltet
+                </div>
+            </div>
+
+            <div class="premium-benefit-box highlight">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>Top 9er Manndecker</strong> • 27 Jahre • 1 Jahr Vertrag<br>
+                    <span class="stats">Werte: 60-20-75-12</span>
+                </div>
+            </div>
+
+            <div class="premium-benefit-box highlight">
+                <div class="benefit-check">✓</div>
+                <div class="benefit-text">
+                    <strong>9er Premium-Turnier</strong> Teilnahme möglich<br>
+                    <span class="stats">(Voraussetzung: 5x 9er Spieler)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-cta-inline">
+            <h3>Bereit für den Premium-Vorteil?</h3>
+            <p>Starte jetzt durch mit allen exklusiven Features</p>
+            <a href="#register" class="btn-premium-large btn-gold-gradient">Premium Aktivieren</a>
+        </div>
+    </div>
+</section>
+
+
+<section class="stadium-gallery-section" id="gallery">
+    <div class="stadium-gallery-container">
+        <div class="premium-section-header">
+            <span class="section-badge">STADIUM EXPERIENCE</span>
+            <h2>ERLEBE DIE ATMOSPHÄRE</h2>
+            <p>Spiele in den legendärsten Stadien der Welt</p>
+        </div>
+
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <picture>
+                    <source
+                            media="(min-width: 768px)"
+                            srcset="background-header.webp"
+                            type="image/webp">
+                    <source
+                            media="(max-width: 767px)"
+                            srcset="background-header-mobile.webp"
+                            type="image/webp">
+                    <source
+                            media="(min-width: 768px)"
+                            srcset="background-header.jpg"
+                            type="image/jpeg">
+                    <source
+                            media="(max-width: 767px)"
+                            srcset="background-header-mobile.jpg"
+                            type="image/jpeg">
+                    <img
+                            src="background-header.jpg"
+                            alt="Stadium Match"
+                            loading="lazy"
+                            decoding="async"
+                            width="800"
+                            height="405">
+                </picture>
+                <div class="gallery-overlay">
+                    <h3>Premier Stadium</h3>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <picture>
+                    <source
+                            media="(min-width: 768px)"
+                            srcset="flashlights.webp"
+                            type="image/webp">
+                    <source
+                            media="(max-width: 767px)"
+                            srcset="flashlights-mobile.webp"
+                            type="image/webp">
+                    <source
+                            media="(min-width: 768px)"
+                            srcset="flashlights.jpg"
+                            type="image/jpeg">
+                    <source
+                            media="(max-width: 767px)"
+                            srcset="flashlights-mobile.jpg"
+                            type="image/jpeg">
+                    <img
+                            src="flashlights.jpg"
+                            alt="Stadium Lights"
+                            loading="lazy"
+                            decoding="async"
+                            width="800"
+                            height="450">
+                </picture>
+                <div class="gallery-overlay">
+                    <h3>Night Match Atmosphere</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="exclusive-benefits" id="benefits">
+    <div class="benefits-container">
+        <div class="premium-section-header">
+            <span class="section-badge">WARUM KICKERSCUP</span>
+            <h2>DAS MACHT UNS BESONDERS</h2>
+            <p>Was uns von anderen unterscheidet</p>
+        </div>
+
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <div class="benefit-icon">🎖️</div>
+                <div class="benefit-content">
+                    <h3>Perfekt Balanciert</h3>
+                    <p>Regelmäßige Balance-Updates sorgen dafür, dass keine Taktik oder Formation übermächtig wird. Jede Spielweise hat ihre Stärken und Schwächen.</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">💰</div>
+                <div class="benefit-content">
+                    <h3>Echte Belohnungen</h3>
+                    <p>Gewinne Sachpreise, Premium-Abos und exklusive Merchandise bei Turnieren und Seasonal Events.</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">🔒</div>
+                <div class="benefit-content">
+                    <h3>Datenschutz & Sicherheit</h3>
+                    <p>DSGVO-konform mit höchsten Sicherheitsstandards. Deine Daten sind bei uns in sicheren Händen.</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">🚀</div>
+                <div class="benefit-content">
+                    <h3>Ständige Innovation</h3>
+                    <p>Regelmäßige Updates mit neuen Features, verbesserten Algorithmen und Community-gewünschten Inhalten.</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">🎓</div>
+                <div class="benefit-content">
+                    <h3>Lern-Akademie</h3>
+                    <p>Profitiere von Video-Tutorials, Taktik-Guides und Insights von den besten Managern der Community.</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">⚡</div>
+                <div class="benefit-content">
+                    <h3>Premium-Support</h3>
+                    <p>24/7 Support-Team, das dir bei allen Fragen hilft und für schnelle Problemlösungen sorgt.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="final-premium-cta">
+    <div class="final-cta-content">
+        <h2>BEREIT FÜR DEINE MANAGER-KARRIERE?</h2>
+        <p>Starte jetzt und schreibe deine eigene Erfolgsgeschichte – vom Underdog zur Legende!</p>
+        <a href="#register" class="btn-premium-large btn-gold-gradient" onclick="openRegisterModal()">Jetzt Loslegen</a>
+    </div>
+</section>
+
+<div id="agb" style="height: 1px; visibility: hidden;"></div>
+<div id="datenschutz" style="height: 1px; visibility: hidden;"></div>
+
+<footer>
+    <div class="footer-premium-grid">
+        <div class="footer-brand-premium">
+            <h3>KICKERSCUP</h3>
+            <p>Die ultimative Plattform für anspruchsvolle Fußball-Manager. Wo Strategie auf Leidenschaft trifft.</p>
+        </div>
+        <div class="footer-column">
+            <h4>Produkt</h4>
+            <a href="#">Features</a>
+            <a href="#">Preise</a>
+            <a href="#">Roadmap</a>
+            <a href="#">FAQ</a>
+        </div>
+        <div class="footer-column">
+            <h4>Community</h4>
+            <a href="#">Forum</a>
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+        </div>
+        <div class="footer-column">
+            <h4>Unternehmen</h4>
+            <a href="#">Mediadaten</a>
+            <a href="#">Sponsoring</a>
+            <a href="#">Impressum</a>
+            <a href="#datenschutz">Datenschutz</a>
+            <a href="#agb">AGB</a>
+        </div>
+    </div>
+    <div class="footer-bottom-premium">
+        <p>&copy; 2025 Kickerscup. Football Management Game. Alle Rechte vorbehalten.</p>
+    </div>
+</footer>
+
+<script>
+    // [JavaScript bleibt unverändert, da die Logik zur Vermeidung von Layout Thrashing bereits optimal ist]
+    // =======================
+    // OPTIMIZED SCROLL HANDLING (Anti-Reflow)
+    // Die Trennung von DOM-Lese- und Schreibvorgängen ist hier bereits
+    // implementiert, um Layout Thrashing zu vermeiden.
+    // =======================
+    // Cache DOM elements once on load for better performance
+    const nav = document.getElementById('premiumNav');
+    const scrollProgress = document.getElementById('scrollProgress');
+    const hero = document.querySelector('.hero-bg-layer');
+
+    // ⚡ PERFORMANCE: Cache windowHeight to avoid repeated Layout-Queries
+    let cachedWindowHeight = 0;
+
+    function updateWindowHeight() {
+        // Hotspot 2 (Erzwungener dynamischer Umbruch) behoben:
+        // document.documentElement.scrollHeight ist eine Layout-Lese-Operation.
+        // Die Initialberechnung wird verzögert, bis das Layout stabil ist.
+        cachedWindowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    }
+
+    // 🛠️ FIX: Verzögerte Initialberechnung (läuft nach dem Laden aller Inhalte)
+    window.addEventListener('load', updateWindowHeight);
+
+    // Recalculate on resize (debounced)
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateWindowHeight, 250);
+    });
+
+    // Variable to track if an animation frame is pending
+    let isThrottled = false;
+
+    function updateScrollLogic() {
+        // ⚡ PERFORMANCE: READ PHASE (Lese-Vorgänge zuerst)
+        const scrolledY = window.scrollY; // DOM Read
+
+        // ⚡ PERFORMANCE: Calculate values (computation phase)
+        const shouldAddScrollClass = scrolledY > 100;
+        const progress = cachedWindowHeight > 0 ? (scrolledY / cachedWindowHeight) * 100 : 0;
+
+        // ⚡ PERFORMANCE: Parallax effect uses transform, which is composited
+        const parallaxOffset = scrolledY * 0.5;
+
+        // ⚡ PERFORMANCE: WRITE PHASE (Schreib-Vorgänge gebündelt)
+
+        // 1. Navigation scroll class (DOM Write)
+        if (shouldAddScrollClass) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+
+        // 2. Scroll Progress Bar (DOM Write)
+        scrollProgress.style.width = progress + '%';
+
+        // 3. Parallax Effect for Hero (DOM Write: Composited transform)
+        if (hero) {
+            hero.style.transform = `translateY(${parallaxOffset}px)`;
+        }
+
+        // Reset throttle status
+        isThrottled = false;
+    }
+
+    // Single scroll listener that combines all functions and throttles with rAF
+    window.addEventListener('scroll', () => {
+        // Nutzung von requestAnimationFrame (rAF) zur Synchronisation des Updates mit dem Browser-Zyklus
+        if (!isThrottled) {
+            window.requestAnimationFrame(updateScrollLogic);
+            isThrottled = true;
+        }
+    }, { passive: true }); // ⚡ PERFORMANCE: passive listener
+
+    // Smooth Scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            // Skip if it's just "#" or a modal anchor (handled by onclick)
+            if (href === '#' || href === '#login' || href === '#register') {
+                return;
+            }
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Intersection Observer for Progressive Loading
+    const observerOptions = {
+        threshold: 0.15,
+        rootMargin: '0px 0px -80px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.benefit-item, .gallery-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(50px)';
+        el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+        observer.observe(el);
+    });
+
+    // =======================
+    // AUTH MODALS FUNCTIONS - Modularisiert
+    // =======================
+
+    const KickerscupApp = (() => {
+        // Private variables
+        let scrollTimeout = null;
+        let loadingTimeouts = new Map();
+
+        // DOM element cache
+        const elements = {
+            nav: null,
+            modalOverlay: null,
+            authModal: null,
+            loginTab: null,
+            registerTab: null,
+            loginFooter: null,
+            registerFooter: null
+        };
+
+        // Initialize DOM elements cache
+        function cacheElements() {
+            elements.nav = document.querySelector('.premium-nav');
+            elements.modalOverlay = document.getElementById('modalOverlay');
+            elements.authModal = document.getElementById('authModal');
+            elements.loginTab = document.getElementById('loginTab');
+            elements.registerTab = document.getElementById('registerTab');
+            elements.loginFooter = document.getElementById('loginFooter');
+            elements.registerFooter = document.getElementById('registerFooter');
+        }
+
+        function openLoginModal() {
+            elements.modalOverlay?.classList.add('active');
+            elements.authModal?.classList.add('active');
+            switchTab('login');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openRegisterModal() {
+            elements.modalOverlay?.classList.add('active');
+            elements.authModal?.classList.add('active');
+            switchTab('register');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModals() {
+            // Clear loading timeouts
+            loadingTimeouts.forEach(timeout => clearTimeout(timeout));
+            loadingTimeouts.clear();
+
+            elements.modalOverlay?.classList.remove('active');
+            elements.authModal?.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function switchTab(tab) {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            if (tab === 'login') {
+                tabButtons[0]?.classList.add('active');
+                elements.loginTab?.classList.add('active');
+                elements.loginFooter?.classList.remove('hidden');
+                elements.registerFooter?.classList.add('hidden');
+            } else {
+                tabButtons[1]?.classList.add('active');
+                elements.registerTab?.classList.add('active');
+                elements.loginFooter?.classList.add('hidden');
+                elements.registerFooter?.classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const submitBtn = form.querySelector('.btn-submit');
+            const originalText = submitBtn.textContent;
+
+            submitBtn.textContent = 'Wird angemeldet...';
+            submitBtn.disabled = true;
+
+            const timeoutId = setTimeout(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                alert('Login erfolgreich! (Dies ist nur eine Demo)');
+                closeModals();
+                loadingTimeouts.delete('login');
+            }, 1500);
+
+            loadingTimeouts.set('login', timeoutId);
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const submitBtn = form.querySelector('.btn-submit');
+            const originalText = submitBtn.textContent;
+
+            submitBtn.textContent = 'Wird erstellt...';
+            submitBtn.disabled = true;
+
+            const timeoutId = setTimeout(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                alert('Account erfolgreich erstellt!\n\nEine Bestätigungs-E-Mail wurde versendet.\nDein Lieblings-Team kannst du nach dem Login auswählen.');
+                closeModals();
+                loadingTimeouts.delete('register');
+            }, 1500);
+
+            loadingTimeouts.set('register', timeoutId);
+        }
+
+        function socialLogin(provider) {
+            const sanitizedProvider = String(provider).replace(/[^a-z]/gi, '');
+            alert(`Social Login mit ${sanitizedProvider} würde hier gestartet.\n\nIn der echten Implementierung würde hier der OAuth-Flow beginnen.`);
+        }
+
+        // Event Listeners
+        function initEventListeners() {
+            // Close modal on ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModals();
+            });
+
+            // Modal overlay click
+            elements.modalOverlay?.addEventListener('click', closeModals);
+
+            // Modal close button
+            document.querySelector('.modal-close')?.addEventListener('click', closeModals);
+
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+                btn.addEventListener('click', () => switchTab(index === 0 ? 'login' : 'register'));
+            });
+
+            // Forms
+            document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+            document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
+
+            // Social login buttons
+            document.querySelectorAll('.btn-social').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const provider = btn.classList.contains('google') ? 'Google' : 'Facebook';
+                    socialLogin(provider);
+                });
+            });
+
+            // CTA buttons - for opening register modal
+            document.querySelectorAll('.btn-premium-large, .btn-nav-premium').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openRegisterModal();
+                });
+            });
+
+            // Footer links
+            const loginFooterLink = document.querySelector('#loginFooter a');
+            if (loginFooterLink) {
+                loginFooterLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab('register');
+                });
+            }
+
+            const registerFooterLink = document.querySelector('#registerFooter a');
+            if (registerFooterLink) {
+                registerFooterLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab('login');
+                });
+            }
+        }
+
+        // Public API
+        return {
+            init: () => {
+                cacheElements();
+                initEventListeners();
+            }
+        };
+    })();
+
+    // Initialize modal system after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', KickerscupApp.init);
+    } else {
+        KickerscupApp.init();
+    }
+</script>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<div class="modal-container" id="authModal">
+    <div class="modal-header">
+        <button class="modal-close">×</button>
+        <div class="modal-logo">KICKERSCUP</div>
+        <div class="modal-subtitle">Football Management Game</div>
+    </div>
+
+    <div class="modal-tabs">
+        <button class="tab-btn active">Login</button>
+        <button class="tab-btn">Registrieren</button>
+    </div>
+
+    <div class="modal-body">
+        <div class="tab-content active" id="loginTab">
+            <div class="social-login">
+                <div class="social-login-title">Schnell anmelden mit</div>
+                <div class="social-buttons">
+                    <button class="btn-social google">
+                        <span>🔴</span>
+                        Google
+                    </button>
+                    <button class="btn-social facebook">
+                        <span>📘</span>
+                        Facebook
+                    </button>
+                </div>
+            </div>
+
+            <div class="divider">
+                <span>Oder mit E-Mail</span>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">E-Mail <span class="required">*</span></label>
+                    <input type="email" class="form-input" placeholder="deine@email.de" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Passwort <span class="required">*</span></label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-checkbox">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Angemeldet bleiben</label>
+                </div>
+
+                <button type="submit" class="btn-submit">Jetzt Anmelden</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="registerTab">
+            <div class="social-login">
+                <div class="social-login-title">Schnell registrieren mit</div>
+                <div class="social-buttons">
+                    <button class="btn-social google">
+                        <span>🔴</span>
+                        Google
+                    </button>
+                    <button class="btn-social facebook">
+                        <span>📘</span>
+                        Facebook
+                    </button>
+                </div>
+            </div>
+
+            <div class="divider">
+                <span>Oder mit E-Mail</span>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">E-Mail <span class="required">*</span></label>
+                    <input type="email" class="form-input" placeholder="deine@email.de" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Benutzername <span class="required">*</span></label>
+                    <input type="text" class="form-input" placeholder="DeinManagerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Passwort <span class="required">*</span></label>
+                    <input type="password" class="form-input" placeholder="Mindestens 8 Zeichen" required>
+                </div>
+
+                <div class="form-checkbox">
+                    <input type="checkbox" id="newsletter">
+                    <label for="newsletter">Newsletter und Updates erhalten</label>
+                </div>
+
+                <div class="form-checkbox">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">
+                        Ich akzeptiere die
+                        <a href="#agb">AGB</a> und
+                        <a href="#datenschutz">Datenschutzerklärung</a>
+                        <span class="required">*</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit">Account Erstellen</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <div id="loginFooter">
+            Noch kein Account?
+            <a href="#register">Jetzt registrieren</a>
+        </div>
+        <div id="registerFooter" class="hidden">
+            Bereits registriert?
+            <a href="#login">Zum Login</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
