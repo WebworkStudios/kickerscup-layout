@@ -268,7 +268,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('background-header.jpg') center center/cover no-repeat;
+            background: url('img/background-header.jpg') center center/cover no-repeat;
             animation: kenBurns 30s ease-in-out infinite alternate;
             /* ⚡ PERFORMANCE: will-change für bessere Animation-Performance */
             will-change: transform;
@@ -285,13 +285,13 @@
         /* WebP support for hero background */
         @supports (background-image: url('image.webp')) {
             .hero-bg-layer {
-                background-image: url('background-header.webp');
+                background-image: url('img/background-header.webp');
             }
 
             /* ⚡ PERFORMANCE: Mobile-optimiertes Bild (~60% kleiner) */
             @media (max-width: 768px) {
                 .hero-bg-layer {
-                    background-image: url('background-header-mobile.webp');
+                    background-image: url('img/background-header-mobile.webp');
                 }
             }
         }
@@ -619,14 +619,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('flashlights.jpg') center center/cover no-repeat fixed;
+            background: url('img/flashlights.jpg') center center/cover no-repeat fixed;
             opacity: 0.05;
         }
 
         /* WebP support for premium features background */
         @supports (background-image: url('image.webp')) {
             .premium-features-section::before {
-                background-image: url('flashlights.webp');
+                background-image: url('img/flashlights.webp');
             }
         }
 
@@ -820,7 +820,7 @@
         /* WebP support for final CTA background */
         @supports (background-image: url('image.webp')) {
             .final-premium-cta {
-                background-image: url('flashlights.webp');
+                background-image: url('img/flashlights.webp');
             }
         }
 
@@ -1592,13 +1592,13 @@
             <div class="player-card-premium">
                 <picture>
                     <source
-                            srcset="img-player.webp"
+                            srcset="img/img-player.webp"
                             type="image/webp">
                     <source
-                            srcset="img-player.png"
+                            srcset="img/img-player.png"
                             type="image/png">
                     <img
-                            src="img-player.png"
+                            src="img/img-player.png"
                             alt="Star Spieler"
                             class="player-showcase-img"
                             width="569"
@@ -1719,22 +1719,22 @@
                 <picture>
                     <source
                             media="(min-width: 768px)"
-                            srcset="background-header.webp"
+                            srcset="img/background-header.webp"
                             type="image/webp">
                     <source
                             media="(max-width: 767px)"
-                            srcset="background-header-mobile.webp"
+                            srcset="img/background-header-mobile.webp"
                             type="image/webp">
                     <source
                             media="(min-width: 768px)"
-                            srcset="background-header.jpg"
+                            srcset="img/background-header.jpg"
                             type="image/jpeg">
                     <source
                             media="(max-width: 767px)"
-                            srcset="background-header-mobile.jpg"
+                            srcset="img/background-header-mobile.jpg"
                             type="image/jpeg">
                     <img
-                            src="background-header.jpg"
+                            src="img/background-header.jpg"
                             alt="Stadium Match"
                             loading="lazy"
                             decoding="async"
@@ -1749,22 +1749,22 @@
                 <picture>
                     <source
                             media="(min-width: 768px)"
-                            srcset="flashlights.webp"
+                            srcset="img/flashlights.webp"
                             type="image/webp">
                     <source
                             media="(max-width: 767px)"
-                            srcset="flashlights-mobile.webp"
+                            srcset="img/flashlights-mobile.webp"
                             type="image/webp">
                     <source
                             media="(min-width: 768px)"
-                            srcset="flashlights.jpg"
+                            srcset="img/flashlights.jpg"
                             type="image/jpeg">
                     <source
                             media="(max-width: 767px)"
-                            srcset="flashlights-mobile.jpg"
+                            srcset="img/flashlights-mobile.jpg"
                             type="image/jpeg">
                     <img
-                            src="flashlights.jpg"
+                            src="img/flashlights.jpg"
                             alt="Stadium Lights"
                             loading="lazy"
                             decoding="async"
