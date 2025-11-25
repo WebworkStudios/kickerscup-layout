@@ -1476,9 +1476,7 @@ footer {
     .hero-content-grid {
         grid-template-columns: 1fr;
         gap: 50px;
-        padding: 0 25px;
-        padding-top: 100px;
-        padding-bottom: 60px;
+        padding: 100px 25px 60px;
     }
 
     .hero-main-content {
@@ -1741,13 +1739,11 @@ footer {
 
     .modal-body,
     .modal-footer {
-        padding-left: 25px;
-        padding-right: 25px;
+        padding: 30px 25px;
     }
 
-    .modal-body {
-        padding-top: 30px;
-        padding-bottom: 30px;
+    .modal-footer {
+        padding: 20px 25px 40px;
     }
 
     .modal-tabs {
@@ -1778,7 +1774,7 @@ footer {
     }
 
     .btn-submit {
-        padding: 16px;
+        padding: 18px;
         font-size: 14px;
         min-height: 50px;
     }
