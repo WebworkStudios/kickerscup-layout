@@ -1,3 +1,4 @@
+<!-- KADERVERWALTUNG PAGE -->
 <div class="squad-header">
     <h1 class="squad-title">KADERVERWALTUNG</h1>
     <p class="squad-subtitle">Verwalte dein Team und entwickle deine Spieler</p>
@@ -6,43 +7,50 @@
 <!-- Team Stats -->
 <div class="team-stats">
     <div class="stat-card glass">
-        <div class="stat-label">Kader-Stärke</div>
-        <div class="stat-value">82.4</div>
+        <div class="stat-label">Tor</div>
+        <div class="stat-value" id="statGK">0</div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-label">Durchschnittsalter</div>
-        <div class="stat-value">26.3</div>
+        <div class="stat-label">Abwehr</div>
+        <div class="stat-value" id="statDEF">0</div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-label">Marktwert</div>
-        <div class="stat-value">45.2M €</div>
+        <div class="stat-label">Mittelfeld</div>
+        <div class="stat-value" id="statMID">0</div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-label">Verletzte Spieler</div>
-        <div class="stat-value">2</div>
+        <div class="stat-label">Angriff</div>
+        <div class="stat-value" id="statATT">0</div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-label">Gesamt</div>
+        <div class="stat-value" id="statTOTAL">0</div>
     </div>
 </div>
 
 <!-- Controls Section -->
 <div class="controls-section">
     <div class="controls-row">
-        <button class="btn btn-primary">
-            ➕ Spieler Verpflichten
+        <button class="btn btn-primary" onclick="extendAllContracts()">
+            📝 Alle Verträge verlängern
         </button>
-        <button class="btn btn-secondary">
-            🔍 Scout-Berichte
+        <button class="btn btn-secondary" onclick="payTeamBonus()">
+            💰 Teamprämie auszahlen
         </button>
-        <button class="btn btn-secondary">
-            📊 Leistungsanalyse
+        <button class="btn btn-secondary" onclick="showCaptainSelection()">
+            ⭐ Kapitän bestimmen
+        </button>
+        <button class="btn btn-secondary" onclick="lendPlayers()">
+            📤 Spieler verleihen
         </button>
     </div>
-    
+
     <div class="controls-row">
         <span style="color: var(--text-muted); font-size: 14px; margin-right: 15px;">Sortieren nach:</span>
-        <button class="btn btn-sort active" data-sort="position">Position</button>
-        <button class="btn btn-sort" data-sort="rating">Bewertung</button>
-        <button class="btn btn-sort" data-sort="age">Alter</button>
-        <button class="btn btn-sort" data-sort="value">Marktwert</button>
+        <button class="btn btn-sort active" onclick="sortBy('lineup')">Aufstellung</button>
+        <button class="btn btn-sort" onclick="sortBy('position')">Position</button>
+        <button class="btn btn-sort" onclick="sortBy('performance')">Einsatzwert</button>
+        <button class="btn btn-sort" onclick="sortBy('name')">Name</button>
     </div>
 </div>
 
@@ -54,89 +62,115 @@
 <!-- Player Detail Modal -->
 <div class="modal" id="playerModal">
     <div class="modal-content">
-        <div class="modal-close" onclick="closePlayerModal()">&times;</div>
-        
+        <div class="modal-close" onclick="closeModal()">&times;</div>
+
         <div class="modal-player-header">
-            <h2 class="modal-player-name" id="modalPlayerName">Max Mustermann</h2>
-            <p class="modal-player-info" id="modalPlayerInfo">Stürmer • 28 Jahre • Vertrag bis 2026</p>
+            <h2 class="modal-player-name" id="modalPlayerName">Spieler Name</h2>
+            <p class="modal-player-info">
+                <span id="modalPosition">Position</span> •
+                <span id="modalAge">00 Jahre</span>
+            </p>
         </div>
 
         <div class="modal-stats-grid">
             <div class="modal-stat">
-                <div class="modal-stat-label">Bewertung</div>
-                <div class="modal-stat-value" id="modalRating">85</div>
+                <div class="modal-stat-label">Stärke</div>
+                <div class="modal-stat-value" id="modalStrength">0</div>
             </div>
             <div class="modal-stat">
-                <div class="modal-stat-label">Marktwert</div>
-                <div class="modal-stat-value" id="modalValue">8.5M</div>
+                <div class="modal-stat-label">Kondition</div>
+                <div class="modal-stat-value" id="modalStamina">0</div>
             </div>
             <div class="modal-stat">
-                <div class="modal-stat-label">Tore</div>
-                <div class="modal-stat-value" id="modalGoals">12</div>
+                <div class="modal-stat-label">Form</div>
+                <div class="modal-stat-value" id="modalForm">0</div>
             </div>
             <div class="modal-stat">
-                <div class="modal-stat-label">Vorlagen</div>
-                <div class="modal-stat-value" id="modalAssists">7</div>
+                <div class="modal-stat-label">Frische</div>
+                <div class="modal-stat-value" id="modalFreshness">0</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-label">Motivation</div>
+                <div class="modal-stat-value" id="modalMotivation">0</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-label">Einsatzwert</div>
+                <div class="modal-stat-value" id="modalPerformance">0</div>
             </div>
         </div>
 
         <div class="progress-section">
-            <h3 style="margin-bottom: 20px; color: var(--gold-primary); font-size: 18px;">Fähigkeiten</h3>
-            
+            <h3>Detaillierte Werte</h3>
+
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>Tempo</span>
-                    <span id="modalSpeed">85</span>
+                    <span>Stärke</span>
+                    <span id="progressStrengthLabel">0</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 85%"></div>
+                    <div class="progress-fill" id="progressStrength"></div>
                 </div>
             </div>
 
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>Schuss</span>
-                    <span id="modalShooting">88</span>
+                    <span>Kondition</span>
+                    <span id="progressStaminaLabel">0</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 88%"></div>
+                    <div class="progress-fill" id="progressStamina"></div>
                 </div>
             </div>
 
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>Passspiel</span>
-                    <span id="modalPassing">82</span>
+                    <span>Form</span>
+                    <span id="progressFormLabel">0</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 82%"></div>
+                    <div class="progress-fill" id="progressForm"></div>
                 </div>
             </div>
 
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>Defensive</span>
-                    <span id="modalDefense">65</span>
+                    <span>Frische</span>
+                    <span id="progressFreshnessLabel">0</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 65%"></div>
+                    <div class="progress-fill" id="progressFreshness"></div>
                 </div>
             </div>
 
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>Physis</span>
-                    <span id="modalPhysical">80</span>
+                    <span>Motivation</span>
+                    <span id="progressMotivationLabel">0</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 80%"></div>
+                    <div class="progress-fill" id="progressMotivation"></div>
                 </div>
             </div>
         </div>
 
+        <div class="modal-info-section">
+            <div class="info-row">
+                <span class="info-label">Vertragslaufzeit:</span>
+                <span id="modalContract">0 Jahre</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Einsätze:</span>
+                <span id="modalGames">0 Spiele</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span id="modalStatus">OK</span>
+            </div>
+        </div>
+
         <div class="modal-footer">
-            <button class="btn btn-secondary">📝 Vertragsangebot</button>
-            <button class="btn btn-primary">💰 Verkaufen</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Schließen</button>
+            <button class="btn btn-primary">Vertrag verlängern</button>
         </div>
     </div>
 </div>

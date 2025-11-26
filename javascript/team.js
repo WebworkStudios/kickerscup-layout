@@ -6,163 +6,28 @@
 const TeamManagement = (() => {
     // Private variables
     let players = [];
-    let currentSort = 'position';
-    let selectedPlayer = null;
+    let currentSort = 'lineup';
 
-    // Mock-Daten für Spieler
+    // Mock-Daten für Spieler (erweitert basierend auf teamoverview.html)
     const mockPlayers = [
-        {
-            id: 1,
-            name: 'Marco Reus',
-            position: 'ST',
-            age: 28,
-            rating: 88,
-            value: '12.5M',
-            goals: 15,
-            assists: 8,
-            speed: 89,
-            shooting: 91,
-            passing: 85,
-            defense: 52,
-            physical: 78,
-            performance: 'Hervorragend',
-            contract: 'Vertrag bis 2026',
-            status: 'ok',
-            isCaptain: true
-        },
-        {
-            id: 2,
-            name: 'Joshua Kimmich',
-            position: 'CM',
-            age: 26,
-            rating: 87,
-            value: '11.2M',
-            goals: 3,
-            assists: 12,
-            speed: 75,
-            shooting: 72,
-            passing: 92,
-            defense: 85,
-            physical: 81,
-            performance: 'Sehr gut',
-            contract: 'Vertrag bis 2025',
-            status: 'ok',
-            isCaptain: false
-        },
-        {
-            id: 3,
-            name: 'Manuel Neuer',
-            position: 'TW',
-            age: 35,
-            rating: 90,
-            value: '8.5M',
-            goals: 0,
-            assists: 0,
-            speed: 58,
-            shooting: 35,
-            passing: 78,
-            defense: 95,
-            physical: 88,
-            performance: 'Weltklasse',
-            contract: 'Vertrag bis 2024',
-            status: 'ok',
-            isCaptain: false
-        },
-        {
-            id: 4,
-            name: 'Timo Werner',
-            position: 'ST',
-            age: 25,
-            rating: 82,
-            value: '7.8M',
-            goals: 9,
-            assists: 4,
-            speed: 94,
-            shooting: 80,
-            passing: 75,
-            defense: 45,
-            physical: 76,
-            performance: 'Gut',
-            contract: 'Vertrag bis 2025',
-            status: 'injured',
-            isCaptain: false
-        },
-        {
-            id: 5,
-            name: 'Antonio Rüdiger',
-            position: 'IV',
-            age: 29,
-            rating: 85,
-            value: '9.2M',
-            goals: 2,
-            assists: 1,
-            speed: 82,
-            shooting: 55,
-            passing: 72,
-            defense: 92,
-            physical: 90,
-            performance: 'Sehr gut',
-            contract: 'Vertrag bis 2026',
-            status: 'ok',
-            isCaptain: false
-        },
-        {
-            id: 6,
-            name: 'Leon Goretzka',
-            position: 'CM',
-            age: 27,
-            rating: 86,
-            value: '10.5M',
-            goals: 7,
-            assists: 5,
-            speed: 78,
-            shooting: 83,
-            passing: 84,
-            defense: 79,
-            physical: 87,
-            performance: 'Hervorragend',
-            contract: 'Vertrag bis 2025',
-            status: 'ok',
-            isCaptain: false
-        },
-        {
-            id: 7,
-            name: 'Serge Gnabry',
-            position: 'RF',
-            age: 26,
-            rating: 84,
-            value: '9.8M',
-            goals: 11,
-            assists: 7,
-            speed: 91,
-            shooting: 85,
-            passing: 80,
-            defense: 48,
-            physical: 74,
-            performance: 'Sehr gut',
-            contract: 'Vertrag bis 2025',
-            status: 'suspended',
-            isCaptain: false
-        },
-        {
-            id: 8,
-            name: 'Niklas Süle',
-            position: 'IV',
-            age: 26,
-            rating: 84,
-            value: '8.9M',
-            goals: 1,
-            assists: 0,
-            speed: 72,
-            shooting: 48,
-            passing: 68,
-            defense: 90,
-            physical: 92,
-            performance: 'Gut',
-            contract: 'Vertrag bis 2024',
-            status: 'ok',
-            isCaptain: false
-        }
+        { id: 1, firstName: 'Max', lastName: 'Müller', position: 'TW', age: 28, strength: 85, stamina: 90, form: 88, freshness: 95, motivation: 92, contractYears: 3, gamesPlayed: 145, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 2, firstName: 'Tom', lastName: 'Schmidt', position: 'LV', age: 25, strength: 78, stamina: 85, form: 82, freshness: 90, motivation: 88, contractYears: 2, gamesPlayed: 98, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 3, firstName: 'Leon', lastName: 'Wagner', position: 'IV', age: 29, strength: 88, stamina: 82, form: 90, freshness: 88, motivation: 90, contractYears: 4, gamesPlayed: 187, status: 'OK', isStarter: true, isCaptain: true },
+        { id: 4, firstName: 'Felix', lastName: 'Fischer', position: 'IV', age: 27, strength: 85, stamina: 84, form: 87, freshness: 92, motivation: 89, contractYears: 3, gamesPlayed: 156, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 5, firstName: 'Jan', lastName: 'Weber', position: 'RV', age: 24, strength: 80, stamina: 88, form: 85, freshness: 94, motivation: 91, contractYears: 2, gamesPlayed: 76, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 6, firstName: 'Lukas', lastName: 'Becker', position: 'DM', age: 26, strength: 82, stamina: 90, form: 86, freshness: 89, motivation: 87, contractYears: 3, gamesPlayed: 134, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 7, firstName: 'Jonas', lastName: 'Schulz', position: 'OM', age: 23, strength: 84, stamina: 86, form: 90, freshness: 96, motivation: 93, contractYears: 4, gamesPlayed: 89, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 8, firstName: 'Paul', lastName: 'Hoffmann', position: 'LM', age: 25, strength: 81, stamina: 92, form: 84, freshness: 91, motivation: 88, contractYears: 2, gamesPlayed: 112, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 9, firstName: 'David', lastName: 'Klein', position: 'RM', age: 24, strength: 79, stamina: 91, form: 83, freshness: 93, motivation: 90, contractYears: 3, gamesPlayed: 95, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 10, firstName: 'Marco', lastName: 'Richter', position: 'ST', age: 27, strength: 90, stamina: 85, form: 92, freshness: 87, motivation: 94, contractYears: 4, gamesPlayed: 165, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 11, firstName: 'Tim', lastName: 'Braun', position: 'ST', age: 22, strength: 86, stamina: 88, form: 88, freshness: 95, motivation: 91, contractYears: 3, gamesPlayed: 67, status: 'OK', isStarter: true, isCaptain: false },
+        { id: 12, firstName: 'Niklas', lastName: 'Lang', position: 'TW', age: 32, strength: 80, stamina: 75, form: 78, freshness: 82, motivation: 85, contractYears: 1, gamesPlayed: 203, status: 'OK', isStarter: false, isCaptain: false },
+        { id: 13, firstName: 'Simon', lastName: 'Krause', position: 'IV', age: 30, strength: 82, stamina: 78, form: 80, freshness: 85, motivation: 83, contractYears: 2, gamesPlayed: 178, status: 'OK', isStarter: false, isCaptain: false },
+        { id: 14, firstName: 'Moritz', lastName: 'Zimmermann', position: 'LI', age: 21, strength: 75, stamina: 85, form: 79, freshness: 97, motivation: 89, contractYears: 4, gamesPlayed: 45, status: 'OK', isStarter: false, isCaptain: false },
+        { id: 15, firstName: 'Elias', lastName: 'Krüger', position: 'DM', age: 28, strength: 81, stamina: 84, form: 82, freshness: 88, motivation: 86, contractYears: 2, gamesPlayed: 142, status: 'verletzt', isStarter: false, isCaptain: false },
+        { id: 16, firstName: 'Noah', lastName: 'Hartmann', position: 'OM', age: 26, strength: 83, stamina: 87, form: 85, freshness: 90, motivation: 88, contractYears: 3, gamesPlayed: 118, status: 'OK', isStarter: false, isCaptain: false },
+        { id: 17, firstName: 'Ben', lastName: 'Wolf', position: 'LS', age: 25, strength: 84, stamina: 86, form: 87, freshness: 92, motivation: 90, contractYears: 2, gamesPlayed: 89, status: 'OK', isStarter: false, isCaptain: false },
+        { id: 18, firstName: 'Finn', lastName: 'Schröder', position: 'RS', age: 23, strength: 82, stamina: 89, form: 86, freshness: 94, motivation: 91, contractYears: 3, gamesPlayed: 72, status: 'gesperrt', isStarter: false, isCaptain: false }
     ];
 
     /**
@@ -175,45 +40,17 @@ const TeamManagement = (() => {
         // Rendere Spieler-Grid
         renderPlayers();
 
-        // Initialisiere Event Listeners
-        initEventListeners();
+        // Update Team Stats
+        updateTeamStats();
 
         console.log('✅ Team Management System initialisiert');
     }
 
     /**
-     * Initialisiert Event Listeners
+     * Berechnet den Einsatzwert eines Spielers
      */
-    function initEventListeners() {
-        // Sort-Buttons
-        const sortButtons = document.querySelectorAll('.btn-sort');
-        sortButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const sortType = btn.getAttribute('data-sort');
-                handleSort(sortType);
-                
-                // Update Active State
-                sortButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-
-        // Modal Close
-        const modal = document.getElementById('playerModal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closePlayerModal();
-                }
-            });
-        }
-
-        // ESC-Taste zum Schließen
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closePlayerModal();
-            }
-        });
+    function calculatePerformance(player) {
+        return Math.round((player.strength + player.stamina + player.form + player.freshness + player.motivation) / 5);
     }
 
     /**
@@ -225,213 +62,244 @@ const TeamManagement = (() => {
 
         grid.innerHTML = '';
 
-        players.forEach(player => {
-            const playerCard = createPlayerCard(player);
-            grid.appendChild(playerCard);
+        let sortedPlayers = [...players];
+
+        switch(currentSort) {
+            case 'lineup':
+                sortedPlayers.sort((a, b) => b.isStarter - a.isStarter);
+                break;
+            case 'position':
+                const posOrder = ['TW', 'LV', 'IV', 'RV', 'LI', 'DM', 'OM', 'LM', 'RM', 'ST', 'LS', 'RS'];
+                sortedPlayers.sort((a, b) => posOrder.indexOf(a.position) - posOrder.indexOf(b.position));
+                break;
+            case 'performance':
+                sortedPlayers.sort((a, b) => calculatePerformance(b) - calculatePerformance(a));
+                break;
+            case 'name':
+                sortedPlayers.sort((a, b) => a.lastName.localeCompare(b.lastName));
+                break;
+        }
+
+        sortedPlayers.forEach(player => {
+            const performance = calculatePerformance(player);
+            const statusClass = player.status === 'OK' ? 'status-ok' :
+                player.status === 'verletzt' ? 'status-injured' : 'status-suspended';
+            const statusText = player.status === 'OK' ? 'Einsatzbereit' :
+                player.status === 'verletzt' ? 'Verletzt' : 'Gesperrt';
+
+            const card = document.createElement('div');
+            card.className = `player-card glass ${player.isCaptain ? 'captain' : ''}`;
+            card.onclick = () => showPlayerDetail(player);
+
+            card.innerHTML = `
+                <div class="player-header">
+                    <div class="player-image">${player.firstName.charAt(0)}${player.lastName.charAt(0)}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.firstName} ${player.lastName}</div>
+                        <div class="player-meta">
+                            <span class="player-position">${player.position}</span>
+                            <span>Alter: ${player.age}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-stats">
+                    <div class="stat-item">
+                        <span class="stat-item-label">Stärke</span>
+                        <span class="stat-item-value">${player.strength}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">Kondition</span>
+                        <span class="stat-item-value">${player.stamina}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">Form</span>
+                        <span class="stat-item-value">${player.form}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">Frische</span>
+                        <span class="stat-item-value">${player.freshness}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">Motivation</span>
+                        <span class="stat-item-value">${player.motivation}</span>
+                    </div>
+                </div>
+
+                <div class="player-performance">
+                    Einsatzwert: ${performance}
+                </div>
+
+                <div class="player-contract">
+                    Vertrag: ${player.contractYears} ${player.contractYears === 1 ? 'Jahr' : 'Jahre'}
+                </div>
+
+                <div class="player-status">
+                    <span>${player.isStarter ? '⚽ Stamm' : '📋 Bank'} · ${player.gamesPlayed} Spiele</span>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+            `;
+
+            grid.appendChild(card);
         });
     }
 
     /**
-     * Erstellt eine Spieler-Karte
-     * @param {Object} player - Spieler-Daten
-     * @returns {HTMLElement} - Player Card Element
+     * Update team stats
      */
-    function createPlayerCard(player) {
-        const card = document.createElement('div');
-        card.className = `player-card glass ${player.isCaptain ? 'captain' : ''}`;
-        card.onclick = () => openPlayerModal(player);
+    function updateTeamStats() {
+        const gk = players.filter(p => p.position === 'TW').reduce((sum, p) => sum + calculatePerformance(p), 0);
+        const def = players.filter(p => ['LV', 'IV', 'RV', 'LI'].includes(p.position)).reduce((sum, p) => sum + calculatePerformance(p), 0);
+        const mid = players.filter(p => ['DM', 'OM', 'LM', 'RM'].includes(p.position)).reduce((sum, p) => sum + calculatePerformance(p), 0);
+        const att = players.filter(p => ['ST', 'LS', 'RS'].includes(p.position)).reduce((sum, p) => sum + calculatePerformance(p), 0);
+        const total = players.reduce((sum, p) => sum + calculatePerformance(p), 0);
 
-        card.innerHTML = `
-            <div class="player-header">
-                <div class="player-image">${getPlayerInitials(player.name)}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-meta">
-                        <span class="player-position">${player.position}</span>
-                        <span>${player.age} Jahre</span>
-                    </div>
-                </div>
-            </div>
+        const statGK = document.getElementById('statGK');
+        const statDEF = document.getElementById('statDEF');
+        const statMID = document.getElementById('statMID');
+        const statATT = document.getElementById('statATT');
+        const statTOTAL = document.getElementById('statTOTAL');
 
-            <div class="player-stats">
-                <div class="stat-item">
-                    <span class="stat-item-label">Rating</span>
-                    <span class="stat-item-value">${player.rating}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-item-label">Tore</span>
-                    <span class="stat-item-value">${player.goals}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-item-label">Assists</span>
-                    <span class="stat-item-value">${player.assists}</span>
-                </div>
-            </div>
-
-            <div class="player-performance">
-                ${player.performance}
-            </div>
-
-            <div class="player-contract">
-                ${player.contract}
-            </div>
-
-            <div class="player-status">
-                <span>Marktwert: ${player.value}</span>
-                <span class="status-badge status-${player.status}">
-                    ${getStatusText(player.status)}
-                </span>
-            </div>
-        `;
-
-        return card;
+        if (statGK) statGK.textContent = gk.toLocaleString();
+        if (statDEF) statDEF.textContent = def.toLocaleString();
+        if (statMID) statMID.textContent = mid.toLocaleString();
+        if (statATT) statATT.textContent = att.toLocaleString();
+        if (statTOTAL) statTOTAL.textContent = total.toLocaleString();
     }
 
     /**
      * Öffnet das Spieler-Detail Modal
      * @param {Object} player - Spieler-Daten
      */
-    function openPlayerModal(player) {
-        selectedPlayer = player;
-        
-        const modal = document.getElementById('playerModal');
-        if (!modal) return;
+    function showPlayerDetail(player) {
+        const performance = calculatePerformance(player);
 
-        // Update Modal Content
-        document.getElementById('modalPlayerName').textContent = player.name;
-        document.getElementById('modalPlayerInfo').textContent = 
-            `${player.position} • ${player.age} Jahre • ${player.contract}`;
-        
-        document.getElementById('modalRating').textContent = player.rating;
-        document.getElementById('modalValue').textContent = player.value;
-        document.getElementById('modalGoals').textContent = player.goals;
-        document.getElementById('modalAssists').textContent = player.assists;
-        
-        document.getElementById('modalSpeed').textContent = player.speed;
-        document.getElementById('modalShooting').textContent = player.shooting;
-        document.getElementById('modalPassing').textContent = player.passing;
-        document.getElementById('modalDefense').textContent = player.defense;
-        document.getElementById('modalPhysical').textContent = player.physical;
+        document.getElementById('modalPlayerName').textContent = `${player.firstName} ${player.lastName}`;
+        document.getElementById('modalPosition').textContent = player.position;
+        document.getElementById('modalAge').textContent = `${player.age} Jahre`;
+        document.getElementById('modalStrength').textContent = player.strength;
+        document.getElementById('modalStamina').textContent = player.stamina;
+        document.getElementById('modalForm').textContent = player.form;
+        document.getElementById('modalFreshness').textContent = player.freshness;
+        document.getElementById('modalMotivation').textContent = player.motivation;
+        document.getElementById('modalPerformance').textContent = performance;
+        document.getElementById('modalContract').textContent = `${player.contractYears} ${player.contractYears === 1 ? 'Jahr' : 'Jahre'}`;
+        document.getElementById('modalGames').textContent = `${player.gamesPlayed} Spiele`;
+        document.getElementById('modalStatus').textContent = player.status === 'OK' ? 'Einsatzbereit' :
+            player.status === 'verletzt' ? 'Verletzt' : 'Gesperrt';
 
-        // Update Progress Bars
-        updateProgressBars(player);
+        // Progress bars
+        document.getElementById('progressStrength').style.width = `${player.strength}%`;
+        document.getElementById('progressStamina').style.width = `${player.stamina}%`;
+        document.getElementById('progressForm').style.width = `${player.form}%`;
+        document.getElementById('progressFreshness').style.width = `${player.freshness}%`;
+        document.getElementById('progressMotivation').style.width = `${player.motivation}%`;
 
-        // Show Modal
-        modal.classList.add('active');
+        document.getElementById('playerModal').classList.add('active');
     }
 
     /**
-     * Schließt das Spieler-Detail Modal
+     * Schließt das Modal
      */
-    function closePlayerModal() {
+    function closeModal() {
         const modal = document.getElementById('playerModal');
         if (modal) {
             modal.classList.remove('active');
         }
-        selectedPlayer = null;
     }
 
     /**
-     * Aktualisiert die Progress Bars im Modal
-     * @param {Object} player - Spieler-Daten
+     * Sortiert Spieler
      */
-    function updateProgressBars(player) {
-        const progressBars = document.querySelectorAll('.progress-fill');
-        const stats = [player.speed, player.shooting, player.passing, player.defense, player.physical];
-        
-        progressBars.forEach((bar, index) => {
-            if (stats[index] !== undefined) {
-                bar.style.width = stats[index] + '%';
-            }
-        });
-    }
-
-    /**
-     * Sortiert Spieler nach Kriterium
-     * @param {string} sortType - Sortier-Typ
-     */
-    function handleSort(sortType) {
-        currentSort = sortType;
-
-        switch (sortType) {
-            case 'position':
-                players.sort((a, b) => {
-                    const posOrder = ['TW', 'IV', 'LV', 'RV', 'DM', 'CM', 'LM', 'RM', 'OM', 'LF', 'RF', 'ST'];
-                    return posOrder.indexOf(a.position) - posOrder.indexOf(b.position);
-                });
-                break;
-            case 'rating':
-                players.sort((a, b) => b.rating - a.rating);
-                break;
-            case 'age':
-                players.sort((a, b) => a.age - b.age);
-                break;
-            case 'value':
-                players.sort((a, b) => {
-                    const aValue = parseFloat(a.value.replace('M', ''));
-                    const bValue = parseFloat(b.value.replace('M', ''));
-                    return bValue - aValue;
-                });
-                break;
-        }
-
+    function sortBy(type) {
+        currentSort = type;
         renderPlayers();
     }
 
     /**
-     * Hilfsfunktion: Extrahiert Initialen aus Namen
-     * @param {string} name - Spielername
-     * @returns {string} - Initialen
+     * Extend all contracts
      */
-    function getPlayerInitials(name) {
-        const parts = name.split(' ');
-        if (parts.length >= 2) {
-            return parts[0][0] + parts[parts.length - 1][0];
+    function extendAllContracts() {
+        if (confirm('Möchten Sie wirklich alle Verträge um eine Saison verlängern?')) {
+            players.forEach(player => player.contractYears++);
+            renderPlayers();
+            alert('✅ Alle Verträge wurden um eine Saison verlängert!');
         }
-        return name.substring(0, 2).toUpperCase();
     }
 
     /**
-     * Hilfsfunktion: Gibt Status-Text zurück
-     * @param {string} status - Status-Code
-     * @returns {string} - Status-Text
+     * Pay team bonus
      */
-    function getStatusText(status) {
-        const statusMap = {
-            ok: 'Fit',
-            injured: 'Verletzt',
-            suspended: 'Gesperrt'
-        };
-        return statusMap[status] || status;
+    function payTeamBonus() {
+        if (confirm('Möchten Sie eine Teamprämie auszahlen? Dies erhöht die Motivation aller Spieler.')) {
+            players.forEach(player => {
+                player.motivation = Math.min(100, player.motivation + 5);
+            });
+            renderPlayers();
+            updateTeamStats();
+            alert('💰 Teamprämie ausgezahlt! Motivation aller Spieler wurde gesteigert.');
+        }
     }
 
     /**
-     * Public API: Gibt alle Spieler zurück
-     * @returns {Array} - Spieler-Array
+     * Show captain selection
      */
-    function getPlayers() {
-        return [...players];
+    function showCaptainSelection() {
+        const captainList = players
+            .filter(p => p.isStarter)
+            .map((p, i) => `${i + 1}. ${p.firstName} ${p.lastName} (${p.position})`)
+            .join('\n');
+
+        const selection = prompt(`Wählen Sie den neuen Kapitän:\n\n${captainList}\n\nGeben Sie die Nummer ein:`);
+
+        if (selection) {
+            const index = parseInt(selection) - 1;
+            const starters = players.filter(p => p.isStarter);
+
+            if (index >= 0 && index < starters.length) {
+                players.forEach(p => p.isCaptain = false);
+                starters[index].isCaptain = true;
+                renderPlayers();
+                alert(`⭐ ${starters[index].firstName} ${starters[index].lastName} ist jetzt der Kapitän!`);
+            } else {
+                alert('❌ Ungültige Auswahl!');
+            }
+        }
     }
 
     /**
-     * Public API: Gibt ausgewählten Spieler zurück
-     * @returns {Object|null} - Spieler-Objekt
+     * Lend players
      */
-    function getSelectedPlayer() {
-        return selectedPlayer;
+    function lendPlayers() {
+        alert('📤 Spielerverleihe-System wird demnächst verfügbar sein.');
     }
+
+    // ESC-Taste zum Schließen
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
 
     // Public API
     return {
         init,
-        getPlayers,
-        getSelectedPlayer,
-        closePlayerModal: () => closePlayerModal()
+        sortBy,
+        closeModal,
+        extendAllContracts,
+        payTeamBonus,
+        showCaptainSelection,
+        lendPlayers
     };
 })();
 
 // Global verfügbar machen
-window.closePlayerModal = TeamManagement.closePlayerModal;
+window.sortBy = TeamManagement.sortBy;
+window.closeModal = TeamManagement.closeModal;
+window.extendAllContracts = TeamManagement.extendAllContracts;
+window.payTeamBonus = TeamManagement.payTeamBonus;
+window.showCaptainSelection = TeamManagement.showCaptainSelection;
+window.lendPlayers = TeamManagement.lendPlayers;
 
 // Auto-Initialisierung wenn Seite geladen wird
 document.addEventListener('pageLoaded', (e) => {
