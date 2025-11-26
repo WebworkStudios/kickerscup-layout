@@ -1,192 +1,128 @@
 // =====================================================
-// KICKERSCUP - NAVIGATION SYSTEM
-// Routing & Page Management
+// KICKERSCUP - NAVIGATION SYSTEM (OPTIMIZED)
+// Routing & Page Management mit ModuleManager
 // =====================================================
 
 const NavigationSystem = (() => {
-    // Private variables
+    'use strict';
+
+    // Private State
     let currentPage = 'dashboard';
     const contentWrapper = document.getElementById('contentWrapper');
-
-    // Cache für geladene Seiten
     const pageCache = new Map();
 
-    // Seiten-Konfiguration mit zugehörigen Scripts
+    // Seiten-Konfiguration
     const pages = {
         dashboard: {
             html: 'dashboard.html',
-            scripts: ['javascript/dashboard.js'],
-            css: ['css/dashboard.css']
+            module: 'dashboard'
         },
         team: {
             html: 'team.html',
-            scripts: ['javascript/team.js'],
-            css: ['css/team.css']
+            module: 'team'
         },
         training: {
             html: 'pages/training.html',
-            scripts: ['javascript/training.js'],
-            css: ['css/training.css']
+            module: 'training'
         },
         tactics: {
             html: 'pages/tactics.html',
-            scripts: ['javascript/tactics.js'],
-            css: ['css/tactics.css']
+            module: 'tactics'
         },
         stadium: {
             html: 'pages/stadium.html',
-            scripts: ['javascript/stadium.js'],
-            css: ['css/stadium.css']
+            module: 'stadium'
         },
         league: {
             html: 'pages/league.html',
-            scripts: ['javascript/league.js'],
-            css: ['css/league.css']
+            module: 'league'
         },
         cup: {
             html: 'pages/cup.html',
-            scripts: ['javascript/cup.js'],
-            css: ['css/cup.css']
+            module: 'cup'
         },
         settings: {
             html: 'pages/settings.html',
-            scripts: ['javascript/settings.js'],
-            css: ['css/settings.css']
+            module: 'settings'
         }
     };
 
-    // Geladene Scripts und CSS tracken
-    const loadedScripts = new Set();
-    const loadedStyles = new Set();
-
     /**
-     * Lädt ein JavaScript-File dynamisch
-     * @param {string} src - Script-Pfad
-     * @returns {Promise} - Resolve wenn Script geladen
+     * Lädt HTML-Content einer Seite
      */
-    function loadScript(src) {
-        return new Promise((resolve, reject) => {
-            // Prüfe ob Script bereits geladen
-            if (loadedScripts.has(src)) {
-                resolve();
-                return;
+    async function fetchPageHTML(htmlPath) {
+        // Check Cache
+        if (pageCache.has(htmlPath)) {
+            return pageCache.get(htmlPath);
+        }
+
+        try {
+            const response = await fetch(htmlPath);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${htmlPath}`);
             }
 
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = () => {
-                loadedScripts.add(src);
-                console.log(`✅ Script geladen: ${src}`);
-                resolve();
-            };
-            script.onerror = () => {
-                console.error(`❌ Fehler beim Laden: ${src}`);
-                reject(new Error(`Script konnte nicht geladen werden: ${src}`));
-            };
-            document.body.appendChild(script);
-        });
+            const content = await response.text();
+
+            // Cache für zukünftige Nutzung
+            pageCache.set(htmlPath, content);
+
+            return content;
+
+        } catch (error) {
+            console.error('Fehler beim Laden des HTML:', error);
+            throw error;
+        }
     }
 
     /**
-     * Lädt ein CSS-File dynamisch
-     * @param {string} href - CSS-Pfad
-     * @returns {Promise} - Resolve wenn CSS geladen
-     */
-    function loadStyle(href) {
-        return new Promise((resolve, reject) => {
-            // Prüfe ob CSS bereits geladen
-            if (loadedStyles.has(href)) {
-                resolve();
-                return;
-            }
-
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = href;
-            link.onload = () => {
-                loadedStyles.add(href);
-                console.log(`✅ CSS geladen: ${href}`);
-                resolve();
-            };
-            link.onerror = () => {
-                console.error(`❌ Fehler beim Laden: ${href}`);
-                reject(new Error(`CSS konnte nicht geladen werden: ${href}`));
-            };
-            document.head.appendChild(link);
-        });
-    }
-
-    /**
-     * Lädt eine Seite via AJAX
-     * @param {string} pageName - Name der zu ladenden Seite
-     * @returns {Promise<void>}
+     * Lädt eine Seite (HTML + Module)
      */
     async function loadPage(pageName) {
-        // Prüfe ob Seite existiert
-        if (!pages[pageName]) {
+        // Validierung
+        const pageConfig = pages[pageName];
+        if (!pageConfig) {
             console.error(`Seite "${pageName}" nicht gefunden`);
             showErrorPage();
             return;
         }
 
-        // Zeige Loading-Indikator
+        // Loading-Indikator
         showLoadingIndicator();
 
-        const pageConfig = pages[pageName];
-        const htmlPath = pageConfig.html || pageConfig;
-
         try {
-            // Lade CSS falls vorhanden
-            if (pageConfig.css && Array.isArray(pageConfig.css)) {
-                await Promise.all(pageConfig.css.map(css => loadStyle(css)));
+            // 1. Lade HTML-Content
+            const htmlContent = await fetchPageHTML(pageConfig.html);
+
+            // 2. Aktiviere Modul (lädt CSS/JS und initialisiert)
+            if (window.ModuleManager && pageConfig.module) {
+                await window.ModuleManager.activateModule(pageConfig.module);
             }
 
-            // Prüfe Cache
-            let content;
-            if (pageCache.has(pageName)) {
-                content = pageCache.get(pageName);
-            } else {
-                // Lade Seite vom Server
-                const response = await fetch(htmlPath);
+            // 3. Setze HTML-Content (mit minimalen Reflows)
+            requestAnimationFrame(() => {
+                contentWrapper.innerHTML = htmlContent;
 
-                if (!response.ok) {
-                    // Fehler wird zum catch-Block weitergeleitet
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                content = await response.text();
-            }
-
-            // WICHTIG: Erst Content clearen, dann neu setzen
-            contentWrapper.innerHTML = '';
-
-            // Kleine Verzögerung für sauberen Übergang
-            setTimeout(async () => {
-                contentWrapper.innerHTML = content;
-
-                // Lade Scripts falls vorhanden
-                if (pageConfig.scripts && Array.isArray(pageConfig.scripts)) {
-                    await Promise.all(pageConfig.scripts.map(script => loadScript(script)));
-                }
-
-                // Update Navigation
+                // 4. Update Navigation
                 updateNavigation(pageName);
 
-                // Update currentPage
+                // 5. Update State
                 currentPage = pageName;
 
-                // Trigger custom event für Page-Load
+                // 6. Dispatch Event
                 const event = new CustomEvent('pageLoaded', {
                     detail: { page: pageName }
                 });
                 document.dispatchEvent(event);
 
-                // Verstecke Loading-Indikator
+                // 7. Verstecke Loading
                 hideLoadingIndicator();
-            }, 50);
+
+                console.log(`✅ Seite geladen: ${pageName}`);
+            });
 
         } catch (error) {
-            // Fehlerbehandlung für alle fehlgeschlagenen Operationen
             console.error('Fehler beim Laden der Seite:', error);
             showErrorPage();
             hideLoadingIndicator();
@@ -194,35 +130,48 @@ const NavigationSystem = (() => {
     }
 
     /**
-     * Zeigt Loading-Indikator
+     * Zeigt Loading-Indikator (optimiert)
      */
     function showLoadingIndicator() {
+        // Verwende CSS-Klasse statt innerHTML für bessere Performance
+        contentWrapper.classList.add('loading-state');
         contentWrapper.innerHTML = `
-            <div style="
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 400px;
-                flex-direction: column;
-                gap: 20px;
-            ">
-                <div style="
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Lädt...</p>
+            </div>
+        `;
+
+        // Füge Styles hinzu (nur einmal)
+        if (!document.getElementById('loading-styles')) {
+            const style = document.createElement('style');
+            style.id = 'loading-styles';
+            style.textContent = `
+                .loading-state {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 400px;
+                }
+                .loading-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .loading-spinner {
                     width: 50px;
                     height: 50px;
                     border: 4px solid rgba(0, 199, 139, 0.1);
                     border-top-color: var(--gold-primary);
                     border-radius: 50%;
                     animation: spin 1s linear infinite;
-                "></div>
-                <p style="color: var(--text-muted); font-size: 14px;">Lädt...</p>
-            </div>
-        `;
-
-        // CSS für Spin-Animation (falls nicht vorhanden)
-        if (!document.getElementById('spinner-style')) {
-            const style = document.createElement('style');
-            style.id = 'spinner-style';
-            style.textContent = `
+                }
+                .loading-text {
+                    color: var(--text-muted);
+                    font-size: 14px;
+                    margin: 0;
+                }
                 @keyframes spin {
                     to { transform: rotate(360deg); }
                 }
@@ -235,32 +184,25 @@ const NavigationSystem = (() => {
      * Versteckt Loading-Indikator
      */
     function hideLoadingIndicator() {
-        // Wird automatisch durch loadPage ersetzt
+        contentWrapper.classList.remove('loading-state');
     }
 
     /**
      * Zeigt Error-Seite
      */
     function showErrorPage() {
+        contentWrapper.classList.remove('loading-state');
         contentWrapper.innerHTML = `
-            <div style="
-                text-align: center;
-                padding: 60px 20px;
-            ">
+            <div style="text-align: center; padding: 60px 20px;">
                 <div style="font-size: 72px; margin-bottom: 20px;">⚠️</div>
-                <h2 style="
-                    color: var(--gold-primary);
-                    font-size: 32px;
-                    margin-bottom: 15px;
-                ">Fehler beim Laden</h2>
-                <p style="
-                    color: var(--text-muted);
-                    font-size: 16px;
-                    margin-bottom: 30px;
-                ">Die Seite konnte nicht geladen werden.</p>
+                <h2 style="color: var(--gold-primary); font-size: 32px; margin-bottom: 15px;">
+                    Fehler beim Laden
+                </h2>
+                <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 30px;">
+                    Die Seite konnte nicht geladen werden.
+                </p>
                 <button 
                     onclick="location.reload()" 
-                    class="btn btn-primary"
                     style="
                         padding: 15px 40px;
                         background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
@@ -269,6 +211,7 @@ const NavigationSystem = (() => {
                         border-radius: 8px;
                         font-weight: 600;
                         cursor: pointer;
+                        font-family: 'Poppins', sans-serif;
                     "
                 >Seite neu laden</button>
             </div>
@@ -277,7 +220,6 @@ const NavigationSystem = (() => {
 
     /**
      * Aktualisiert die Navigation
-     * @param {string} pageName - Aktive Seite
      */
     function updateNavigation(pageName) {
         const navButtons = document.querySelectorAll('.nav-btn');
@@ -294,75 +236,120 @@ const NavigationSystem = (() => {
     }
 
     /**
-     * Initialisiert die Navigation
+     * Preload nächster Seite (für Performance)
+     */
+    function preloadNextPages() {
+        // Preload wahrscheinliche nächste Seiten basierend auf aktueller Seite
+        const preloadMap = {
+            dashboard: ['team', 'league'],
+            team: ['tactics', 'training'],
+            league: ['cup'],
+            // ...
+        };
+
+        const pagesToPreload = preloadMap[currentPage] || [];
+
+        pagesToPreload.forEach(pageName => {
+            const pageConfig = pages[pageName];
+            if (pageConfig && window.ModuleManager) {
+                // Preload im Hintergrund (non-blocking)
+                setTimeout(() => {
+                    window.ModuleManager.preloadModule(pageConfig.module);
+                    fetchPageHTML(pageConfig.html);
+                }, 1000);
+            }
+        });
+    }
+
+    /**
+     * Initialisiert Navigation
      */
     function init() {
-        // Event Listener für alle Nav-Buttons
+        // Event Listener für Nav-Buttons
         const navButtons = document.querySelectorAll('.nav-btn');
 
         navButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const pageName = btn.getAttribute('data-page');
-                if (pageName) {
-                    // Promise wird korrekt behandelt - keine weitere Action nötig
-                    loadPage(pageName).catch(err => {
-                        console.error('Navigation fehlgeschlagen:', err);
-                    });
+
+                if (pageName && pageName !== currentPage) {
+                    navigateTo(pageName);
                 }
             });
         });
 
-        // Lade initiale Seite (Dashboard)
-        loadPage('dashboard').catch(err => {
-            console.error('Initiale Seite konnte nicht geladen werden:', err);
+        // Browser Back/Forward Support
+        window.addEventListener('popstate', (e) => {
+            if (e.state?.page) {
+                loadPage(e.state.page);
+            }
         });
 
-        // Browser Back/Forward Button Support (optional)
-        window.addEventListener('popstate', (e) => {
-            if (e.state && e.state.page) {
-                loadPage(e.state.page).catch(err => {
-                    console.error('Seite aus History konnte nicht geladen werden:', err);
-                });
-            }
+        // Lade initiale Seite
+        loadPage('dashboard').then(() => {
+            // Preload wahrscheinliche nächste Seiten
+            preloadNextPages();
         });
 
         console.log('✅ Navigation System initialisiert');
     }
 
     /**
-     * Navigiert zu einer spezifischen Seite (Public API)
-     * @param {string} pageName - Name der Seite
+     * Navigiert zu einer Seite
      */
     function navigateTo(pageName) {
-        loadPage(pageName).catch(err => {
-            console.error('Navigation fehlgeschlagen:', err);
-        });
-
-        // Update Browser History (optional)
-        if (window.history && window.history.pushState) {
-            window.history.pushState(
-                { page: pageName },
-                '',
-                `#${pageName}`
-            );
+        // Verhindere redundante Navigation
+        if (pageName === currentPage) {
+            console.log(`Bereits auf Seite: ${pageName}`);
+            return;
         }
+
+        loadPage(pageName).then(() => {
+            // Update Browser History
+            if (window.history?.pushState) {
+                window.history.pushState(
+                    { page: pageName },
+                    '',
+                    `#${pageName}`
+                );
+            }
+
+            // Preload nächste wahrscheinliche Seiten
+            preloadNextPages();
+        });
+    }
+
+    /**
+     * Gibt aktuelle Seite zurück
+     */
+    function getCurrentPage() {
+        return currentPage;
+    }
+
+    /**
+     * Cleanup
+     */
+    function cleanup() {
+        pageCache.clear();
     }
 
     // Public API
     return {
         init,
-        navigateTo
+        navigateTo,
+        getCurrentPage,
+        cleanup
     };
 })();
 
-// Auto-Initialisierung wenn DOM ready ist
+// Auto-Initialisierung
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', NavigationSystem.init);
 } else {
     NavigationSystem.init();
 }
 
-// Global verfügbar machen für inline onclick (optional)
+// Global verfügbar
+window.NavigationSystem = NavigationSystem;
 window.navigateTo = NavigationSystem.navigateTo;
-window.showPage = NavigationSystem.navigateTo;

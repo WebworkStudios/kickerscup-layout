@@ -3,105 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kickerscup</title>
-    
+    <title>Kickerscup - Football Manager</title>
+
+    <!-- Preconnect für externe Ressourcen -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Preload Background Images -->
-    <link rel="preload" as="image" href="img/background-header.webp" type="image/webp"
-          media="(min-width: 769px)">
-    <link rel="preload" as="image" href="img/background-header-mobile.webp" type="image/webp"
-          media="(max-width: 768px)">
-    
-    <!-- Layout CSS -->
+    <link rel="preload" as="image" href="img/background-header.webp" type="image/webp" media="(min-width: 769px)">
+    <link rel="preload" as="image" href="img/background-header-mobile.webp" type="image/webp" media="(max-width: 768px)">
+
+    <!-- Core Layout CSS (immer geladen) -->
     <link rel="stylesheet" href="css/layout.css">
+
+    <!--
+        ⚡ PERFORMANCE: Scripts mit defer im <head>
+        - Laden parallel zu HTML (schneller als <body>-Ende)
+        - Ausführung garantiert nach DOM Ready
+        - Reihenfolge garantiert (wichtig für Dependencies)
+    -->
+
+    <!-- Module Manager (MUSS zuerst geladen werden) -->
+    <script src="javascript/module-manager.js" defer></script>
+
+    <!-- Navigation System (benötigt ModuleManager) -->
+    <script src="javascript/navigation.js" defer></script>
+
+    <!--
+        HINWEIS: Weitere Scripts (dashboard.js, team.js, etc.)
+        werden dynamisch durch ModuleManager geladen
+    -->
 </head>
 <body>
-    <!-- Fixed Background -->
-    <div class="hero-background">
-        <picture>
-            <source media="(max-width: 768px)" srcset="img/background-header-mobile.webp" type="image/webp">
-            <source media="(min-width: 769px)" srcset="img/background-header.webp" type="image/webp">
-            <img src="img/background-header.webp" alt="Stadium Background" class="hero-bg-image">
-        </picture>
-    </div>
+<!-- Fixed Background -->
+<div class="hero-background">
+    <picture>
+        <source media="(max-width: 768px)" srcset="img/background-header-mobile.webp" type="image/webp">
+        <source media="(min-width: 769px)" srcset="img/background-header.webp" type="image/webp">
+        <img src="img/background-header.webp" alt="Stadium Background" class="hero-bg-image">
+    </picture>
+</div>
 
-    <!-- Animated Overlay -->
-    <div class="animated-bg-overlay"></div>
+<!-- Animated Overlay -->
+<div class="animated-bg-overlay"></div>
 
-    <!-- Top Status Bar -->
-    <div class="top-status-bar">
-        <div class="status-left">
-            <div class="compact-logo">KICKERSCUP</div>
-            <div class="team-info-pill">
-                <div class="team-logo-small">⚽</div>
-                <span class="team-name-top">FC Thunderbolts</span>
-            </div>
-            <div class="date-time">
-                <div class="current-date">Saison 2024/25 • Spieltag 12</div>
-                <div class="current-time">15:45 Uhr</div>
-            </div>
+<!-- Top Status Bar -->
+<div class="top-status-bar">
+    <div class="status-left">
+        <div class="compact-logo">KICKERSCUP</div>
+        <div class="team-info-pill">
+            <div class="team-logo-small">⚽</div>
+            <span class="team-name-top">FC Thunderbolts</span>
         </div>
-        
-        <div class="status-right">
-            <div class="budget-info">
-                <div class="budget-icon">💰</div>
-                <div class="budget-details">
-                    <div class="budget-label">Budget</div>
-                    <div class="budget-amount">2.400.000 €</div>
-                </div>
-            </div>
-            <div class="notification-icon">
-                <span>🔔</span>
-                <div class="notification-dot"></div>
-            </div>
+        <div class="date-time">
+            <div class="current-date">Saison 2024/25 • Spieltag 12</div>
+            <div class="current-time" id="currentTime">15:45 Uhr</div>
         </div>
     </div>
 
-    <!-- Floating Navigation -->
-    <nav class="floating-nav">
-        <div class="nav-btn active" data-page="dashboard">
-            <div class="nav-btn-icon">🏠</div>
-            <div class="nav-btn-label">Home</div>
+    <div class="status-right">
+        <div class="budget-info">
+            <div class="budget-icon">💰</div>
+            <div class="budget-details">
+                <div class="budget-label">Budget</div>
+                <div class="budget-amount" id="budgetAmount">2.400.000 €</div>
+            </div>
         </div>
-        <div class="nav-btn" data-page="team">
-            <div class="nav-btn-icon">👥</div>
-            <div class="nav-btn-label">Team</div>
+        <div class="notification-icon" title="Benachrichtigungen">
+            <span>🔔</span>
+            <div class="notification-dot"></div>
         </div>
-        <div class="nav-btn" data-page="training">
-            <div class="nav-btn-icon">💪</div>
-            <div class="nav-btn-label">Training</div>
-        </div>
-        <div class="nav-btn" data-page="tactics">
-            <div class="nav-btn-icon">📋</div>
-            <div class="nav-btn-label">Taktik</div>
-        </div>
-        <div class="nav-btn" data-page="stadium">
-            <div class="nav-btn-icon">🏟️</div>
-            <div class="nav-btn-label">Stadion</div>
-        </div>
-        <div class="nav-btn" data-page="league">
-            <div class="nav-btn-icon">🏆</div>
-            <div class="nav-btn-label">Liga</div>
-            <div class="nav-badge">3</div>
-        </div>
-        <div class="nav-btn" data-page="cup">
-            <div class="nav-btn-icon">🥇</div>
-            <div class="nav-btn-label">Pokal</div>
-        </div>
-        <div class="nav-btn" data-page="settings">
-            <div class="nav-btn-icon">⚙️</div>
-            <div class="nav-btn-label">Settings</div>
-        </div>
-    </nav>
-
-    <!-- Content Wrapper - wird dynamisch geladen -->
-    <div class="content-wrapper" id="contentWrapper">
-        <!-- Content wird hier dynamisch geladen -->
     </div>
+</div>
 
-    <!-- Navigation JavaScript -->
-    <script src="javascript/navigation.js"></script>
-</body></html>
+<!-- Floating Navigation -->
+<nav class="floating-nav" role="navigation" aria-label="Hauptnavigation">
+    <div class="nav-btn active" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard">
+        <div class="nav-btn-icon">🏠</div>
+        <div class="nav-btn-label">Home</div>
+    </div>
+    <div class="nav-btn" data-page="team" role="button" tabindex="0" aria-label="Team">
+        <div class="nav-btn-icon">👥</div>
+        <div class="nav-btn-label">Team</div>
+    </div>
+    <div class="nav-btn" data-page="training" role="button" tabindex="0" aria-label="Training">
+        <div class="nav-btn-icon">💪</div>
+        <div class="nav-btn-label">Training</div>
+    </div>
+    <div class="nav-btn" data-page="tactics" role="button" tabindex="0" aria-label="Taktik">
+        <div class="nav-btn-icon">📋</div>
+        <div class="nav-btn-label">Taktik</div>
+    </div>
+    <div class="nav-btn" data-page="stadium" role="button" tabindex="0" aria-label="Stadion">
+        <div class="nav-btn-icon">🏟️</div>
+        <div class="nav-btn-label">Stadion</div>
+    </div>
+    <div class="nav-btn" data-page="league" role="button" tabindex="0" aria-label="Liga">
+        <div class="nav-btn-icon">🏆</div>
+        <div class="nav-btn-label">Liga</div>
+        <div class="nav-badge">3</div>
+    </div>
+    <div class="nav-btn" data-page="cup" role="button" tabindex="0" aria-label="Pokal">
+        <div class="nav-btn-icon">🥇</div>
+        <div class="nav-btn-label">Pokal</div>
+    </div>
+    <div class="nav-btn" data-page="settings" role="button" tabindex="0" aria-label="Einstellungen">
+        <div class="nav-btn-icon">⚙️</div>
+        <div class="nav-btn-label">Settings</div>
+    </div>
+</nav>
+
+<!-- Content Wrapper - wird dynamisch geladen -->
+<main id="contentWrapper" class="content-wrapper" role="main">
+    <!-- Content wird hier dynamisch vom NavigationSystem geladen -->
+</main>
+</body>
+</html>

@@ -31,26 +31,26 @@
 <!-- Controls Section -->
 <div class="controls-section">
     <div class="controls-row">
-        <button class="btn btn-primary" onclick="extendAllContracts()">
+        <button class="btn btn-primary" data-action="extendContracts">
             📝 Alle Verträge verlängern
         </button>
-        <button class="btn btn-secondary" onclick="payTeamBonus()">
+        <button class="btn btn-secondary" data-action="payBonus">
             💰 Teamprämie auszahlen
         </button>
-        <button class="btn btn-secondary" onclick="showCaptainSelection()">
+        <button class="btn btn-secondary" data-action="selectCaptain">
             ⭐ Kapitän bestimmen
         </button>
-        <button class="btn btn-secondary" onclick="lendPlayers()">
+        <button class="btn btn-secondary" data-action="lendPlayers">
             📤 Spieler verleihen
         </button>
     </div>
 
     <div class="controls-row">
         <span style="color: var(--text-muted); font-size: 14px; margin-right: 15px;">Sortieren nach:</span>
-        <button class="btn btn-sort active" onclick="sortBy('lineup')">Aufstellung</button>
-        <button class="btn btn-sort" onclick="sortBy('position')">Position</button>
-        <button class="btn btn-sort" onclick="sortBy('performance')">Einsatzwert</button>
-        <button class="btn btn-sort" onclick="sortBy('name')">Name</button>
+        <button class="btn btn-sort active" data-action="sort" data-value="lineup">Aufstellung</button>
+        <button class="btn btn-sort" data-action="sort" data-value="position">Position</button>
+        <button class="btn btn-sort" data-action="sort" data-value="performance">Einsatzwert</button>
+        <button class="btn btn-sort" data-action="sort" data-value="name">Name</button>
     </div>
 </div>
 
@@ -62,7 +62,7 @@
 <!-- Player Detail Modal -->
 <div class="modal" id="playerModal">
     <div class="modal-content">
-        <div class="modal-close" onclick="closeModal()">&times;</div>
+        <div class="modal-close" data-action="closeModal">&times;</div>
 
         <div class="modal-player-header">
             <h2 class="modal-player-name" id="modalPlayerName">Spieler Name</h2>
@@ -169,8 +169,8 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Schließen</button>
-            <button class="btn btn-primary">Vertrag verlängern</button>
+            <button class="btn btn-secondary" data-action="closeModal">Schließen</button>
+            <button class="btn btn-primary" data-action="extendPlayerContract">Vertrag verlängern</button>
         </div>
     </div>
 </div>
