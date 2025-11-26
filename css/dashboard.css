@@ -380,7 +380,117 @@
     box-shadow: 0 0 10px var(--turquoise-glow);
 }
 
-/* ========== 4. TABELLE WIDGET ========== */
+/* ========== 4. VERLETZUNGEN & SPERREN WIDGET ========== */
+.injuries-widget {
+    grid-column: span 4;
+    padding: 30px;
+}
+
+.injury-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 12px;
+    border: 1px solid var(--turquoise-border);
+    transition: all 0.3s ease;
+}
+
+.injury-item:last-of-type {
+    margin-bottom: 0;
+}
+
+.injury-item:hover {
+    background: rgba(0, 199, 139, 0.1);
+    transform: translateX(5px);
+    box-shadow: 0 5px 20px var(--turquoise-shadow);
+}
+
+.injury-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.injury-icon.injury-red {
+    background: rgba(245, 101, 101, 0.2);
+    border: 2px solid #fc8181;
+}
+
+.injury-icon.injury-yellow {
+    background: rgba(237, 137, 54, 0.2);
+    border: 2px solid #f6ad55;
+}
+
+.injury-icon.injury-orange {
+    background: rgba(236, 201, 75, 0.2);
+    border: 2px solid #ecc94b;
+}
+
+.injury-info {
+    flex: 1;
+}
+
+.injury-player {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-white);
+    margin-bottom: 3px;
+}
+
+.injury-type {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.injury-duration {
+    text-align: right;
+}
+
+.injury-time {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    padding: 6px 12px;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 8px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.no-injuries {
+    text-align: center;
+    padding: 30px 20px;
+    background: rgba(72, 187, 120, 0.1);
+    border-radius: 12px;
+    border: 2px solid #48bb78;
+}
+
+.no-injuries-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.no-injuries-text strong {
+    display: block;
+    font-size: 16px;
+    color: #68d391;
+    margin-bottom: 8px;
+}
+
+.no-injuries-text p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ========== 5. TABELLE WIDGET ========== */
 .table-widget {
     grid-column: span 4;
     padding: 30px;
@@ -469,7 +579,7 @@
     text-align: center;
 }
 
-/* ========== 5. NEWS WIDGET ========== */
+/* ========== 6. NEWS WIDGET ========== */
 .news-widget {
     grid-column: span 8;
     padding: 30px;
@@ -594,6 +704,7 @@
 
     .quick-stats-widget,
     .potw-widget,
+    .injuries-widget,
     .table-widget {
         grid-column: span 6;
     }
@@ -619,6 +730,7 @@
     .next-match-widget,
     .quick-stats-widget,
     .potw-widget,
+    .injuries-widget,
     .table-widget,
     .news-widget {
         grid-column: span 12;
@@ -702,6 +814,7 @@
     .next-match-widget,
     .quick-stats-widget,
     .potw-widget,
+    .injuries-widget,
     .table-widget,
     .news-widget {
         padding: 20px;

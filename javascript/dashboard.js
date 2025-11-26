@@ -104,7 +104,15 @@ const DashboardSystem = (() => {
 
                 const badgeText = badge.textContent.toLowerCase();
 
-                if (badgeText.includes(filter)) {
+                // Normalisiere Filter (Events -> Event, Updates -> Update)
+                let normalizedFilter = filter;
+                if (filter === 'events') {
+                    normalizedFilter = 'event';
+                } else if (filter === 'updates') {
+                    normalizedFilter = 'update';
+                }
+
+                if (badgeText.includes(normalizedFilter)) {
                     item.style.display = 'block';
                 } else {
                     item.style.display = 'none';
@@ -142,6 +150,17 @@ const DashboardSystem = (() => {
                 const title = this.querySelector('.news-title').textContent;
                 const excerpt = this.querySelector('.news-excerpt').textContent;
                 handleNewsClick(title, excerpt);
+            });
+        });
+
+        // Injury Items
+        const injuryItems = document.querySelectorAll('.injury-item');
+        injuryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const player = this.querySelector('.injury-player').textContent;
+                const type = this.querySelector('.injury-type').textContent;
+                const time = this.querySelector('.injury-time').textContent;
+                handleInjuryClick(player, type, time);
             });
         });
     }
@@ -210,6 +229,16 @@ const DashboardSystem = (() => {
      */
     function handleNewsClick(title, excerpt) {
         alert(`📰 News Details\n\n${title}\n\n${excerpt}\n\n(Hier würde ein Modal mit vollständigen Details geöffnet)`);
+    }
+
+    /**
+     * Handler für Verletzungen/Sperren Klicks
+     * @param {string} player - Spielername
+     * @param {string} type - Verletzungs-/Sperrentyp
+     * @param {string} time - Ausfallzeit
+     */
+    function handleInjuryClick(player, type, time) {
+        alert(`⚠️ Spieler-Status\n\nSpieler: ${player}\nProblem: ${type}\nAusfall: ${time}\n\n(Hier würden detaillierte Informationen und Behandlungsoptionen angezeigt)`);
     }
 
     /**
