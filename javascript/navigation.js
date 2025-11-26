@@ -23,7 +23,7 @@ const NavigationSystem = (() => {
             module: 'team'
         },
         training: {
-            html: 'pages/training.html',
+            html: 'training.html',
             module: 'training'
         },
         tactics: {
