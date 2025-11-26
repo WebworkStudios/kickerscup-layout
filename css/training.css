@@ -149,10 +149,6 @@
     border: 1px solid var(--turquoise-border);
     border-radius: 25px;
     padding: 35px;
-    position: sticky;
-    top: 100px;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
 }
 
 .timeline-slots {
@@ -196,7 +192,7 @@
 
 .slot-card-container {
     flex: 1;
-    min-height: 80px;
+    height: 80px;
     background: rgba(0, 0, 0, 0.3);
     border: 2px dashed var(--turquoise-border);
     border-radius: 15px;
@@ -204,6 +200,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .slot-card-container.filled {
@@ -219,6 +216,7 @@
 
 .slot-filled-card {
     width: 100%;
+    height: 100%;
     padding: 15px;
     display: flex;
     align-items: center;
@@ -234,14 +232,24 @@
 }
 
 .slot-card-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--slot-color);
+    word-break: break-word;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .slot-card-subtitle {
     font-size: 12px;
     color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .slot-card-remove {
@@ -315,6 +323,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    overflow: hidden;
 }
 
 .effect-overlay.active {
@@ -326,6 +335,8 @@
     text-align: center;
     transform: scale(0.5);
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 90vw;
+    padding: 20px;
 }
 
 .effect-overlay.active .effect-content {
@@ -364,6 +375,7 @@
     height: 100%;
     pointer-events: none;
     z-index: 10000;
+    overflow: hidden;
 }
 
 .particle {
@@ -395,12 +407,6 @@
 @media (max-width: 1200px) {
     .training-main-layout {
         grid-template-columns: 1fr;
-    }
-
-    .training-timeline {
-        position: relative;
-        top: 0;
-        max-height: none;
     }
 }
 
@@ -469,10 +475,17 @@
 
     .effect-title {
         font-size: 32px;
+        word-wrap: break-word;
     }
 
     .effect-subtitle {
         font-size: 18px;
+    }
+
+    /* Reduziere Particle-Bewegung auf Mobile */
+    .particle {
+        width: 8px;
+        height: 8px;
     }
 }
 
@@ -484,6 +497,23 @@
 
     .training-header-subtitle {
         font-size: 14px;
+    }
+
+    .content-area {
+        padding-top: 70px;
+        padding-bottom: 90px;
+    }
+
+    .training-container {
+        padding: 0 15px;
+    }
+
+    .training-header {
+        margin-bottom: 30px;
+    }
+
+    .training-main-layout {
+        gap: 20px;
     }
 
     .training-library,
@@ -499,20 +529,95 @@
     .training-card {
         padding: 20px;
         height: auto;
-        min-height: 240px;
+        min-height: 200px;
     }
 
     .card-icon {
         font-size: 42px;
+        margin-bottom: 10px;
     }
 
     .card-title {
         font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .card-subtitle {
+        font-size: 12px;
+        margin-bottom: 15px;
     }
 
     .save-btn {
         padding: 15px;
         font-size: 14px;
+    }
+
+    .slot-time {
+        min-width: 50px;
+        font-size: 13px;
+    }
+
+    .slot-connector {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .slot-card-container {
+        height: 70px;
+    }
+
+    .slot-filled-card {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .slot-card-icon {
+        font-size: 24px;
+    }
+
+    .slot-card-title {
+        font-size: 13px;
+        line-height: 1.2;
+    }
+
+    .slot-card-subtitle {
+        font-size: 11px;
+    }
+
+    .slot-card-remove {
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+    }
+
+    .effect-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+
+    .effect-title {
+        font-size: 24px;
+        letter-spacing: 1px;
+        word-wrap: break-word;
+        padding: 0 10px;
+    }
+
+    .effect-subtitle {
+        font-size: 16px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        gap: 8px;
+    }
+
+    .timeline-actions {
+        margin-top: 20px;
+    }
+
+    .timeline-slots {
+        gap: 15px;
     }
 }
 

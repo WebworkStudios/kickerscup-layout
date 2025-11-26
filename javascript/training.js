@@ -163,14 +163,19 @@
 
         container.innerHTML = '';
 
-        for (let i = 0; i < 20; i++) {
+        // Reduziere Bewegungsbereich auf Mobile
+        const isMobile = window.innerWidth <= 768;
+        const maxDistance = isMobile ? 150 : 400;
+        const particleCount = isMobile ? 15 : 20;
+
+        for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
             particle.className = 'particle';
             particle.style.setProperty('--effect-color', color);
             particle.style.left = '50%';
             particle.style.top = '50%';
-            particle.style.setProperty('--tx', `${(Math.random() - 0.5) * 400}px`);
-            particle.style.setProperty('--ty', `${(Math.random() - 0.5) * 400}px`);
+            particle.style.setProperty('--tx', `${(Math.random() - 0.5) * maxDistance}px`);
+            particle.style.setProperty('--ty', `${(Math.random() - 0.5) * maxDistance}px`);
             particle.style.animationDelay = `${Math.random() * 0.5}s`;
             container.appendChild(particle);
         }
