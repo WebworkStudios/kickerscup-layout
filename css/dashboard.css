@@ -270,7 +270,7 @@
     font-size: 13px;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 /* ========== 3. SPIELER DER WOCHE WIDGET ========== */
@@ -604,7 +604,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .filter-btn.active,
