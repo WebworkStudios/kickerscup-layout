@@ -1,0 +1,321 @@
+<!-- DASHBOARD PAGE -->
+<div class="dashboard-header">
+    <h1 class="dashboard-title">DASHBOARD</h1>
+    <p class="dashboard-subtitle">Willkommen zurück, Manager! Hier ist der Überblick über dein Team.</p>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+
+    <!-- 1. NÄCHSTER GEGNER WIDGET -->
+    <div class="next-match-widget glass">
+        <div class="match-header">
+            <div class="match-title">Nächstes Spiel</div>
+            <div class="match-countdown" id="matchCountdown">⏱️ In 2 Tagen 5 Stunden</div>
+        </div>
+
+        <div class="match-teams">
+            <div class="team-side">
+                <div class="team-logo">⚽</div>
+                <div class="team-name-match">FC Thunderbolts</div>
+                <div class="team-strength">⭐ Stärke: 1.842</div>
+            </div>
+
+            <div class="vs-divider">VS</div>
+
+            <div class="team-side">
+                <div class="team-logo">🔥</div>
+                <div class="team-name-match">FC Phoenix</div>
+                <div class="team-strength">⭐ Stärke: 1.756</div>
+            </div>
+        </div>
+
+        <div class="match-info-grid">
+            <div class="info-item">
+                <div class="info-label">Wettbewerb</div>
+                <div class="info-value">🏆 Bundesliga</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Spieltag</div>
+                <div class="info-value">12. Spieltag</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Stadion</div>
+                <div class="info-value">🏟️ Heimspiel</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Erwartete Zuschauer</div>
+                <div class="info-value">👥 45.000</div>
+            </div>
+        </div>
+
+        <div class="match-action-buttons">
+            <button class="btn-match-action btn-primary">⚙️ Taktik</button>
+            <button class="btn-match-action btn-secondary">👥 Aufstellung</button>
+            <button class="btn-match-action btn-secondary">📊 Analyse</button>
+        </div>
+    </div>
+
+    <!-- 2. SCHNELLSTATISTIKEN -->
+    <div class="quick-stats-widget glass">
+        <div class="stats-title">Schnellstatistiken</div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">🏆</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">3.</div>
+                <div class="quick-stat-label">Tabellenplatz</div>
+            </div>
+        </div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">📈</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">8-2-1</div>
+                <div class="quick-stat-label">Bilanz (S-U-N)</div>
+            </div>
+        </div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">⚽</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">31:12</div>
+                <div class="quick-stat-label">Tore</div>
+            </div>
+        </div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">💪</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">87%</div>
+                <div class="quick-stat-label">Team-Fitness</div>
+            </div>
+        </div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">💰</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">2.4M</div>
+                <div class="quick-stat-label">Budget</div>
+            </div>
+        </div>
+
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon">👥</div>
+            <div class="quick-stat-content">
+                <div class="quick-stat-value">23</div>
+                <div class="quick-stat-label">Spieler</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SPIELER DER WOCHE -->
+    <div class="potw-widget glass">
+        <div class="stats-title">Spieler der Woche</div>
+
+        <div class="potw-player">
+            <div class="potw-badge">⭐ MVP</div>
+            <div class="potw-image">MM</div>
+            <div class="potw-name">Marco Müller</div>
+            <div class="potw-position">Stürmer</div>
+
+            <div class="potw-stats">
+                <div class="potw-stat">
+                    <span class="potw-stat-value">3</span>
+                    <span class="potw-stat-label">Tore</span>
+                </div>
+                <div class="potw-stat">
+                    <span class="potw-stat-value">2</span>
+                    <span class="potw-stat-label">Assists</span>
+                </div>
+                <div class="potw-stat">
+                    <span class="potw-stat-value">9.5</span>
+                    <span class="potw-stat-label">Rating</span>
+                </div>
+            </div>
+
+            <div class="potw-performance">
+                <div class="performance-label">Leistung</div>
+                <div class="performance-bar">
+                    <div class="performance-fill" style="width: 95%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. TABELLE (Kompakt) -->
+    <div class="table-widget glass">
+        <div class="stats-title">Ligatabelle</div>
+
+        <table class="league-table">
+            <thead>
+            <tr>
+                <th>Pl</th>
+                <th>Team</th>
+                <th>Sp</th>
+                <th>Pkt</th>
+                <th>Tore</th>
+                <th>Form</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="table-position">1</td>
+                <td>
+                    <span class="table-team-logo">⚡</span>
+                    FC Lightning
+                </td>
+                <td>11</td>
+                <td>33</td>
+                <td>38:10</td>
+                <td>
+                    <div class="table-form">
+                        <div class="form-mini win"></div>
+                        <div class="form-mini win"></div>
+                        <div class="form-mini win"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="table-position">2</td>
+                <td>
+                    <span class="table-team-logo">🔥</span>
+                    FC Phoenix
+                </td>
+                <td>11</td>
+                <td>29</td>
+                <td>35:18</td>
+                <td>
+                    <div class="table-form">
+                        <div class="form-mini win"></div>
+                        <div class="form-mini draw"></div>
+                        <div class="form-mini win"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="your-team">
+                <td class="table-position">3</td>
+                <td>
+                    <span class="table-team-logo">⚽</span>
+                    FC Thunderbolts
+                </td>
+                <td>11</td>
+                <td>26</td>
+                <td>31:12</td>
+                <td>
+                    <div class="table-form">
+                        <div class="form-mini win"></div>
+                        <div class="form-mini win"></div>
+                        <div class="form-mini loss"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="table-position">4</td>
+                <td>
+                    <span class="table-team-logo">⚔️</span>
+                    FC Warriors
+                </td>
+                <td>11</td>
+                <td>28</td>
+                <td>32:15</td>
+                <td>
+                    <div class="table-form">
+                        <div class="form-mini win"></div>
+                        <div class="form-mini win"></div>
+                        <div class="form-mini loss"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="table-position">5</td>
+                <td>
+                    <span class="table-team-logo">🛡️</span>
+                    FC Defenders
+                </td>
+                <td>11</td>
+                <td>24</td>
+                <td>24:17</td>
+                <td>
+                    <div class="table-form">
+                        <div class="form-mini draw"></div>
+                        <div class="form-mini win"></div>
+                        <div class="form-mini draw"></div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="table-prognosis">
+            💡 Ein Sieg im nächsten Spiel könnte Platz 2 bedeuten!
+        </div>
+    </div>
+
+    <!-- 5. NEWS & ANKÜNDIGUNGEN -->
+    <div class="news-widget glass">
+        <div class="stats-title">News & Updates</div>
+
+        <div class="news-filter">
+            <button class="filter-btn active" data-filter="alle">Alle</button>
+            <button class="filter-btn" data-filter="events">Events</button>
+            <button class="filter-btn" data-filter="updates">Updates</button>
+            <button class="filter-btn" data-filter="kritisch">Kritisch</button>
+        </div>
+
+        <div class="news-item critical">
+            <span class="news-badge badge-critical">Kritisch</span>
+            <div class="news-title">🚨 Wartungsarbeiten angekündigt</div>
+            <div class="news-excerpt">
+                Am Sonntag, 27. November, findet zwischen 02:00 und 06:00 Uhr eine Serverwartung statt.
+            </div>
+            <div class="news-date">Vor 2 Stunden</div>
+        </div>
+
+        <div class="news-item event">
+            <span class="news-badge badge-event">Event</span>
+            <div class="news-title">🎉 Winterpokal startet bald!</div>
+            <div class="news-excerpt">
+                Ab dem 1. Dezember beginnt der große Winterpokal! Melde dein Team an und gewinne exklusive Preise.
+            </div>
+            <div class="news-date">Vor 5 Stunden</div>
+        </div>
+
+        <div class="news-item update">
+            <span class="news-badge badge-update">Update</span>
+            <div class="news-title">⚙️ Patch 2.4.1 verfügbar</div>
+            <div class="news-excerpt">
+                Neue Features: Erweiterte Taktikoptionen, verbesserte Spielerstatistiken und optimierte Match-Engine.
+            </div>
+            <div class="news-date">Gestern</div>
+        </div>
+
+        <div class="news-item">
+            <span class="news-badge badge-info">Info</span>
+            <div class="news-title">📊 Neue Statistik-Features</div>
+            <div class="news-excerpt">
+                Ab sofort sind erweiterte Spielerstatistiken verfügbar! Analysiere Heatmaps und Passnetzwerke.
+            </div>
+            <div class="news-date">Vor 2 Tagen</div>
+        </div>
+
+        <div class="news-item event">
+            <span class="news-badge badge-event">Event</span>
+            <div class="news-title">🏆 Champions League Qualifikation</div>
+            <div class="news-excerpt">
+                Die Top 4 Teams der Liga qualifizieren sich für die Champions League! Du bist auf Platz 3.
+            </div>
+            <div class="news-date">Vor 3 Tagen</div>
+        </div>
+
+        <div class="news-item">
+            <span class="news-badge badge-info">Info</span>
+            <div class="news-title">💰 Transferfenster öffnet bald</div>
+            <div class="news-excerpt">
+                Das Winter-Transferfenster öffnet am 1. Januar. Bereite deine Kader-Strategie vor.
+            </div>
+            <div class="news-date">Vor 4 Tagen</div>
+        </div>
+    </div>
+
+</div>

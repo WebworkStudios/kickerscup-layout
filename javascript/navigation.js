@@ -14,7 +14,7 @@ const NavigationSystem = (() => {
     // Seiten-Konfiguration mit zugehörigen Scripts
     const pages = {
         dashboard: {
-            html: 'pages/dashboard.html',
+            html: 'dashboard.html',
             scripts: ['javascript/dashboard.js'],
             css: ['css/dashboard.css']
         },
