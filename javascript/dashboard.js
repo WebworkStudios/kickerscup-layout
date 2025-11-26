@@ -1,6 +1,6 @@
 // =====================================================
-// KICKERSCUP - DASHBOARD SYSTEM (REFACTORED)
-// Kompatibel mit ModuleManager
+// KICKERSCUP - DASHBOARD SYSTEM (ULTIMATE FIX)
+// Multi-Strategy Initialisierung für dynamisch geladenen Content
 // =====================================================
 
 (function() {
@@ -10,6 +10,8 @@
     let countdownInterval = null;
     let currentFilter = 'alle';
     let eventListeners = [];
+    let initAttempts = 0;
+    const MAX_INIT_ATTEMPTS = 5;
 
     /**
      * Helper: Event Listener registrieren (für Cleanup)
@@ -59,47 +61,121 @@
     }
 
     /**
-     * Initialisiert den News Filter
-     */
-    function initNewsFilter() {
-        const filterButtons = document.querySelectorAll('.filter-btn');
-
-        filterButtons.forEach(btn => {
-            addEventListener(btn, 'click', function() {
-                filterButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
-                const filter = this.getAttribute('data-filter').toLowerCase();
-                currentFilter = filter;
-                filterNews(filter);
-            });
-        });
-    }
-
-    /**
      * Filtert News nach Kategorie
      */
     function filterNews(filter) {
         const newsItems = document.querySelectorAll('.news-item');
 
+        if (newsItems.length === 0) {
+            console.warn('⚠️ filterNews: Keine News-Items gefunden!');
+            return;
+        }
+
+        const filterMapping = {
+            'alle': null,
+            'events': 'event',
+            'updates': 'update',
+            'kritisch': 'critical'
+        };
+
+        const targetClass = filterMapping[filter];
+        let visibleCount = 0;
+
         newsItems.forEach(item => {
             if (filter === 'alle') {
                 item.style.display = 'block';
+                visibleCount++;
+            } else if (targetClass && item.classList.contains(targetClass)) {
+                item.style.display = 'block';
+                visibleCount++;
             } else {
-                // Prüfe ob das Item die entsprechende CSS-Klasse hat
-                let shouldShow = false;
-
-                if (filter === 'events' && item.classList.contains('event')) {
-                    shouldShow = true;
-                } else if (filter === 'updates' && item.classList.contains('update')) {
-                    shouldShow = true;
-                } else if (filter === 'kritisch' && item.classList.contains('critical')) {
-                    shouldShow = true;
-                }
-
-                item.style.display = shouldShow ? 'block' : 'none';
+                item.style.display = 'none';
             }
         });
+
+        console.log(`✅ Filter "${filter}": ${visibleCount}/${newsItems.length} Items sichtbar`);
+    }
+
+    /**
+     * 🔧 STRATEGY 1: Event Delegation (Robusteste Methode)
+     * Events werden am Container registriert, funktioniert auch bei späterem Content
+     */
+    function initNewsFilterWithDelegation() {
+        const newsWidget = document.querySelector('.news-widget');
+
+        if (!newsWidget) {
+            console.warn('⚠️ News-Widget Container nicht gefunden');
+            return false;
+        }
+
+        // Ein einziger Event Listener am Container
+        addEventListener(newsWidget, 'click', function(e) {
+            // Prüfe ob ein Filter-Button geklickt wurde
+            const filterBtn = e.target.closest('.filter-btn');
+
+            if (filterBtn) {
+                const filter = filterBtn.getAttribute('data-filter').toLowerCase();
+
+                // Update Button-States
+                const allButtons = newsWidget.querySelectorAll('.filter-btn');
+                allButtons.forEach(btn => btn.classList.remove('active'));
+                filterBtn.classList.add('active');
+
+                // Führe Filter aus
+                currentFilter = filter;
+                filterNews(filter);
+
+                console.log(`🔘 Filter via Delegation: "${filter}"`);
+            }
+        });
+
+        console.log('✅ News-Filter mit Event Delegation initialisiert');
+        return true;
+    }
+
+    /**
+     * 🔧 STRATEGY 2: Direct Event Listeners mit Retry
+     */
+    function initNewsFilterDirect() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+
+        if (filterButtons.length === 0) {
+            console.warn(`⚠️ Versuch ${initAttempts}: Keine Filter-Buttons gefunden`);
+
+            // Retry mit Verzögerung
+            if (initAttempts < MAX_INIT_ATTEMPTS) {
+                initAttempts++;
+                setTimeout(initNewsFilterDirect, 100);
+            } else {
+                console.error('❌ Max Retries erreicht, Filter-Init fehlgeschlagen');
+            }
+            return false;
+        }
+
+        console.log(`✅ ${filterButtons.length} Filter-Buttons gefunden`);
+
+        filterButtons.forEach(btn => {
+            const filterValue = btn.getAttribute('data-filter');
+
+            addEventListener(btn, 'click', function(e) {
+                e.preventDefault();
+
+                // Update Button-States
+                filterButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Führe Filter aus
+                const filter = filterValue.toLowerCase();
+                currentFilter = filter;
+                filterNews(filter);
+
+                console.log(`🔘 Filter via Direct: "${filter}"`);
+            });
+        });
+
+        console.log('✅ News-Filter mit Direct Listeners initialisiert');
+        initAttempts = 0; // Reset
+        return true;
     }
 
     /**
@@ -166,9 +242,9 @@
     }
 
     /**
-     * Initialisiert Event Listeners
+     * Initialisiert Event Listeners für andere Dashboard-Elemente
      */
-    function initEventListeners() {
+    function initOtherEventListeners() {
         // Match Action Buttons
         const matchButtons = document.querySelectorAll('.btn-match-action');
         matchButtons.forEach(btn => {
@@ -207,22 +283,39 @@
                 handleInjuryClick(player, type, time);
             });
         });
+
+        console.log('✅ Andere Event Listeners registriert');
     }
 
     /**
-     * Initialisiert das Dashboard
+     * Haupt-Initialisierung
+     *
+     * 🔧 Verwendet mehrere Strategien für maximale Kompatibilität
      */
     function init() {
-        // Countdown starten
-        startCountdown();
+        return new Promise((resolve) => {
+            console.log('🚀 Dashboard Multi-Strategy Init gestartet...');
 
-        // News Filter initialisieren
-        initNewsFilter();
+            // Strategie 1: Event Delegation (sofort)
+            const delegationSuccess = initNewsFilterWithDelegation();
 
-        // Event Listeners initialisieren
-        initEventListeners();
+            // Strategie 2: Direct Listeners (nach kurzem Delay)
+            setTimeout(() => {
+                if (!delegationSuccess) {
+                    console.log('⚠️ Delegation fehlgeschlagen, versuche Direct Listeners...');
+                    initNewsFilterDirect();
+                }
 
-        console.log('✅ Dashboard System initialisiert');
+                // Andere Event Listeners
+                initOtherEventListeners();
+
+                // Countdown starten
+                startCountdown();
+
+                console.log('✅ Dashboard System vollständig initialisiert');
+                resolve();
+            }, 100);
+        });
     }
 
     /**
@@ -245,6 +338,7 @@
 
         // Reset State
         currentFilter = 'alle';
+        initAttempts = 0;
 
         console.log('🧹 Dashboard Cleanup durchgeführt');
     }
