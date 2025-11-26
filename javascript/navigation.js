@@ -35,7 +35,7 @@ const NavigationSystem = (() => {
             module: 'stadium'
         },
         league: {
-            html: 'pages/league.html',
+            html: 'league.html',
             module: 'league'
         },
         cup: {

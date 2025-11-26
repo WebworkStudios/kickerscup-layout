@@ -1,0 +1,87 @@
+<!-- LIGA PAGE -->
+<div class="league-header">
+    <h1 class="league-title">LIGA</h1>
+    <p class="league-subtitle">Spielplan, Tabellen & Statistiken</p>
+</div>
+
+<!-- League Selector -->
+<div class="league-selector-container glass">
+    <div class="selector-label">Liga wählen:</div>
+    <div class="league-selector-buttons" id="leagueSelector">
+        <button class="league-selector-btn active" data-league="1">Liga 1</button>
+        <button class="league-selector-btn" data-league="2">Liga 2</button>
+        <button class="league-selector-btn" data-league="3">Liga 3</button>
+        <button class="league-selector-btn" data-league="4">Liga 4</button>
+        <button class="league-selector-btn" data-league="5">Liga 5</button>
+    </div>
+</div>
+
+<!-- Schedule Section -->
+<div class="schedule-section">
+    <div class="section-header">
+        <h2 class="section-title">📅 Spielplan</h2>
+        <div class="matchday-navigation">
+            <button class="nav-arrow" id="prevMatchday">◀</button>
+            <span class="current-matchday" id="currentMatchday">Spieltag 1</span>
+            <button class="nav-arrow" id="nextMatchday">▶</button>
+        </div>
+    </div>
+
+    <div class="schedule-container" id="scheduleContainer">
+        <!-- Matches will be rendered here -->
+    </div>
+</div>
+
+<!-- Table Section -->
+<div class="table-section">
+    <div class="section-header">
+        <h2 class="section-title">📊 Tabelle</h2>
+        <div class="table-tabs">
+            <button class="table-tab active" data-table="overall">Gesamt</button>
+            <button class="table-tab" data-table="home">Heim</button>
+            <button class="table-tab" data-table="away">Auswärts</button>
+        </div>
+    </div>
+
+    <div class="table-container glass">
+        <table class="league-table" id="leagueTable">
+            <thead>
+            <tr>
+                <th class="col-pos">Pl</th>
+                <th class="col-team">Team</th>
+                <th class="col-stat">Sp</th>
+                <th class="col-stat">S</th>
+                <th class="col-stat">U</th>
+                <th class="col-stat">N</th>
+                <th class="col-stat">Tore</th>
+                <th class="col-stat">Diff</th>
+                <th class="col-stat">Pkt</th>
+                <th class="col-form">Form</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <!-- Table rows will be rendered here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Legend -->
+    <div class="table-legend">
+        <div class="legend-item">
+            <div class="legend-color legend-champions"></div>
+            <span>Champions League</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-europa"></div>
+            <span>Europa League</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-relegation"></div>
+            <span>Abstieg</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-player"></div>
+            <span>Dein Team</span>
+        </div>
+    </div>
+</div>
