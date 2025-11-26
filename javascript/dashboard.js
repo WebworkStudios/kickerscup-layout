@@ -251,27 +251,10 @@ const DashboardSystem = (() => {
         }
     }
 
-    /**
-     * Aktualisiert Dashboard-Daten
-     */
-    function refreshData() {
-        console.log('🔄 Dashboard-Daten werden aktualisiert...');
-
-        // Hier würde normalerweise ein AJAX-Call stattfinden
-        // Beispiel:
-        // fetchDashboardData().then(data => updateWidgets(data));
-
-        // Simuliere Refresh
-        setTimeout(() => {
-            console.log('✅ Dashboard-Daten aktualisiert');
-        }, 500);
-    }
-
     // Public API
     return {
         init,
-        cleanup,
-        refreshData
+        cleanup
     };
 })();
 

@@ -7,10 +7,10 @@ const NavigationSystem = (() => {
     // Private variables
     let currentPage = 'dashboard';
     const contentWrapper = document.getElementById('contentWrapper');
-    
+
     // Cache für geladene Seiten
     const pageCache = new Map();
-    
+
     // Seiten-Konfiguration mit zugehörigen Scripts
     const pages = {
         dashboard: {
@@ -54,7 +54,7 @@ const NavigationSystem = (() => {
             css: ['css/settings.css']
         }
     };
-    
+
     // Geladene Scripts und CSS tracken
     const loadedScripts = new Set();
     const loadedStyles = new Set();
@@ -119,6 +119,7 @@ const NavigationSystem = (() => {
     /**
      * Lädt eine Seite via AJAX
      * @param {string} pageName - Name der zu ladenden Seite
+     * @returns {Promise<void>}
      */
     async function loadPage(pageName) {
         // Prüfe ob Seite existiert
@@ -128,13 +129,13 @@ const NavigationSystem = (() => {
             return;
         }
 
+        // Zeige Loading-Indikator
+        showLoadingIndicator();
+
+        const pageConfig = pages[pageName];
+        const htmlPath = pageConfig.html || pageConfig;
+
         try {
-            // Zeige Loading-Indikator
-            showLoadingIndicator();
-
-            const pageConfig = pages[pageName];
-            const htmlPath = pageConfig.html || pageConfig;
-
             // Lade CSS falls vorhanden
             if (pageConfig.css && Array.isArray(pageConfig.css)) {
                 await Promise.all(pageConfig.css.map(css => loadStyle(css)));
@@ -147,35 +148,36 @@ const NavigationSystem = (() => {
             } else {
                 // Lade Seite vom Server
                 const response = await fetch(htmlPath);
-                
+
                 if (!response.ok) {
+                    // Fehler wird zum catch-Block weitergeleitet
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 content = await response.text();
             }
 
             // WICHTIG: Erst Content clearen, dann neu setzen
             contentWrapper.innerHTML = '';
-            
+
             // Kleine Verzögerung für sauberen Übergang
             setTimeout(async () => {
                 contentWrapper.innerHTML = content;
-                
+
                 // Lade Scripts falls vorhanden
                 if (pageConfig.scripts && Array.isArray(pageConfig.scripts)) {
                     await Promise.all(pageConfig.scripts.map(script => loadScript(script)));
                 }
-                
+
                 // Update Navigation
                 updateNavigation(pageName);
-                
+
                 // Update currentPage
                 currentPage = pageName;
 
                 // Trigger custom event für Page-Load
-                const event = new CustomEvent('pageLoaded', { 
-                    detail: { page: pageName } 
+                const event = new CustomEvent('pageLoaded', {
+                    detail: { page: pageName }
                 });
                 document.dispatchEvent(event);
 
@@ -184,6 +186,7 @@ const NavigationSystem = (() => {
             }, 50);
 
         } catch (error) {
+            // Fehlerbehandlung für alle fehlgeschlagenen Operationen
             console.error('Fehler beim Laden der Seite:', error);
             showErrorPage();
             hideLoadingIndicator();
@@ -214,7 +217,7 @@ const NavigationSystem = (() => {
                 <p style="color: var(--text-muted); font-size: 14px;">Lädt...</p>
             </div>
         `;
-        
+
         // CSS für Spin-Animation (falls nicht vorhanden)
         if (!document.getElementById('spinner-style')) {
             const style = document.createElement('style');
@@ -278,10 +281,10 @@ const NavigationSystem = (() => {
      */
     function updateNavigation(pageName) {
         const navButtons = document.querySelectorAll('.nav-btn');
-        
+
         navButtons.forEach(btn => {
             const btnPage = btn.getAttribute('data-page');
-            
+
             if (btnPage === pageName) {
                 btn.classList.add('active');
             } else {
@@ -296,24 +299,31 @@ const NavigationSystem = (() => {
     function init() {
         // Event Listener für alle Nav-Buttons
         const navButtons = document.querySelectorAll('.nav-btn');
-        
+
         navButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const pageName = btn.getAttribute('data-page');
                 if (pageName) {
-                    loadPage(pageName);
+                    // Promise wird korrekt behandelt - keine weitere Action nötig
+                    loadPage(pageName).catch(err => {
+                        console.error('Navigation fehlgeschlagen:', err);
+                    });
                 }
             });
         });
 
         // Lade initiale Seite (Dashboard)
-        loadPage('dashboard');
+        loadPage('dashboard').catch(err => {
+            console.error('Initiale Seite konnte nicht geladen werden:', err);
+        });
 
         // Browser Back/Forward Button Support (optional)
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.page) {
-                loadPage(e.state.page);
+                loadPage(e.state.page).catch(err => {
+                    console.error('Seite aus History konnte nicht geladen werden:', err);
+                });
             }
         });
 
@@ -325,31 +335,24 @@ const NavigationSystem = (() => {
      * @param {string} pageName - Name der Seite
      */
     function navigateTo(pageName) {
-        loadPage(pageName);
-        
+        loadPage(pageName).catch(err => {
+            console.error('Navigation fehlgeschlagen:', err);
+        });
+
         // Update Browser History (optional)
         if (window.history && window.history.pushState) {
             window.history.pushState(
-                { page: pageName }, 
-                '', 
+                { page: pageName },
+                '',
                 `#${pageName}`
             );
         }
     }
 
-    /**
-     * Gibt die aktuelle Seite zurück
-     * @returns {string} Current page name
-     */
-    function getCurrentPage() {
-        return currentPage;
-    }
-
     // Public API
     return {
         init,
-        navigateTo,
-        getCurrentPage
+        navigateTo
     };
 })();
 
