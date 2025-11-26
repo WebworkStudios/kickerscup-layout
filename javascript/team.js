@@ -3,7 +3,7 @@
 // Kompatibel mit ModuleManager + Event Delegation
 // =====================================================
 
-(function() {
+(function () {
     'use strict';
 
     const TeamManagement = (() => {
@@ -14,24 +14,312 @@
 
         // Mock-Daten
         const mockPlayers = [
-            { id: 1, firstName: 'Max', lastName: 'Müller', position: 'TW', age: 28, strength: 85, stamina: 90, form: 88, freshness: 95, motivation: 92, contractYears: 3, gamesPlayed: 145, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 2, firstName: 'Tom', lastName: 'Schmidt', position: 'LV', age: 25, strength: 78, stamina: 85, form: 82, freshness: 90, motivation: 88, contractYears: 2, gamesPlayed: 98, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 3, firstName: 'Leon', lastName: 'Wagner', position: 'IV', age: 29, strength: 88, stamina: 82, form: 90, freshness: 88, motivation: 90, contractYears: 4, gamesPlayed: 187, status: 'OK', isStarter: true, isCaptain: true },
-            { id: 4, firstName: 'Felix', lastName: 'Fischer', position: 'IV', age: 27, strength: 85, stamina: 84, form: 87, freshness: 92, motivation: 89, contractYears: 3, gamesPlayed: 156, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 5, firstName: 'Jan', lastName: 'Weber', position: 'RV', age: 24, strength: 80, stamina: 88, form: 85, freshness: 94, motivation: 91, contractYears: 2, gamesPlayed: 76, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 6, firstName: 'Lukas', lastName: 'Becker', position: 'DM', age: 26, strength: 82, stamina: 90, form: 86, freshness: 89, motivation: 87, contractYears: 3, gamesPlayed: 134, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 7, firstName: 'Jonas', lastName: 'Schulz', position: 'OM', age: 23, strength: 84, stamina: 86, form: 90, freshness: 96, motivation: 93, contractYears: 4, gamesPlayed: 89, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 8, firstName: 'Paul', lastName: 'Hoffmann', position: 'LM', age: 25, strength: 81, stamina: 92, form: 84, freshness: 91, motivation: 88, contractYears: 2, gamesPlayed: 112, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 9, firstName: 'David', lastName: 'Klein', position: 'RM', age: 24, strength: 79, stamina: 91, form: 83, freshness: 93, motivation: 90, contractYears: 3, gamesPlayed: 95, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 10, firstName: 'Marco', lastName: 'Richter', position: 'ST', age: 27, strength: 90, stamina: 85, form: 92, freshness: 87, motivation: 94, contractYears: 4, gamesPlayed: 165, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 11, firstName: 'Tim', lastName: 'Braun', position: 'ST', age: 22, strength: 86, stamina: 88, form: 88, freshness: 95, motivation: 91, contractYears: 3, gamesPlayed: 67, status: 'OK', isStarter: true, isCaptain: false },
-            { id: 12, firstName: 'Niklas', lastName: 'Lang', position: 'TW', age: 32, strength: 80, stamina: 75, form: 78, freshness: 82, motivation: 85, contractYears: 1, gamesPlayed: 203, status: 'OK', isStarter: false, isCaptain: false },
-            { id: 13, firstName: 'Simon', lastName: 'Krause', position: 'IV', age: 30, strength: 82, stamina: 78, form: 80, freshness: 85, motivation: 83, contractYears: 2, gamesPlayed: 178, status: 'OK', isStarter: false, isCaptain: false },
-            { id: 14, firstName: 'Moritz', lastName: 'Zimmermann', position: 'LI', age: 21, strength: 75, stamina: 85, form: 79, freshness: 97, motivation: 89, contractYears: 4, gamesPlayed: 45, status: 'OK', isStarter: false, isCaptain: false },
-            { id: 15, firstName: 'Elias', lastName: 'Krüger', position: 'DM', age: 28, strength: 81, stamina: 84, form: 82, freshness: 88, motivation: 86, contractYears: 2, gamesPlayed: 142, status: 'verletzt', isStarter: false, isCaptain: false },
-            { id: 16, firstName: 'Noah', lastName: 'Hartmann', position: 'OM', age: 26, strength: 83, stamina: 87, form: 85, freshness: 90, motivation: 88, contractYears: 3, gamesPlayed: 118, status: 'OK', isStarter: false, isCaptain: false },
-            { id: 17, firstName: 'Ben', lastName: 'Wolf', position: 'LS', age: 25, strength: 84, stamina: 86, form: 87, freshness: 92, motivation: 90, contractYears: 2, gamesPlayed: 89, status: 'OK', isStarter: false, isCaptain: false },
-            { id: 18, firstName: 'Finn', lastName: 'Schröder', position: 'RS', age: 23, strength: 82, stamina: 89, form: 86, freshness: 94, motivation: 91, contractYears: 3, gamesPlayed: 72, status: 'gesperrt', isStarter: false, isCaptain: false }
+            {
+                id: 1,
+                firstName: 'Max',
+                lastName: 'Müller',
+                position: 'TW',
+                age: 28,
+                strength: 85,
+                stamina: 90,
+                form: 88,
+                freshness: 95,
+                motivation: 92,
+                contractYears: 3,
+                gamesPlayed: 145,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 2,
+                firstName: 'Tom',
+                lastName: 'Schmidt',
+                position: 'LV',
+                age: 25,
+                strength: 78,
+                stamina: 85,
+                form: 82,
+                freshness: 90,
+                motivation: 88,
+                contractYears: 2,
+                gamesPlayed: 98,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 3,
+                firstName: 'Leon',
+                lastName: 'Wagner',
+                position: 'IV',
+                age: 29,
+                strength: 88,
+                stamina: 82,
+                form: 90,
+                freshness: 88,
+                motivation: 90,
+                contractYears: 4,
+                gamesPlayed: 187,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: true
+            },
+            {
+                id: 4,
+                firstName: 'Felix',
+                lastName: 'Fischer',
+                position: 'IV',
+                age: 27,
+                strength: 85,
+                stamina: 84,
+                form: 87,
+                freshness: 92,
+                motivation: 89,
+                contractYears: 3,
+                gamesPlayed: 156,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 5,
+                firstName: 'Jan',
+                lastName: 'Weber',
+                position: 'RV',
+                age: 24,
+                strength: 80,
+                stamina: 88,
+                form: 85,
+                freshness: 94,
+                motivation: 91,
+                contractYears: 2,
+                gamesPlayed: 76,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 6,
+                firstName: 'Lukas',
+                lastName: 'Becker',
+                position: 'DM',
+                age: 26,
+                strength: 82,
+                stamina: 90,
+                form: 86,
+                freshness: 89,
+                motivation: 87,
+                contractYears: 3,
+                gamesPlayed: 134,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 7,
+                firstName: 'Jonas',
+                lastName: 'Schulz',
+                position: 'OM',
+                age: 23,
+                strength: 84,
+                stamina: 86,
+                form: 90,
+                freshness: 96,
+                motivation: 93,
+                contractYears: 4,
+                gamesPlayed: 89,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 8,
+                firstName: 'Paul',
+                lastName: 'Hoffmann',
+                position: 'LM',
+                age: 25,
+                strength: 81,
+                stamina: 92,
+                form: 84,
+                freshness: 91,
+                motivation: 88,
+                contractYears: 2,
+                gamesPlayed: 112,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 9,
+                firstName: 'David',
+                lastName: 'Klein',
+                position: 'RM',
+                age: 24,
+                strength: 79,
+                stamina: 91,
+                form: 83,
+                freshness: 93,
+                motivation: 90,
+                contractYears: 3,
+                gamesPlayed: 95,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 10,
+                firstName: 'Marco',
+                lastName: 'Richter',
+                position: 'ST',
+                age: 27,
+                strength: 90,
+                stamina: 85,
+                form: 92,
+                freshness: 87,
+                motivation: 94,
+                contractYears: 4,
+                gamesPlayed: 165,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 11,
+                firstName: 'Tim',
+                lastName: 'Braun',
+                position: 'ST',
+                age: 22,
+                strength: 86,
+                stamina: 88,
+                form: 88,
+                freshness: 95,
+                motivation: 91,
+                contractYears: 3,
+                gamesPlayed: 67,
+                status: 'OK',
+                isStarter: true,
+                isCaptain: false
+            },
+            {
+                id: 12,
+                firstName: 'Niklas',
+                lastName: 'Lang',
+                position: 'TW',
+                age: 32,
+                strength: 80,
+                stamina: 75,
+                form: 78,
+                freshness: 82,
+                motivation: 85,
+                contractYears: 1,
+                gamesPlayed: 203,
+                status: 'OK',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 13,
+                firstName: 'Simon',
+                lastName: 'Krause',
+                position: 'IV',
+                age: 30,
+                strength: 82,
+                stamina: 78,
+                form: 80,
+                freshness: 85,
+                motivation: 83,
+                contractYears: 2,
+                gamesPlayed: 178,
+                status: 'OK',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 14,
+                firstName: 'Moritz',
+                lastName: 'Zimmermann',
+                position: 'LI',
+                age: 21,
+                strength: 75,
+                stamina: 85,
+                form: 79,
+                freshness: 97,
+                motivation: 89,
+                contractYears: 4,
+                gamesPlayed: 45,
+                status: 'OK',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 15,
+                firstName: 'Elias',
+                lastName: 'Krüger',
+                position: 'DM',
+                age: 28,
+                strength: 81,
+                stamina: 84,
+                form: 82,
+                freshness: 88,
+                motivation: 86,
+                contractYears: 2,
+                gamesPlayed: 142,
+                status: 'verletzt',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 16,
+                firstName: 'Noah',
+                lastName: 'Hartmann',
+                position: 'OM',
+                age: 26,
+                strength: 83,
+                stamina: 87,
+                form: 85,
+                freshness: 90,
+                motivation: 88,
+                contractYears: 3,
+                gamesPlayed: 118,
+                status: 'OK',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 17,
+                firstName: 'Ben',
+                lastName: 'Wolf',
+                position: 'LS',
+                age: 25,
+                strength: 84,
+                stamina: 86,
+                form: 87,
+                freshness: 92,
+                motivation: 90,
+                contractYears: 2,
+                gamesPlayed: 89,
+                status: 'OK',
+                isStarter: false,
+                isCaptain: false
+            },
+            {
+                id: 18,
+                firstName: 'Finn',
+                lastName: 'Schröder',
+                position: 'RS',
+                age: 23,
+                strength: 82,
+                stamina: 89,
+                form: 86,
+                freshness: 94,
+                motivation: 91,
+                contractYears: 3,
+                gamesPlayed: 72,
+                status: 'gesperrt',
+                isStarter: false,
+                isCaptain: false
+            }
         ];
 
         /**
@@ -40,7 +328,7 @@
         function addEventListener(element, event, handler, options) {
             if (!element) return;
             element.addEventListener(event, handler, options);
-            eventListeners.push({ element, event, handler, options });
+            eventListeners.push({element, event, handler, options});
         }
 
         /**
@@ -62,7 +350,7 @@
             let sortedPlayers = [...players];
 
             // Sortierung
-            switch(currentSort) {
+            switch (currentSort) {
                 case 'lineup':
                     sortedPlayers.sort((a, b) => b.isStarter - a.isStarter);
                     break;
@@ -319,7 +607,7 @@
             const action = target.dataset.action;
             const value = target.dataset.value;
 
-            switch(action) {
+            switch (action) {
                 case 'sort':
                     sortBy(value);
                     break;
@@ -384,7 +672,7 @@
          */
         function cleanup() {
             // Entferne alle Event Listener
-            eventListeners.forEach(({ element, event, handler, options }) => {
+            eventListeners.forEach(({element, event, handler, options}) => {
                 if (element) {
                     element.removeEventListener(event, handler, options);
                 }

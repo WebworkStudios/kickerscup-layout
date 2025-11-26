@@ -38,8 +38,12 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 h1, h2, h3 {
@@ -75,8 +79,12 @@ h1, h2, h3 {
 }
 
 @keyframes kenBurns {
-    0% { transform: scale(1) translateX(0); }
-    100% { transform: scale(1.15) translateX(-5%); }
+    0% {
+        transform: scale(1) translateX(0);
+    }
+    100% {
+        transform: scale(1.15) translateX(-5%);
+    }
 }
 
 @media (max-width: 768px) {
@@ -92,10 +100,10 @@ h1, h2, h3 {
     width: 100%;
     height: 100%;
     background: linear-gradient(
-        135deg,
-        rgba(13, 13, 13, 0.95) 0%,
-        rgba(13, 13, 13, 0.7) 50%,
-        rgba(13, 13, 13, 0.9) 100%
+            135deg,
+            rgba(13, 13, 13, 0.95) 0%,
+            rgba(13, 13, 13, 0.7) 50%,
+            rgba(13, 13, 13, 0.9) 100%
     );
     z-index: 1;
     pointer-events: none;
@@ -109,9 +117,9 @@ h1, h2, h3 {
     width: 100%;
     height: 100%;
     background: radial-gradient(
-        ellipse at 30% 50%,
-        var(--turquoise-light) 0%,
-        transparent 50%
+            ellipse at 30% 50%,
+            var(--turquoise-light) 0%,
+            transparent 50%
     );
 }
 
@@ -253,8 +261,14 @@ h1, h2, h3 {
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
 }
 
 /* ========== FLOATING NAVIGATION ========== */

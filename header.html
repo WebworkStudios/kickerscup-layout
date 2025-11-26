@@ -2,22 +2,24 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Kickerscup - Football Manager</title>
 
     <!-- Preconnect für externe Ressourcen -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link crossorigin href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap"
+          rel="stylesheet">
 
     <!-- Preload Background Images -->
-    <link rel="preload" as="image" href="img/background-header.webp" type="image/webp" media="(min-width: 769px)">
-    <link rel="preload" as="image" href="img/background-header-mobile.webp" type="image/webp" media="(max-width: 768px)">
+    <link as="image" href="img/background-header.webp" media="(min-width: 769px)" rel="preload" type="image/webp">
+    <link as="image" href="img/background-header-mobile.webp" media="(max-width: 768px)" rel="preload"
+          type="image/webp">
 
     <!-- Core Layout CSS (immer geladen) -->
-    <link rel="stylesheet" href="css/layout.css">
+    <link href="css/layout.css" rel="stylesheet">
 
     <!--
         ⚡ PERFORMANCE: Scripts mit defer im <head>
@@ -27,10 +29,10 @@
     -->
 
     <!-- Module Manager (MUSS zuerst geladen werden) -->
-    <script src="javascript/module-manager.js" defer></script>
+    <script defer src="javascript/module-manager.js"></script>
 
     <!-- Navigation System (benötigt ModuleManager) -->
-    <script src="javascript/navigation.js" defer></script>
+    <script defer src="javascript/navigation.js"></script>
 
     <!--
         HINWEIS: Weitere Scripts (dashboard.js, team.js, etc.)
@@ -43,7 +45,7 @@
     <picture>
         <source media="(max-width: 768px)" srcset="img/background-header-mobile.webp" type="image/webp">
         <source media="(min-width: 769px)" srcset="img/background-header.webp" type="image/webp">
-        <img src="img/background-header.webp" alt="Stadium Background" class="hero-bg-image">
+        <img alt="Stadium Background" class="hero-bg-image" src="img/background-header.webp">
     </picture>
 </div>
 
@@ -80,44 +82,44 @@
 </div>
 
 <!-- Floating Navigation -->
-<nav class="floating-nav" role="navigation" aria-label="Hauptnavigation">
-    <div class="nav-btn active" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard">
+<nav aria-label="Hauptnavigation" class="floating-nav" role="navigation">
+    <div aria-label="Dashboard" class="nav-btn active" data-page="dashboard" role="button" tabindex="0">
         <div class="nav-btn-icon">🏠</div>
         <div class="nav-btn-label">Home</div>
     </div>
-    <div class="nav-btn" data-page="team" role="button" tabindex="0" aria-label="Team">
+    <div aria-label="Team" class="nav-btn" data-page="team" role="button" tabindex="0">
         <div class="nav-btn-icon">👥</div>
         <div class="nav-btn-label">Team</div>
     </div>
-    <div class="nav-btn" data-page="training" role="button" tabindex="0" aria-label="Training">
+    <div aria-label="Training" class="nav-btn" data-page="training" role="button" tabindex="0">
         <div class="nav-btn-icon">💪</div>
         <div class="nav-btn-label">Training</div>
     </div>
-    <div class="nav-btn" data-page="tactics" role="button" tabindex="0" aria-label="Taktik">
+    <div aria-label="Taktik" class="nav-btn" data-page="tactics" role="button" tabindex="0">
         <div class="nav-btn-icon">📋</div>
         <div class="nav-btn-label">Taktik</div>
     </div>
-    <div class="nav-btn" data-page="stadium" role="button" tabindex="0" aria-label="Stadion">
+    <div aria-label="Stadion" class="nav-btn" data-page="stadium" role="button" tabindex="0">
         <div class="nav-btn-icon">🏟️</div>
         <div class="nav-btn-label">Stadion</div>
     </div>
-    <div class="nav-btn" data-page="league" role="button" tabindex="0" aria-label="Liga">
+    <div aria-label="Liga" class="nav-btn" data-page="league" role="button" tabindex="0">
         <div class="nav-btn-icon">🏆</div>
         <div class="nav-btn-label">Liga</div>
         <div class="nav-badge">3</div>
     </div>
-    <div class="nav-btn" data-page="cup" role="button" tabindex="0" aria-label="Pokal">
+    <div aria-label="Pokal" class="nav-btn" data-page="cup" role="button" tabindex="0">
         <div class="nav-btn-icon">🥇</div>
         <div class="nav-btn-label">Pokal</div>
     </div>
-    <div class="nav-btn" data-page="settings" role="button" tabindex="0" aria-label="Einstellungen">
+    <div aria-label="Einstellungen" class="nav-btn" data-page="settings" role="button" tabindex="0">
         <div class="nav-btn-icon">⚙️</div>
         <div class="nav-btn-label">Settings</div>
     </div>
 </nav>
 
 <!-- Content Wrapper - wird dynamisch geladen -->
-<main id="contentWrapper" class="content-wrapper" role="main">
+<main class="content-wrapper" id="contentWrapper" role="main">
     <!-- Content wird hier dynamisch vom NavigationSystem geladen -->
 </main>
 </body>

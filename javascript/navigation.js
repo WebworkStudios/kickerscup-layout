@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - NAVIGATION SYSTEM (OPTIMIZED)
+// KICKERSCUP - NAVIGATION SYSTEM (FIXED)
 // Routing & Page Management mit ModuleManager
+// FIX: HTML ERST einfügen, DANN Module initialisieren
 // =====================================================
 
 const NavigationSystem = (() => {
@@ -78,6 +79,7 @@ const NavigationSystem = (() => {
 
     /**
      * Lädt eine Seite (HTML + Module)
+     * FIX: HTML ZUERST einfügen, DANN Module initialisieren!
      */
     async function loadPage(pageName) {
         // Validierung
@@ -95,35 +97,46 @@ const NavigationSystem = (() => {
             // 1. Lade HTML-Content
             const htmlContent = await fetchPageHTML(pageConfig.html);
 
-            // 2. Aktiviere Modul (lädt CSS/JS und initialisiert)
-            if (window.ModuleManager && pageConfig.module) {
-                await window.ModuleManager.activateModule(pageConfig.module);
+            // 2. Deaktiviere vorheriges Modul (cleanup)
+            if (window.ModuleManager) {
+                await window.ModuleManager.deactivateCurrentModule();
             }
 
-            // 3. Setze HTML-Content (mit minimalen Reflows)
-            requestAnimationFrame(() => {
-                // FIX: Type-safe assignment - Ensure contentWrapper exists before assignment
-                if (contentWrapper) {
-                    contentWrapper.innerHTML = htmlContent;
+            // 3. Lade Module-Ressourcen (CSS/JS) aber initialisiere NOCH NICHT
+            if (window.ModuleManager && pageConfig.module) {
+                await window.ModuleManager.preloadModule(pageConfig.module);
+            }
+
+            // 4. Setze HTML-Content ins DOM (KRITISCH: ERST JETZT!)
+            if (contentWrapper) {
+                contentWrapper.innerHTML = htmlContent;
+            }
+
+            // 5. JETZT initialisiere das Modul (HTML ist im DOM!)
+            if (window.ModuleManager && pageConfig.module) {
+                const config = window.ModuleManager._debug.moduleRegistry[pageConfig.module];
+                if (config?.module?.init) {
+                    await config.module.init();
+                    console.log(`✅ Modul initialisiert: ${pageConfig.module}`);
                 }
+            }
 
-                // 4. Update Navigation
-                updateNavigation(pageName);
+            // 6. Update Navigation
+            updateNavigation(pageName);
 
-                // 5. Update State
-                currentPage = pageName;
+            // 7. Update State
+            currentPage = pageName;
 
-                // 6. Dispatch Event
-                const event = new CustomEvent('pageLoaded', {
-                    detail: { page: pageName }
-                });
-                document.dispatchEvent(event);
-
-                // 7. Verstecke Loading
-                hideLoadingIndicator();
-
-                console.log(`✅ Seite geladen: ${pageName}`);
+            // 8. Dispatch Event
+            const event = new CustomEvent('pageLoaded', {
+                detail: {page: pageName}
             });
+            document.dispatchEvent(event);
+
+            // 9. Verstecke Loading
+            hideLoadingIndicator();
+
+            console.log(`✅ Seite geladen: ${pageName}`);
 
         } catch (error) {
             console.error('Fehler beim Laden der Seite:', error);
@@ -252,7 +265,6 @@ const NavigationSystem = (() => {
             dashboard: ['team', 'league'],
             team: ['tactics', 'training'],
             league: ['cup'],
-            // ...
         };
 
         const pagesToPreload = preloadMap[currentPage] || [];
@@ -260,15 +272,12 @@ const NavigationSystem = (() => {
         pagesToPreload.forEach(pageName => {
             const pageConfig = pages[pageName];
             if (pageConfig && window.ModuleManager) {
-                // FIX: Handle promises properly - Preload im Hintergrund (non-blocking)
                 setTimeout(() => {
-                    // Wrap in async context to properly handle promises
                     (async () => {
                         try {
                             await window.ModuleManager.preloadModule(pageConfig.module);
                             await fetchPageHTML(pageConfig.html);
                         } catch (error) {
-                            // Preload-Fehler können ignoriert werden, da es nur Optimierung ist
                             console.warn(`Preload fehlgeschlagen für ${pageName}:`, error);
                         }
                     })();
@@ -329,7 +338,7 @@ const NavigationSystem = (() => {
             // Update Browser History
             if (window.history?.pushState) {
                 window.history.pushState(
-                    { page: pageName },
+                    {page: pageName},
                     '',
                     `#${pageName}`
                 );
@@ -350,7 +359,6 @@ const NavigationSystem = (() => {
     }
 
     // Public API
-    // FIX: Removed unused getCurrentPage method
     return {
         init,
         navigateTo,

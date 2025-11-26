@@ -1,9 +1,9 @@
 // =====================================================
-// KICKERSCUP - DASHBOARD SYSTEM (REFACTORED)
-// Kompatibel mit ModuleManager
+// KICKERSCUP - DASHBOARD SYSTEM (FINAL FIX)
+// News Filter funktioniert KORREKT
 // =====================================================
 
-(function() {
+(function () {
     'use strict';
 
     // Private State
@@ -17,7 +17,7 @@
     function addEventListener(element, event, handler, options) {
         if (!element) return;
         element.addEventListener(event, handler, options);
-        eventListeners.push({ element, event, handler, options });
+        eventListeners.push({element, event, handler, options});
     }
 
     /**
@@ -59,13 +59,36 @@
     }
 
     /**
+     * Ermittelt den Typ eines News-Items
+     * FIX: Prüft SOWOHL CSS-Klassen ALS AUCH Badge-Klassen
+     */
+    function getNewsItemType(item) {
+        // 1. Prüfe CSS-Klassen direkt am news-item
+        if (item.classList.contains('critical')) return 'critical';
+        if (item.classList.contains('event')) return 'event';
+        if (item.classList.contains('update')) return 'update';
+
+        // 2. Prüfe Badge-Klassen (für Items ohne direkte Klasse)
+        const badge = item.querySelector('.news-badge');
+        if (badge) {
+            if (badge.classList.contains('badge-critical')) return 'critical';
+            if (badge.classList.contains('badge-event')) return 'event';
+            if (badge.classList.contains('badge-update')) return 'update';
+            if (badge.classList.contains('badge-info')) return 'info';
+        }
+
+        return 'info'; // Default
+    }
+
+    /**
      * Initialisiert den News Filter
      */
     function initNewsFilter() {
         const filterButtons = document.querySelectorAll('.filter-btn');
 
         filterButtons.forEach(btn => {
-            addEventListener(btn, 'click', function() {
+            addEventListener(btn, 'click', function () {
+                // Update active state
                 filterButtons.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
 
@@ -78,38 +101,98 @@
 
     /**
      * Filtert News nach Kategorie
-     *
-     * FIX: Mapping zwischen data-filter Werten (Plural) und CSS-Klassen (Singular)
+     * FIX: Verwendet getNewsItemType() für korrekte Typ-Erkennung
      */
     function filterNews(filter) {
         const newsItems = document.querySelectorAll('.news-item');
 
-        // Mapping: data-filter Werte → CSS-Klassen
+        if (newsItems.length === 0) {
+            console.warn('⚠️ Keine News-Items gefunden');
+            return;
+        }
+
+        // Mapping: data-filter Werte → Typ-Namen
         const filterMapping = {
             'alle': null,           // Zeige alle
             'events': 'event',      // Plural → Singular
             'updates': 'update',    // Plural → Singular
-            'kritisch': 'critical'  // Direkt
+            'kritisch': 'critical'  // Deutsch → Englisch
         };
 
-        const targetClass = filterMapping[filter];
+        const targetType = filterMapping[filter];
+        let visibleCount = 0;
 
-        newsItems.forEach(item => {
+        newsItems.forEach((item, index) => {
+            const itemType = getNewsItemType(item);
+
             if (filter === 'alle') {
                 // Zeige alle Items
                 item.style.display = 'block';
-            } else if (targetClass && item.classList.contains(targetClass)) {
-                // Zeige nur Items mit passender Klasse
+                item.style.opacity = '1';
+                item.style.animation = 'fadeIn 0.3s ease-out';
+                visibleCount++;
+            } else if (targetType && itemType === targetType) {
+                // Zeige nur Items mit passendem Typ
                 item.style.display = 'block';
+                item.style.opacity = '1';
+                item.style.animation = 'fadeIn 0.3s ease-out';
+                visibleCount++;
             } else {
                 // Verstecke alle anderen
                 item.style.display = 'none';
+                item.style.opacity = '0';
             }
         });
 
-        // Debug-Info (kann in Produktion entfernt werden)
-        const visibleCount = Array.from(newsItems).filter(item => item.style.display !== 'none').length;
-        console.log(`✅ News-Filter: "${filter}" → Klasse: "${targetClass || 'alle'}" → ${visibleCount} Items sichtbar`);
+        // Zeige Hinweis wenn keine Items gefunden
+        if (visibleCount === 0 && filter !== 'alle') {
+            console.log(`ℹ️ Keine News in Kategorie "${filter}" gefunden`);
+            showNoResultsMessage();
+        } else {
+            hideNoResultsMessage();
+        }
+
+        console.log(`✅ News-Filter: "${filter}" → Typ: "${targetType || 'alle'}" → ${visibleCount} von ${newsItems.length} Items sichtbar`);
+    }
+
+    /**
+     * Zeigt "Keine Ergebnisse" Nachricht
+     */
+    function showNoResultsMessage() {
+        const newsWidget = document.querySelector('.news-widget');
+        if (!newsWidget) return;
+
+        let noResultsEl = newsWidget.querySelector('.no-results-message');
+
+        if (!noResultsEl) {
+            noResultsEl = document.createElement('div');
+            noResultsEl.className = 'no-results-message';
+            noResultsEl.style.cssText = `
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-muted);
+                font-size: 14px;
+            `;
+            noResultsEl.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                <p>Keine News in dieser Kategorie verfügbar</p>
+            `;
+
+            // Füge nach den News-Items ein
+            newsWidget.appendChild(noResultsEl);
+        }
+
+        noResultsEl.style.display = 'block';
+    }
+
+    /**
+     * Versteckt "Keine Ergebnisse" Nachricht
+     */
+    function hideNoResultsMessage() {
+        const noResultsEl = document.querySelector('.no-results-message');
+        if (noResultsEl) {
+            noResultsEl.style.display = 'none';
+        }
     }
 
     /**
@@ -133,7 +216,7 @@
      * Handler für Quick Stats Klicks
      */
     function handleStatClick(label) {
-        switch(label.toLowerCase()) {
+        switch (label.toLowerCase()) {
             case 'tabellenplatz':
                 if (window.NavigationSystem) {
                     window.NavigationSystem.navigateTo('league');
@@ -182,7 +265,7 @@
         // Match Action Buttons
         const matchButtons = document.querySelectorAll('.btn-match-action');
         matchButtons.forEach(btn => {
-            addEventListener(btn, 'click', function() {
+            addEventListener(btn, 'click', function () {
                 const action = this.textContent.trim();
                 handleMatchAction(action);
             });
@@ -191,7 +274,7 @@
         // Quick Stats Items
         const statItems = document.querySelectorAll('.quick-stat-item');
         statItems.forEach(item => {
-            addEventListener(item, 'click', function() {
+            addEventListener(item, 'click', function () {
                 const label = this.querySelector('.quick-stat-label').textContent;
                 handleStatClick(label);
             });
@@ -200,7 +283,7 @@
         // News Items
         const newsItems = document.querySelectorAll('.news-item');
         newsItems.forEach(item => {
-            addEventListener(item, 'click', function() {
+            addEventListener(item, 'click', function () {
                 const title = this.querySelector('.news-title').textContent;
                 const excerpt = this.querySelector('.news-excerpt').textContent;
                 handleNewsClick(title, excerpt);
@@ -210,7 +293,7 @@
         // Injury Items
         const injuryItems = document.querySelectorAll('.injury-item');
         injuryItems.forEach(item => {
-            addEventListener(item, 'click', function() {
+            addEventListener(item, 'click', function () {
                 const player = this.querySelector('.injury-player')?.textContent || '';
                 const type = this.querySelector('.injury-type')?.textContent || '';
                 const time = this.querySelector('.injury-time')?.textContent || '';
@@ -240,7 +323,7 @@
      */
     function cleanup() {
         // Entferne alle Event Listener
-        eventListeners.forEach(({ element, event, handler, options }) => {
+        eventListeners.forEach(({element, event, handler, options}) => {
             if (element) {
                 element.removeEventListener(event, handler, options);
             }

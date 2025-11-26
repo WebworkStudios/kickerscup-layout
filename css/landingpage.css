@@ -68,11 +68,10 @@ h1, h2, h3 {
     width: 100%;
     z-index: 3000;
     padding: 25px 0;
-    transition:
-            background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            border-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-nav.scrolled {
@@ -102,9 +101,8 @@ h1, h2, h3 {
     background-clip: text;
     letter-spacing: 4px;
     position: relative;
-    transition:
-            letter-spacing 0.3s ease,
-            filter 0.3s ease;
+    transition: letter-spacing 0.3s ease,
+    filter 0.3s ease;
 }
 
 .brand-logo:hover {
@@ -140,9 +138,8 @@ h1, h2, h3 {
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    transition:
-            color 0.3s ease,
-            text-shadow 0.3s ease;
+    transition: color 0.3s ease,
+    text-shadow 0.3s ease;
     position: relative;
     padding: 10px 5px;
     min-height: 44px;
@@ -181,20 +178,18 @@ h1, h2, h3 {
     text-transform: uppercase;
     letter-spacing: 2px;
     box-shadow: 0 8px 30px var(--turquoise-glow);
-    transition:
-            transform 0.3s ease,
-            box-shadow 0.3s ease,
-            border-color 0.3s ease;
+    transition: transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
     border: 2px solid transparent;
     min-height: 44px;
 }
 
 .btn-nav-premium:hover {
     transform: translateY(-3px);
-    box-shadow:
-            0 12px 40px var(--turquoise-glow),
-            0 0 40px var(--turquoise-shadow),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px var(--turquoise-glow),
+    0 0 40px var(--turquoise-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
     border-color: var(--platinum);
 }
 
@@ -242,8 +237,12 @@ h1, h2, h3 {
 }
 
 @keyframes kenBurns {
-    0% { transform: scale(1) translateX(0); }
-    100% { transform: scale(1.15) translateX(-5%); }
+    0% {
+        transform: scale(1) translateX(0);
+    }
+    100% {
+        transform: scale(1.15) translateX(-5%);
+    }
 }
 
 .hero-overlay-gradient {
@@ -307,8 +306,14 @@ h1, h2, h3 {
 }
 
 @keyframes slideInFromLeft {
-    from { opacity: 0; transform: translateX(-50px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .hero-pre-title span {
@@ -431,10 +436,9 @@ h1, h2, h3 {
 
 .btn-gold-gradient:hover {
     transform: translateY(-4px);
-    box-shadow:
-            0 20px 60px var(--turquoise-glow),
-            0 0 40px var(--turquoise-shadow),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 60px var(--turquoise-glow),
+    0 0 40px var(--turquoise-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
     border-color: var(--platinum);
 }
 
@@ -459,8 +463,14 @@ h1, h2, h3 {
 }
 
 @keyframes slideInFromRight {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .player-card-premium {
@@ -470,17 +480,15 @@ h1, h2, h3 {
     border: 1px solid var(--turquoise-border);
     border-radius: 30px;
     padding: 50px;
-    box-shadow:
-            0 30px 80px rgba(0, 0, 0, 0.5),
-            0 0 60px var(--turquoise-shadow);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px var(--turquoise-shadow);
     transition: all 0.4s;
 }
 
 .player-card-premium:hover {
     transform: translateY(-10px);
-    box-shadow:
-            0 40px 100px rgba(0, 0, 0, 0.6),
-            0 0 80px var(--turquoise-glow);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6),
+    0 0 80px var(--turquoise-glow);
 }
 
 /* 🛠️ FIX CLS / Non-Composited Animation: Die 'shimmer' Animation auf background-position
@@ -500,8 +508,12 @@ h1, h2, h3 {
 }
 
 @keyframes levitate {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-25px); }
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-25px);
+    }
 }
 
 .player-info-overlay {
@@ -600,8 +612,12 @@ h1, h2, h3 {
 }
 
 @keyframes float-badge {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .premium-section-header h2 {
@@ -916,8 +932,12 @@ footer {
 
 /* Loading Animation */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* =======================
@@ -1083,9 +1103,8 @@ footer {
     background: var(--dark-secondary);
     border-radius: 20px;
     border: 1px solid var(--turquoise-border);
-    box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.5),
-            0 0 100px var(--turquoise-glow);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--turquoise-glow);
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1396,9 +1415,8 @@ footer {
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow:
-            0 12px 40px var(--turquoise-glow),
-            0 0 40px var(--turquoise-shadow);
+    box-shadow: 0 12px 40px var(--turquoise-glow),
+    0 0 40px var(--turquoise-shadow);
 }
 
 .btn-submit:disabled {

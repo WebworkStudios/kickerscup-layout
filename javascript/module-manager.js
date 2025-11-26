@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - MODULE MANAGER
+// KICKERSCUP - MODULE MANAGER (FIXED)
 // Zentrales System für Script-Loading & Lifecycle
+// FIX: Trennung zwischen Laden und Initialisieren
 // =====================================================
 
 const ModuleManager = (() => {
@@ -14,7 +15,7 @@ const ModuleManager = (() => {
         dashboard: {
             scripts: ['javascript/dashboard.js'],
             css: ['css/dashboard.css'],
-            module: null // Wird beim Laden gesetzt
+            module: null
         },
         team: {
             scripts: ['javascript/team.js'],
@@ -104,16 +105,15 @@ const ModuleManager = (() => {
     }
 
     /**
-     * Aktiviert ein Modul (lädt Dependencies und initialisiert)
+     * Preload eines Moduls (lädt CSS/JS aber initialisiert NICHT)
+     * WICHTIG: Navigation verwendet dies BEVOR HTML ins DOM kommt
      */
-    async function activateModule(moduleName) {
+    async function preloadModule(moduleName) {
         const config = moduleRegistry[moduleName];
         if (!config) {
-            throw new Error(`Modul nicht registriert: ${moduleName}`);
+            console.warn(`Modul nicht registriert: ${moduleName}`);
+            return;
         }
-
-        // Deaktiviere vorheriges Modul
-        await deactivateCurrentModule();
 
         try {
             // Lade CSS parallel
@@ -128,6 +128,31 @@ const ModuleManager = (() => {
                     config.module = module;
                 }
             }
+
+            console.log(`📦 Modul vorgeladen: ${moduleName} (nicht initialisiert)`);
+
+        } catch (error) {
+            console.error(`❌ Fehler beim Preload von ${moduleName}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Aktiviert ein Modul (lädt Dependencies UND initialisiert)
+     * DEPRECATED: Navigation sollte stattdessen preloadModule + manuelles init() nutzen
+     */
+    async function activateModule(moduleName) {
+        const config = moduleRegistry[moduleName];
+        if (!config) {
+            throw new Error(`Modul nicht registriert: ${moduleName}`);
+        }
+
+        // Deaktiviere vorheriges Modul
+        await deactivateCurrentModule();
+
+        try {
+            // Preload (falls noch nicht geladen)
+            await preloadModule(moduleName);
 
             // Initialisiere Modul
             if (config.module?.init) {
@@ -184,20 +209,10 @@ const ModuleManager = (() => {
     }
 
     /**
-     * Preload eines Moduls (ohne Aktivierung)
+     * Gibt Modul-Config zurück (für manuelle Initialisierung)
      */
-    async function preloadModule(moduleName) {
-        const config = moduleRegistry[moduleName];
-        if (!config) return;
-
-        // Lade nur CSS und Scripts, aber initialisiere nicht
-        const promises = [
-            ...(config.css?.map(css => loadStyle(css)) || []),
-            ...(config.scripts?.map(script => loadScript(script)) || [])
-        ];
-
-        await Promise.all(promises);
-        console.log(`📦 Modul vorgeladen: ${moduleName}`);
+    function getModuleConfig(moduleName) {
+        return moduleRegistry[moduleName];
     }
 
     // Public API
@@ -207,8 +222,9 @@ const ModuleManager = (() => {
         isModuleLoaded,
         getActiveModule,
         preloadModule,
+        getModuleConfig,
 
-        // Für Debugging
+        // Für Debugging und Navigation
         _debug: {
             loadedScripts,
             loadedStyles,

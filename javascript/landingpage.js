@@ -75,7 +75,7 @@ window.addEventListener('scroll', () => {
         window.requestAnimationFrame(updateScrollLogic);
         isThrottled = true;
     }
-}, { passive: true }); // ⚡ PERFORMANCE: passive listener
+}, {passive: true}); // ⚡ PERFORMANCE: passive listener
 
 // Smooth Scroll
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -88,7 +88,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         e.preventDefault();
         const target = document.querySelector(href);
         if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.scrollIntoView({behavior: 'smooth', block: 'start'});
         }
     });
 });
