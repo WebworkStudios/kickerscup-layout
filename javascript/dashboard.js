@@ -1,6 +1,6 @@
 // =====================================================
-// KICKERSCUP - DASHBOARD SYSTEM (FINAL FIX)
-// News Filter funktioniert KORREKT
+// KICKERSCUP - DASHBOARD SYSTEM (CLEANED)
+// Pop-ups entfernt: Bilanz, Tore, Team-Fitness, Budget, News, Injuries
 // =====================================================
 
 (function () {
@@ -60,7 +60,7 @@
 
     /**
      * Ermittelt den Typ eines News-Items
-     * FIX: Prüft SOWOHL CSS-Klassen ALS AUCH Badge-Klassen
+     * Prüft SOWOHL CSS-Klassen ALS AUCH Badge-Klassen
      */
     function getNewsItemType(item) {
         // 1. Prüfe CSS-Klassen direkt am news-item
@@ -101,7 +101,6 @@
 
     /**
      * Filtert News nach Kategorie
-     * FIX: Verwendet getNewsItemType() für korrekte Typ-Erkennung
      */
     function filterNews(filter) {
         const newsItems = document.querySelectorAll('.news-item');
@@ -122,7 +121,7 @@
         const targetType = filterMapping[filter];
         let visibleCount = 0;
 
-        newsItems.forEach((item, index) => {
+        newsItems.forEach((item) => {
             const itemType = getNewsItemType(item);
 
             if (filter === 'alle') {
@@ -214,6 +213,7 @@
 
     /**
      * Handler für Quick Stats Klicks
+     * NUR Navigation, keine Pop-ups mehr
      */
     function handleStatClick(label) {
         switch (label.toLowerCase()) {
@@ -221,18 +221,6 @@
                 if (window.NavigationSystem) {
                     window.NavigationSystem.navigateTo('league');
                 }
-                break;
-            case 'bilanz (s-u-n)':
-                alert('📈 Saisonbilanz\n\n8 Siege\n2 Unentschieden\n1 Niederlage\n\nTorverhältnis: 31:12');
-                break;
-            case 'tore':
-                alert('⚽ Tor-Statistik\n\nErzielte Tore: 31\nKassierte Tore: 12\nTordifferenz: +19\n\nBester Torschütze: Marco Müller (12 Tore)');
-                break;
-            case 'team-fitness':
-                alert('💪 Team-Fitness\n\nDurchschnittliche Fitness: 87%\n\nTop Spieler:\n✅ Max Müller: 95%\n✅ Tom Schmidt: 92%\n✅ Leon Wagner: 90%\n\n⚠️ Achtung:\n❌ Elias Krüger: 45% (Verletzt)');
-                break;
-            case 'budget':
-                alert('💰 Budget-Übersicht\n\nVerfügbares Budget: 2.400.000 €\nSaison-Einnahmen: 8.500.000 €\nAusgaben: 6.100.000 €');
                 break;
             case 'spieler':
                 if (window.NavigationSystem) {
@@ -242,20 +230,6 @@
             default:
                 console.log(`Statistik geklickt: ${label}`);
         }
-    }
-
-    /**
-     * Handler für News Klicks
-     */
-    function handleNewsClick(title, excerpt) {
-        alert(`📰 News Details\n\n${title}\n\n${excerpt}\n\n(Hier würde ein Modal mit vollständigen Details geöffnet)`);
-    }
-
-    /**
-     * Handler für Verletzungen/Sperren Klicks
-     */
-    function handleInjuryClick(player, type, time) {
-        alert(`⚠️ Spieler-Status\n\nSpieler: ${player}\nProblem: ${type}\nAusfall: ${time}\n\n(Hier würden detaillierte Informationen und Behandlungsoptionen angezeigt)`);
     }
 
     /**
@@ -271,7 +245,7 @@
             });
         });
 
-        // Quick Stats Items
+        // Quick Stats Items (nur noch für Navigation)
         const statItems = document.querySelectorAll('.quick-stat-item');
         statItems.forEach(item => {
             addEventListener(item, 'click', function () {
@@ -280,26 +254,8 @@
             });
         });
 
-        // News Items
-        const newsItems = document.querySelectorAll('.news-item');
-        newsItems.forEach(item => {
-            addEventListener(item, 'click', function () {
-                const title = this.querySelector('.news-title').textContent;
-                const excerpt = this.querySelector('.news-excerpt').textContent;
-                handleNewsClick(title, excerpt);
-            });
-        });
-
-        // Injury Items
-        const injuryItems = document.querySelectorAll('.injury-item');
-        injuryItems.forEach(item => {
-            addEventListener(item, 'click', function () {
-                const player = this.querySelector('.injury-player')?.textContent || '';
-                const type = this.querySelector('.injury-type')?.textContent || '';
-                const time = this.querySelector('.injury-time')?.textContent || '';
-                handleInjuryClick(player, type, time);
-            });
-        });
+        // News Items - KEINE Klick-Handler mehr
+        // Injury Items - KEINE Klick-Handler mehr
     }
 
     /**

@@ -228,7 +228,6 @@
     background: rgba(0, 199, 139, 0.05);
     border-radius: 12px;
     border: 1px solid var(--turquoise-border);
-    cursor: pointer;
     transition: all 0.3s ease;
 }
 
@@ -236,7 +235,14 @@
     margin-bottom: 0;
 }
 
-.quick-stat-item:hover {
+/* Nur für Tabellenplatz und Spieler: Cursor und Hover */
+.quick-stat-item:nth-child(1),
+.quick-stat-item:nth-child(7) {
+    cursor: pointer;
+}
+
+.quick-stat-item:nth-child(1):hover,
+.quick-stat-item:nth-child(7):hover {
     background: rgba(0, 199, 139, 0.1);
     transform: translateX(5px);
     box-shadow: 0 5px 20px var(--turquoise-shadow);
@@ -402,11 +408,7 @@
     margin-bottom: 0;
 }
 
-.injury-item:hover {
-    background: rgba(0, 199, 139, 0.1);
-    transform: translateX(5px);
-    box-shadow: 0 5px 20px var(--turquoise-shadow);
-}
+/* KEIN Hover-Effekt mehr - nicht klickbar */
 
 .injury-icon {
     width: 50px;
@@ -621,7 +623,6 @@
     background: rgba(0, 199, 139, 0.05);
     border-radius: 12px;
     border-left: 4px solid var(--turquoise-border);
-    cursor: pointer;
     transition: all 0.3s ease;
 }
 
@@ -629,11 +630,7 @@
     margin-bottom: 0;
 }
 
-.news-item:hover {
-    background: rgba(0, 199, 139, 0.1);
-    transform: translateX(5px);
-    box-shadow: 0 5px 20px var(--turquoise-shadow);
-}
+/* KEIN Hover-Effekt mehr - nicht klickbar */
 
 .news-item.critical {
     border-left-color: #f56565;
