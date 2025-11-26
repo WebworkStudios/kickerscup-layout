@@ -102,7 +102,10 @@ const NavigationSystem = (() => {
 
             // 3. Setze HTML-Content (mit minimalen Reflows)
             requestAnimationFrame(() => {
-                contentWrapper.innerHTML = htmlContent;
+                // FIX: Type-safe assignment - Ensure contentWrapper exists before assignment
+                if (contentWrapper) {
+                    contentWrapper.innerHTML = htmlContent;
+                }
 
                 // 4. Update Navigation
                 updateNavigation(pageName);
@@ -133,6 +136,8 @@ const NavigationSystem = (() => {
      * Zeigt Loading-Indikator (optimiert)
      */
     function showLoadingIndicator() {
+        if (!contentWrapper) return;
+
         // Verwende CSS-Klasse statt innerHTML für bessere Performance
         contentWrapper.classList.add('loading-state');
         contentWrapper.innerHTML = `
@@ -184,6 +189,7 @@ const NavigationSystem = (() => {
      * Versteckt Loading-Indikator
      */
     function hideLoadingIndicator() {
+        if (!contentWrapper) return;
         contentWrapper.classList.remove('loading-state');
     }
 
@@ -191,6 +197,8 @@ const NavigationSystem = (() => {
      * Zeigt Error-Seite
      */
     function showErrorPage() {
+        if (!contentWrapper) return;
+
         contentWrapper.classList.remove('loading-state');
         contentWrapper.innerHTML = `
             <div style="text-align: center; padding: 60px 20px;">
@@ -252,10 +260,18 @@ const NavigationSystem = (() => {
         pagesToPreload.forEach(pageName => {
             const pageConfig = pages[pageName];
             if (pageConfig && window.ModuleManager) {
-                // Preload im Hintergrund (non-blocking)
+                // FIX: Handle promises properly - Preload im Hintergrund (non-blocking)
                 setTimeout(() => {
-                    window.ModuleManager.preloadModule(pageConfig.module);
-                    fetchPageHTML(pageConfig.html);
+                    // Wrap in async context to properly handle promises
+                    (async () => {
+                        try {
+                            await window.ModuleManager.preloadModule(pageConfig.module);
+                            await fetchPageHTML(pageConfig.html);
+                        } catch (error) {
+                            // Preload-Fehler können ignoriert werden, da es nur Optimierung ist
+                            console.warn(`Preload fehlgeschlagen für ${pageName}:`, error);
+                        }
+                    })();
                 }, 1000);
             }
         });
@@ -282,7 +298,9 @@ const NavigationSystem = (() => {
         // Browser Back/Forward Support
         window.addEventListener('popstate', (e) => {
             if (e.state?.page) {
-                loadPage(e.state.page);
+                loadPage(e.state.page).catch((error) => {
+                    console.error('Fehler beim Laden via Browser-Navigation:', error);
+                });
             }
         });
 
@@ -290,6 +308,8 @@ const NavigationSystem = (() => {
         loadPage('dashboard').then(() => {
             // Preload wahrscheinliche nächste Seiten
             preloadNextPages();
+        }).catch((error) => {
+            console.error('Fehler beim Laden der initialen Seite:', error);
         });
 
         console.log('✅ Navigation System initialisiert');
@@ -317,14 +337,9 @@ const NavigationSystem = (() => {
 
             // Preload nächste wahrscheinliche Seiten
             preloadNextPages();
+        }).catch((error) => {
+            console.error('Navigation fehlgeschlagen:', error);
         });
-    }
-
-    /**
-     * Gibt aktuelle Seite zurück
-     */
-    function getCurrentPage() {
-        return currentPage;
     }
 
     /**
@@ -335,10 +350,10 @@ const NavigationSystem = (() => {
     }
 
     // Public API
+    // FIX: Removed unused getCurrentPage method
     return {
         init,
         navigateTo,
-        getCurrentPage,
         cleanup
     };
 })();
