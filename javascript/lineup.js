@@ -1,6 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM
-// Aufstellungs-Management mit Drag&Drop & Touch
+// KICKERSCUP - LINEUP SYSTEM (PHASE 1 UPDATED)
+// Touch-Drag Implementation & Mobile Optimizations
 // =====================================================
 
 (function () {
@@ -15,6 +15,12 @@
     let selectedSlot = null;
     let eventListeners = [];
     let isTouchDevice = false;
+
+    // Touch-Drag State (PHASE 1)
+    let touchStartPos = null;
+    let ghostElement = null;
+    let draggedPlayer = null;
+    let isDragging = false;
 
     // Initialize from config
     const config = window.LineupConfig;
@@ -33,10 +39,10 @@
      */
     function calculatePositionFactor(playerPosition, slotPosition) {
         const compatibility = config.positionCompatibility[playerPosition];
-        if (!compatibility) return 0.8; // Default fallback
+        if (!compatibility) return 0.8;
 
         const factor = compatibility[slotPosition];
-        if (factor === undefined) return 0.8; // Fallback
+        if (factor === undefined) return 0.8;
 
         return factor;
     }
@@ -236,7 +242,7 @@
     }
 
     /**
-     * Place Player in Slot
+     * Place Player in Slot (PHASE 1: Add animation)
      */
     function placePlayer(player, slotType, slotIndex) {
         const slots = slotType === 'field' ? fieldSlots : benchSlots;
@@ -258,8 +264,8 @@
         // Place player
         slot.player = player;
 
-        // Update UI
-        renderSlot(slotType, slotIndex);
+        // Update UI with animation (PHASE 1)
+        renderSlot(slotType, slotIndex, true);
         renderAvailablePlayers();
         updateTeamStrength();
         validateLineup();
@@ -294,9 +300,9 @@
     }
 
     /**
-     * Render Single Slot
+     * Render Single Slot (PHASE 1: Add animation flag)
      */
-    function renderSlot(slotType, slotIndex) {
+    function renderSlot(slotType, slotIndex, animate = false) {
         const slots = slotType === 'field' ? fieldSlots : benchSlots;
         const slot = slots[slotIndex];
         const element = document.getElementById(slot.id);
@@ -305,6 +311,10 @@
 
         if (slot.player) {
             element.classList.add('occupied');
+            if (animate) {
+                element.classList.add('just-filled');
+                setTimeout(() => element.classList.remove('just-filled'), 500);
+            }
             const slotPosition = slotType === 'field' ? slot.position : null;
             element.innerHTML = `
                 <div class="field-player-card">
@@ -476,10 +486,157 @@
      * Show Toast Message
      */
     function showToast(message, type = 'info') {
-        // Simple alert for now - can be enhanced
         const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
         console.log(`${icon} ${message}`);
     }
+
+    // ========================================
+    // PHASE 1: TOUCH-DRAG IMPLEMENTATION
+    // ========================================
+
+    /**
+     * Create Ghost Element
+     */
+    function createGhost(card, touch) {
+        ghostElement = card.cloneNode(true);
+        ghostElement.classList.add('ghost-dragging');
+
+        // Position at touch point
+        const rect = card.getBoundingClientRect();
+        ghostElement.style.position = 'fixed';
+        ghostElement.style.width = rect.width + 'px';
+        ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
+        ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
+        ghostElement.style.zIndex = '9999';
+
+        document.body.appendChild(ghostElement);
+    }
+
+    /**
+     * Remove Ghost Element
+     */
+    function removeGhost() {
+        if (ghostElement && ghostElement.parentNode) {
+            ghostElement.parentNode.removeChild(ghostElement);
+        }
+        ghostElement = null;
+    }
+
+    /**
+     * Handle Touch Start
+     */
+    function handleTouchStart(e) {
+        const card = e.target.closest('.player-card');
+        if (!card || card.classList.contains('unavailable')) return;
+
+        const playerId = parseInt(card.dataset.playerId);
+        draggedPlayer = availablePlayers.find(p => p.id === playerId);
+
+        if (!draggedPlayer || draggedPlayer.status !== 'fit') {
+            return;
+        }
+
+        const touch = e.touches[0];
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+        // Small delay before starting drag to distinguish from tap
+        setTimeout(() => {
+            if (touchStartPos && !isDragging) {
+                isDragging = true;
+                createGhost(card, touch);
+                card.classList.add('dragging');
+            }
+        }, 150);
+    }
+
+    /**
+     * Handle Touch Move
+     */
+    function handleTouchMove(e) {
+        if (!isDragging || !ghostElement) return;
+
+        e.preventDefault(); // Prevent scrolling
+
+        const touch = e.touches[0];
+
+        // Move ghost element
+        const rect = ghostElement.getBoundingClientRect();
+        ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
+        ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
+
+        // Check for slot under touch
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        const slot = element?.closest('.field-slot, .bench-slot');
+
+        // Remove all drag-over classes
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+        // Add drag-over to current slot
+        if (slot && draggedPlayer) {
+            const slotType = slot.dataset.slotType;
+            const position = slot.dataset.position;
+
+            // Check if valid
+            if (slotType === 'field') {
+                if (canPlayPosition(draggedPlayer, position)) {
+                    slot.classList.add('drag-over');
+                }
+            } else {
+                slot.classList.add('drag-over');
+            }
+        }
+    }
+
+    /**
+     * Handle Touch End
+     */
+    function handleTouchEnd(e) {
+        if (!isDragging) {
+            // Reset for potential tap
+            touchStartPos = null;
+            return;
+        }
+
+        const touch = e.changedTouches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        const slot = element?.closest('.field-slot, .bench-slot');
+
+        // Remove dragging state
+        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+        if (slot && draggedPlayer) {
+            const slotType = slot.dataset.slotType;
+            const slotIndex = parseInt(slot.dataset.slotIndex);
+
+            if (placePlayer(draggedPlayer, slotType, slotIndex)) {
+                // Success feedback
+                showToast('✅ Spieler platziert', 'success');
+            }
+        }
+
+        // Cleanup
+        removeGhost();
+        touchStartPos = null;
+        draggedPlayer = null;
+        isDragging = false;
+    }
+
+    /**
+     * Handle Touch Cancel
+     */
+    function handleTouchCancel() {
+        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        removeGhost();
+        touchStartPos = null;
+        draggedPlayer = null;
+        isDragging = false;
+    }
+
+    // ========================================
+    // DESKTOP DRAG & DROP HANDLERS
+    // ========================================
 
     /**
      * Handle Drag Start
@@ -560,10 +717,11 @@
     }
 
     /**
-     * Handle Touch/Click on Player
+     * Handle Touch/Click on Player (Fallback for old touch mode)
      */
     function handlePlayerClick(e) {
-        if (!isTouchDevice) return;
+        // Only for non-dragging clicks
+        if (isDragging || !isTouchDevice) return;
 
         const card = e.target.closest('.player-card');
         if (!card) return;
@@ -603,10 +761,10 @@
     }
 
     /**
-     * Handle Touch/Click on Slot
+     * Handle Touch/Click on Slot (Fallback for old touch mode)
      */
     function handleSlotClick(e) {
-        if (!isTouchDevice || !selectedPlayer) return;
+        if (isDragging || !isTouchDevice || !selectedPlayer) return;
 
         const slot = e.target.closest('.field-slot, .bench-slot');
         if (!slot) return;
@@ -769,12 +927,13 @@
      * Attach Event Listeners to Slots
      */
     function attachSlotEventListeners() {
-        // Drag & Drop listeners
+        // Drag & Drop listeners (Desktop)
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
             addEventListener(slot, 'dragover', handleDragOver);
             addEventListener(slot, 'dragleave', handleDragLeave);
             addEventListener(slot, 'drop', handleDrop);
 
+            // Touch click fallback
             if (isTouchDevice) {
                 addEventListener(slot, 'click', handleSlotClick);
             }
@@ -826,7 +985,7 @@
             addEventListener(sortSelect, 'change', renderAvailablePlayers);
         }
 
-        // Delegate player drag events
+        // Desktop: Drag events
         addEventListener(document, 'dragstart', (e) => {
             if (e.target.closest('.player-card')) {
                 handleDragStart(e);
@@ -839,8 +998,19 @@
             }
         });
 
-        // Touch mode - player selection
+        // PHASE 1: Touch events
         if (isTouchDevice) {
+            addEventListener(document, 'touchstart', (e) => {
+                if (e.target.closest('.player-card')) {
+                    handleTouchStart(e);
+                }
+            }, { passive: false });
+
+            addEventListener(document, 'touchmove', handleTouchMove, { passive: false });
+            addEventListener(document, 'touchend', handleTouchEnd);
+            addEventListener(document, 'touchcancel', handleTouchCancel);
+
+            // Click fallback
             addEventListener(document, 'click', (e) => {
                 if (e.target.closest('.player-card')) {
                     handlePlayerClick(e);
@@ -875,7 +1045,7 @@
         // Setup event listeners
         initEventListeners();
 
-        console.log('✅ Lineup System initialisiert');
+        console.log('✅ Lineup System initialisiert (Phase 1: Touch-Drag aktiv)');
     }
 
     /**
@@ -889,6 +1059,12 @@
             }
         });
         eventListeners = [];
+
+        // Cleanup touch state
+        removeGhost();
+        touchStartPos = null;
+        draggedPlayer = null;
+        isDragging = false;
 
         // Reset state
         fieldSlots = [];
