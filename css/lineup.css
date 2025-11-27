@@ -1,6 +1,6 @@
 /* =====================================================
-   KICKERSCUP - LINEUP STYLESHEET (PHASE 1 UPDATED)
-   Mobile-optimiert mit Touch-Drag & Landscape-Mode
+   KICKERSCUP - LINEUP STYLESHEET (PERFORMANCE OPTIMIZED)
+   Mobile-optimiert mit UX-Verbesserungen
    ===================================================== */
 
 /* ========== LINEUP HEADER ========== */
@@ -99,6 +99,17 @@
     color: var(--gold-primary);
     font-family: 'Rajdhani', sans-serif;
     text-shadow: 0 0 15px var(--turquoise-glow);
+    transition: all 0.3s ease;
+}
+
+/* ========== STRENGTH VALUE ANIMATION ========== */
+.strength-value.updating {
+    animation: strengthPulse 0.4s ease;
+}
+
+@keyframes strengthPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); color: var(--platinum); }
 }
 
 .action-buttons {
@@ -117,7 +128,7 @@
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    min-height: 44px; /* Touch target minimum */
+    min-height: 44px;
 }
 
 .action-buttons .btn-primary {
@@ -169,7 +180,7 @@
     gap: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
-    min-height: 44px; /* Touch target */
+    min-height: 44px;
 }
 
 .validation-header:hover {
@@ -196,7 +207,7 @@
 }
 
 .validation-toggle {
-    width: 44px;  /* Touch target increased */
+    width: 44px;
     height: 44px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--turquoise-border);
@@ -344,7 +355,7 @@
     border-bottom: none;
 }
 
-/* ========== FIELD SLOTS (PHASE 1 IMPROVED) ========== */
+/* ========== FIELD SLOTS ========== */
 .field-slots {
     position: relative;
     width: 100%;
@@ -366,7 +377,6 @@
     gap: 8px;
     transition: all 0.3s ease;
     cursor: pointer;
-    /* PHASE 1: Ensure minimum touch target size */
     min-width: 44px;
     min-height: 44px;
 }
@@ -387,6 +397,18 @@
     border-color: var(--gold-primary);
     border-style: solid;
     box-shadow: 0 0 20px var(--turquoise-glow);
+    animation: slotPulseStrong 0.6s ease infinite;
+}
+
+@keyframes slotPulseStrong {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px var(--turquoise-glow);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 30px var(--turquoise-glow);
+    }
 }
 
 .field-slot.selected {
@@ -396,7 +418,6 @@
     animation: slotPulse 1s ease infinite;
 }
 
-/* PHASE 1: Placement animation */
 .field-slot.just-filled .field-player-card {
     animation: playerPlace 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -442,8 +463,8 @@
     cursor: grab;
     transition: all 0.3s ease;
     user-select: none;
-    /* PHASE 1: Touch improvements */
     touch-action: none;
+    position: relative;
 }
 
 .player-card:active {
@@ -478,6 +499,37 @@
 .player-card.selected {
     border-color: var(--gold-primary);
     box-shadow: 0 0 20px var(--turquoise-glow);
+}
+
+/* ========== PERFORMANCE: CARD ANIMATIONS ========== */
+.player-card-wrapper {
+    animation: cardFadeIn 0.3s ease backwards;
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.player-card.placing {
+    animation: cardFadeOut 0.3s ease forwards;
+}
+
+@keyframes cardFadeOut {
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+.player-card.returning {
+    animation: cardFadeIn 0.3s ease;
 }
 
 .player-card-header {
@@ -561,14 +613,51 @@
     color: #f6ad55;
 }
 
-/* ========== FIELD PLAYER CARD (ON FIELD) ========== */
+/* ========== FIELD PLAYER CARD ========== */
 .field-player-card {
     width: 100%;
     height: 100%;
     position: relative;
 }
 
-/* ========== GHOST ELEMENT (PHASE 1 TOUCH-DRAG) ========== */
+/* ========== QUICK REMOVE BUTTON ========== */
+.quick-remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
+    background: rgba(245, 101, 101, 0.9);
+    border: 2px solid #f56565;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.field-player-card:hover .quick-remove-btn {
+    opacity: 1;
+}
+
+.quick-remove-btn:hover {
+    transform: scale(1.15) rotate(90deg);
+    background: #f56565;
+    box-shadow: 0 5px 15px rgba(245, 101, 101, 0.5);
+}
+
+.quick-remove-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* ========== GHOST ELEMENT ========== */
 .ghost-dragging {
     position: fixed;
     z-index: 9999;
@@ -619,7 +708,6 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    /* PHASE 1: Touch target */
     min-width: 44px;
 }
 
@@ -637,6 +725,7 @@
     background: rgba(0, 199, 139, 0.2);
     border-color: var(--gold-primary);
     border-style: solid;
+    animation: slotPulseStrong 0.6s ease infinite;
 }
 
 .bench-placeholder {
@@ -686,7 +775,7 @@
     font-family: 'Poppins', sans-serif;
     font-size: 13px;
     transition: all 0.3s ease;
-    min-height: 44px; /* Touch target */
+    min-height: 44px;
 }
 
 .player-search:focus,
@@ -724,7 +813,82 @@
     border-radius: 10px;
 }
 
-/* ========== TOUCH INSTRUCTIONS (PHASE 1 IMPROVED) ========== */
+/* ========== TOAST NOTIFICATIONS ========== */
+.toast {
+    position: fixed;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--turquoise-border);
+    border-radius: 15px;
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+    font-size: 24px;
+}
+
+.toast-message {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.toast-success {
+    border-color: #48bb78;
+    box-shadow: 0 10px 40px rgba(72, 187, 120, 0.3);
+}
+
+.toast-error {
+    border-color: #f56565;
+    box-shadow: 0 10px 40px rgba(245, 101, 101, 0.3);
+}
+
+.toast-info {
+    border-color: var(--gold-primary);
+    box-shadow: 0 10px 40px var(--turquoise-glow);
+}
+
+/* ========== FLOATING SUCCESS MESSAGE ========== */
+.floating-success {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    color: var(--dark-primary);
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 700;
+    box-shadow: 0 10px 40px var(--turquoise-glow);
+    z-index: 10001;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.floating-success.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ========== TOUCH INSTRUCTIONS ========== */
 .touch-instructions {
     position: fixed;
     bottom: 100px;
@@ -741,7 +905,7 @@
     opacity: 0;
     pointer-events: none;
     transition: all 0.3s ease;
-    min-height: 44px; /* Touch target */
+    min-height: 44px;
 }
 
 .touch-instructions.active {
@@ -766,7 +930,7 @@
     color: var(--dark-primary);
 }
 
-/* ========== LANDSCAPE MODE NOTIFICATION (PHASE 1) ========== */
+/* ========== LANDSCAPE MODE HINT ========== */
 .landscape-hint {
     position: fixed;
     top: 80px;
@@ -816,14 +980,7 @@
     margin: 0;
 }
 
-/* ========== RESPONSIVE DESIGN (PHASE 1 OPTIMIZED) ========== */
-
-/* DESKTOP: Standard Layout */
-@media (min-width: 1201px) {
-    /* Optimales Layout bleibt unverändert */
-}
-
-/* TABLET & LANDSCAPE MOBILE */
+/* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 1200px) {
     .lineup-main-layout {
         grid-template-columns: 1fr;
@@ -834,7 +991,6 @@
     }
 }
 
-/* TABLET PORTRAIT */
 @media (max-width: 768px) and (orientation: portrait) {
     .lineup-title {
         font-size: 36px;
@@ -883,7 +1039,6 @@
         min-height: 560px;
     }
 
-    /* PHASE 1: Increased touch targets */
     .field-slot {
         width: 90px;
         height: 110px;
@@ -922,13 +1077,11 @@
         padding: 0 20px 15px;
     }
 
-    /* Show landscape hint on portrait */
     .landscape-hint {
         display: block;
     }
 }
 
-/* MOBILE LANDSCAPE (PHASE 1 OPTIMIZED) */
 @media (max-width: 896px) and (orientation: landscape) {
     .lineup-header {
         margin-bottom: 20px;
@@ -952,7 +1105,7 @@
     }
 
     .lineup-main-layout {
-        grid-template-columns: 1.6fr 1fr; /* More space for field */
+        grid-template-columns: 1.6fr 1fr;
         gap: 20px;
         margin-bottom: 20px;
     }
@@ -966,7 +1119,6 @@
         min-height: 450px;
     }
 
-    /* PHASE 1: Optimized slot sizes for landscape */
     .field-slot {
         width: 70px;
         height: 90px;
@@ -1005,13 +1157,11 @@
         max-height: 350px;
     }
 
-    /* Hide landscape hint in landscape mode */
     .landscape-hint {
         display: none !important;
     }
 }
 
-/* SMALL MOBILE */
 @media (max-width: 480px) {
     .lineup-title {
         font-size: 28px;
@@ -1031,7 +1181,6 @@
         min-height: 470px;
     }
 
-    /* PHASE 1: Minimum viable sizes */
     .field-slot {
         width: 75px;
         height: 95px;
@@ -1077,6 +1226,18 @@
 
     .touch-instructions-content p {
         font-size: 12px;
+    }
+
+    .toast {
+        bottom: 100px;
+        max-width: 90%;
+    }
+
+    .floating-success {
+        top: 80px;
+        max-width: 90%;
+        font-size: 14px;
+        padding: 10px 20px;
     }
 }
 

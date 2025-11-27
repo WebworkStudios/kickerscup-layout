@@ -1,6 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PHASE 1 UPDATED)
-// Touch-Drag Implementation & Mobile Optimizations
+// KICKERSCUP - LINEUP SYSTEM (COMPLETE & FIXED)
+// Alle Features + funktionierendes Drag & Drop
 // =====================================================
 
 (function () {
@@ -16,22 +16,190 @@
     let eventListeners = [];
     let isTouchDevice = false;
 
-    // Touch-Drag State (PHASE 1)
+    // Touch-Drag State
     let touchStartPos = null;
     let ghostElement = null;
     let draggedPlayer = null;
     let isDragging = false;
 
-    // Initialize from config
+    // Performance
+    let placedPlayerIds = new Set();
+
+    // Audio Context
+    let audioContext = null;
+
     const config = window.LineupConfig;
 
     /**
-     * Helper: Event Listener registrieren
+     * Helper: Event Listener registrieren (für Cleanup)
      */
     function addEventListener(element, event, handler, options) {
         if (!element) return;
         element.addEventListener(event, handler, options);
         eventListeners.push({ element, event, handler, options });
+    }
+
+    /**
+     * Initialize Audio Context
+     */
+    function initAudioContext() {
+        if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    /**
+     * Play Success Sound
+     */
+    function playSuccessSound() {
+        if (!audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
+    /**
+     * Play Error Sound
+     */
+    function playErrorSound() {
+        if (!audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 200;
+        oscillator.type = 'sawtooth';
+
+        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+    }
+
+    /**
+     * Play Remove Sound
+     */
+    function playRemoveSound() {
+        if (!audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 600;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.08);
+    }
+
+    /**
+     * Show Toast Notification
+     */
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+
+        const icons = {
+            success: '✅',
+            error: '❌',
+            info: 'ℹ️'
+        };
+
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type] || icons.info}</span>
+            <span class="toast-message">${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    /**
+     * Show Floating Success Message
+     */
+    function showFloatingSuccess(playerName) {
+        const existing = document.querySelector('.floating-success');
+        if (existing) existing.remove();
+
+        const floatingMsg = document.createElement('div');
+        floatingMsg.className = 'floating-success';
+        floatingMsg.innerHTML = `
+            <span class="floating-success-icon">✓</span>
+            <span class="floating-success-text">${playerName} platziert</span>
+        `;
+
+        document.body.appendChild(floatingMsg);
+
+        requestAnimationFrame(() => {
+            floatingMsg.classList.add('show');
+        });
+
+        setTimeout(() => {
+            floatingMsg.classList.remove('show');
+            setTimeout(() => floatingMsg.remove(), 500);
+        }, 2000);
+    }
+
+    /**
+     * Animate Number
+     */
+    function animateNumber(element, from, to, duration = 400) {
+        const startTime = performance.now();
+        const diff = to - from;
+        const steps = 20;
+
+        element.classList.add('updating');
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const current = Math.round(from + diff * progress);
+            element.textContent = current.toLocaleString();
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                element.classList.remove('updating');
+            }
+        }
+
+        requestAnimationFrame(update);
     }
 
     /**
@@ -94,6 +262,41 @@
      */
     function canPlayPosition(player, position) {
         return calculatePositionFactor(player.main_position, position) > 0;
+    }
+
+    /**
+     * Update Placed Players Set
+     */
+    function updatePlacedPlayersSet() {
+        placedPlayerIds.clear();
+        fieldSlots.forEach(slot => {
+            if (slot.player) placedPlayerIds.add(slot.player.id);
+        });
+        benchSlots.forEach(slot => {
+            if (slot.player) placedPlayerIds.add(slot.player.id);
+        });
+    }
+
+    /**
+     * Update Player Visibility (Selective Re-Rendering)
+     */
+    function updatePlayerVisibility(playerId, isPlaced) {
+        const card = document.querySelector(`.available-players-list .player-card[data-player-id="${playerId}"]`);
+        if (!card) return;
+
+        if (isPlaced) {
+            card.classList.add('placing');
+            setTimeout(() => {
+                card.style.display = 'none';
+                card.classList.remove('placing');
+            }, 300);
+        } else {
+            card.style.display = 'block';
+            requestAnimationFrame(() => {
+                card.classList.add('returning');
+                setTimeout(() => card.classList.remove('returning'), 300);
+            });
+        }
     }
 
     /**
@@ -205,27 +408,19 @@
         const container = document.getElementById('availablePlayersList');
         if (!container) return;
 
-        // Filter players not in lineup
-        const placedPlayerIds = new Set([
-            ...fieldSlots.filter(s => s.player).map(s => s.player.id),
-            ...benchSlots.filter(s => s.player).map(s => s.player.id)
-        ]);
-
-        const available = availablePlayers.filter(p => !placedPlayerIds.has(p.id));
-
-        // Apply filters
         const searchTerm = document.getElementById('playerSearch')?.value.toLowerCase() || '';
         const positionFilter = document.getElementById('positionFilter')?.value || '';
         const sortBy = document.getElementById('sortSelect')?.value || 'strength';
 
-        let filtered = available.filter(player => {
+        let available = availablePlayers.filter(p => !placedPlayerIds.has(p.id));
+
+        available = available.filter(player => {
             const matchesSearch = player.name.toLowerCase().includes(searchTerm);
             const matchesPosition = !positionFilter || player.main_position === positionFilter;
             return matchesSearch && matchesPosition;
         });
 
-        // Sort
-        filtered.sort((a, b) => {
+        available.sort((a, b) => {
             switch (sortBy) {
                 case 'strength':
                     return b.base_strength - a.base_strength;
@@ -238,11 +433,14 @@
             }
         });
 
-        container.innerHTML = filtered.map(player => renderPlayerCard(player)).join('');
+        container.innerHTML = available.map((player, index) => {
+            const card = renderPlayerCard(player);
+            return `<div class="player-card-wrapper" style="animation-delay: ${index * 0.02}s">${card}</div>`;
+        }).join('');
     }
 
     /**
-     * Place Player in Slot (PHASE 1: Add animation)
+     * Place Player in Slot
      */
     function placePlayer(player, slotType, slotIndex) {
         const slots = slotType === 'field' ? fieldSlots : benchSlots;
@@ -253,22 +451,34 @@
         // Check if position is valid for field slots
         if (slotType === 'field') {
             if (!canPlayPosition(player, slot.position)) {
-                showToast('❌ Spieler kann diese Position nicht spielen', 'error');
+                showToast('Spieler kann diese Position nicht spielen', 'error');
+                playErrorSound();
                 return false;
             }
         }
 
         // Remove player from old position if exists
-        removePlayerFromLineup(player.id);
+        const oldPosition = removePlayerFromLineup(player.id);
 
         // Place player
         slot.player = player;
+        placedPlayerIds.add(player.id);
 
-        // Update UI with animation (PHASE 1)
+        // Update UI with animation
         renderSlot(slotType, slotIndex, true);
-        renderAvailablePlayers();
+
+        // Only hide from available list if not moving from another position
+        if (!oldPosition) {
+            updatePlayerVisibility(player.id, true);
+        }
+
         updateTeamStrength();
+        updateBenchCount();
         validateLineup();
+
+        // Feedback
+        showFloatingSuccess(player.name);
+        playSuccessSound();
 
         return true;
     }
@@ -277,9 +487,12 @@
      * Remove Player from Lineup
      */
     function removePlayerFromLineup(playerId) {
+        let oldPosition = null;
+
         // Check field slots
         fieldSlots.forEach((slot, index) => {
             if (slot.player && slot.player.id === playerId) {
+                oldPosition = { type: 'field', index };
                 slot.player = null;
                 renderSlot('field', index);
             }
@@ -288,19 +501,38 @@
         // Check bench slots
         benchSlots.forEach((slot, index) => {
             if (slot.player && slot.player.id === playerId) {
+                oldPosition = { type: 'bench', index };
                 slot.player = null;
                 renderSlot('bench', index);
             }
         });
 
-        renderAvailablePlayers();
-        updateTeamStrength();
-        updateBenchCount();
-        validateLineup();
+        if (oldPosition) {
+            placedPlayerIds.delete(playerId);
+        }
+
+        return oldPosition;
     }
 
     /**
-     * Render Single Slot (PHASE 1: Add animation flag)
+     * Remove Player with Animation
+     */
+    function removePlayerWithAnimation(playerId) {
+        const player = availablePlayers.find(p => p.id === playerId);
+        if (!player) return;
+
+        removePlayerFromLineup(playerId);
+        updatePlayerVisibility(playerId, false);
+        updateTeamStrength();
+        updateBenchCount();
+        validateLineup();
+
+        showToast(`${player.name} entfernt`, 'info');
+        playRemoveSound();
+    }
+
+    /**
+     * Render Single Slot
      */
     function renderSlot(slotType, slotIndex, animate = false) {
         const slots = slotType === 'field' ? fieldSlots : benchSlots;
@@ -319,6 +551,7 @@
             element.innerHTML = `
                 <div class="field-player-card">
                     ${renderPlayerCard(slot.player, slotPosition)}
+                    <button class="quick-remove-btn" data-player-id="${slot.player.id}" title="Entfernen">×</button>
                 </div>
             `;
         } else {
@@ -338,6 +571,8 @@
      * Update Team Strength
      */
     function updateTeamStrength() {
+        const oldStrength = parseInt(document.getElementById('teamStrength')?.textContent.replace(/\./g, '') || '0');
+
         const totalStrength = fieldSlots.reduce((sum, slot) => {
             if (slot.player) {
                 return sum + calculateEffectiveStrength(slot.player, slot.position);
@@ -347,7 +582,9 @@
 
         const element = document.getElementById('teamStrength');
         if (element) {
-            element.textContent = totalStrength.toLocaleString();
+            if (oldStrength !== totalStrength) {
+                animateNumber(element, oldStrength, totalStrength);
+            }
         }
     }
 
@@ -482,16 +719,8 @@
         }
     }
 
-    /**
-     * Show Toast Message
-     */
-    function showToast(message, type = 'info') {
-        const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
-        console.log(`${icon} ${message}`);
-    }
-
     // ========================================
-    // PHASE 1: TOUCH-DRAG IMPLEMENTATION
+    // TOUCH-DRAG IMPLEMENTATION
     // ========================================
 
     /**
@@ -501,13 +730,13 @@
         ghostElement = card.cloneNode(true);
         ghostElement.classList.add('ghost-dragging');
 
-        // Position at touch point
         const rect = card.getBoundingClientRect();
         ghostElement.style.position = 'fixed';
         ghostElement.style.width = rect.width + 'px';
         ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
         ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
         ghostElement.style.zIndex = '9999';
+        ghostElement.style.pointerEvents = 'none';
 
         document.body.appendChild(ghostElement);
     }
@@ -539,7 +768,6 @@
         const touch = e.touches[0];
         touchStartPos = { x: touch.clientX, y: touch.clientY };
 
-        // Small delay before starting drag to distinguish from tap
         setTimeout(() => {
             if (touchStartPos && !isDragging) {
                 isDragging = true;
@@ -555,28 +783,23 @@
     function handleTouchMove(e) {
         if (!isDragging || !ghostElement) return;
 
-        e.preventDefault(); // Prevent scrolling
+        e.preventDefault();
 
         const touch = e.touches[0];
 
-        // Move ghost element
         const rect = ghostElement.getBoundingClientRect();
         ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
         ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
 
-        // Check for slot under touch
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         const slot = element?.closest('.field-slot, .bench-slot');
 
-        // Remove all drag-over classes
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
-        // Add drag-over to current slot
         if (slot && draggedPlayer) {
             const slotType = slot.dataset.slotType;
             const position = slot.dataset.position;
 
-            // Check if valid
             if (slotType === 'field') {
                 if (canPlayPosition(draggedPlayer, position)) {
                     slot.classList.add('drag-over');
@@ -592,7 +815,6 @@
      */
     function handleTouchEnd(e) {
         if (!isDragging) {
-            // Reset for potential tap
             touchStartPos = null;
             return;
         }
@@ -601,7 +823,6 @@
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         const slot = element?.closest('.field-slot, .bench-slot');
 
-        // Remove dragging state
         document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
@@ -609,13 +830,9 @@
             const slotType = slot.dataset.slotType;
             const slotIndex = parseInt(slot.dataset.slotIndex);
 
-            if (placePlayer(draggedPlayer, slotType, slotIndex)) {
-                // Success feedback
-                showToast('✅ Spieler platziert', 'success');
-            }
+            placePlayer(draggedPlayer, slotType, slotIndex);
         }
 
-        // Cleanup
         removeGhost();
         touchStartPos = null;
         draggedPlayer = null;
@@ -635,7 +852,7 @@
     }
 
     // ========================================
-    // DESKTOP DRAG & DROP HANDLERS
+    // DESKTOP DRAG & DROP HANDLERS (FIXED)
     // ========================================
 
     /**
@@ -657,7 +874,7 @@
         card.classList.add('dragging');
 
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', card.innerHTML);
+        e.dataTransfer.setData('text/plain', player.id);
     }
 
     /**
@@ -668,6 +885,8 @@
         if (card) {
             card.classList.remove('dragging');
         }
+
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         selectedPlayer = null;
     }
 
@@ -682,7 +901,16 @@
 
         const slot = e.target.closest('.field-slot, .bench-slot');
         if (slot) {
-            slot.classList.add('drag-over');
+            const slotType = slot.dataset.slotType;
+            const position = slot.dataset.position;
+
+            if (slotType === 'field') {
+                if (canPlayPosition(selectedPlayer, position)) {
+                    slot.classList.add('drag-over');
+                }
+            } else {
+                slot.classList.add('drag-over');
+            }
         }
     }
 
@@ -697,13 +925,17 @@
     }
 
     /**
-     * Handle Drop
+     * Handle Drop (FIXED VERSION)
      */
     function handleDrop(e) {
         e.preventDefault();
+        e.stopPropagation();
 
         const slot = e.target.closest('.field-slot, .bench-slot');
-        if (!slot) return;
+        if (!slot) {
+            selectedPlayer = null;
+            return;
+        }
 
         slot.classList.remove('drag-over');
 
@@ -717,91 +949,6 @@
     }
 
     /**
-     * Handle Touch/Click on Player (Fallback for old touch mode)
-     */
-    function handlePlayerClick(e) {
-        // Only for non-dragging clicks
-        if (isDragging || !isTouchDevice) return;
-
-        const card = e.target.closest('.player-card');
-        if (!card) return;
-
-        const playerId = parseInt(card.dataset.playerId);
-        const player = availablePlayers.find(p => p.id === playerId);
-
-        if (!player || player.status !== 'fit') return;
-
-        // Deselect if clicking same player
-        if (selectedPlayer && selectedPlayer.id === player.id) {
-            selectedPlayer = null;
-            card.classList.remove('selected');
-            document.querySelectorAll('.field-slot, .bench-slot').forEach(s => s.classList.remove('selected'));
-            hideTouchInstructions();
-            return;
-        }
-
-        // Select new player
-        selectedPlayer = player;
-        document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-
-        // Highlight valid slots
-        document.querySelectorAll('.field-slot').forEach(slot => {
-            const position = slot.dataset.position;
-            if (canPlayPosition(player, position)) {
-                slot.classList.add('selected');
-            }
-        });
-
-        document.querySelectorAll('.bench-slot').forEach(slot => {
-            slot.classList.add('selected');
-        });
-
-        showTouchInstructions();
-    }
-
-    /**
-     * Handle Touch/Click on Slot (Fallback for old touch mode)
-     */
-    function handleSlotClick(e) {
-        if (isDragging || !isTouchDevice || !selectedPlayer) return;
-
-        const slot = e.target.closest('.field-slot, .bench-slot');
-        if (!slot) return;
-
-        const slotType = slot.dataset.slotType;
-        const slotIndex = parseInt(slot.dataset.slotIndex);
-
-        if (placePlayer(selectedPlayer, slotType, slotIndex)) {
-            // Success
-            selectedPlayer = null;
-            document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('.field-slot, .bench-slot').forEach(s => s.classList.remove('selected'));
-            hideTouchInstructions();
-        }
-    }
-
-    /**
-     * Show Touch Instructions
-     */
-    function showTouchInstructions() {
-        const element = document.getElementById('touchInstructions');
-        if (element) {
-            element.classList.add('active');
-        }
-    }
-
-    /**
-     * Hide Touch Instructions
-     */
-    function hideTouchInstructions() {
-        const element = document.getElementById('touchInstructions');
-        if (element) {
-            element.classList.remove('active');
-        }
-    }
-
-    /**
      * Handle Formation Change
      */
     function handleFormationChange(e) {
@@ -810,19 +957,16 @@
         if (confirm(`Möchten Sie die Formation zu ${newFormation} ändern? Die aktuelle Aufstellung wird zurückgesetzt.`)) {
             currentFormation = newFormation;
 
-            // Clear lineup
             fieldSlots.forEach(slot => slot.player = null);
 
-            // Re-render
             renderFormationSlots();
+            updatePlacedPlayersSet();
             renderAvailablePlayers();
             updateTeamStrength();
             validateLineup();
 
-            // Re-attach event listeners to new slots
             attachSlotEventListeners();
         } else {
-            // Reset dropdown
             e.target.value = currentFormation;
         }
     }
@@ -838,11 +982,11 @@
 
         renderFormationSlots();
         renderBenchSlots();
+        updatePlacedPlayersSet();
         renderAvailablePlayers();
         updateTeamStrength();
         validateLineup();
 
-        // Re-attach event listeners
         attachSlotEventListeners();
 
         showToast('Aufstellung zurückgesetzt', 'success');
@@ -861,12 +1005,12 @@
 
         try {
             localStorage.setItem('kickerscup_lineup', JSON.stringify(lineup));
-            showToast('✅ Aufstellung gespeichert', 'success');
-            alert('✅ Aufstellung erfolgreich gespeichert!');
+            showToast('Aufstellung gespeichert', 'success');
+            playSuccessSound();
         } catch (error) {
             console.error('Save error:', error);
-            showToast('❌ Fehler beim Speichern', 'error');
-            alert('❌ Fehler beim Speichern der Aufstellung');
+            showToast('Fehler beim Speichern', 'error');
+            playErrorSound();
         }
     }
 
@@ -880,14 +1024,11 @@
 
             const lineup = JSON.parse(saved);
 
-            // Set formation
             currentFormation = lineup.formation;
             document.getElementById('formationSelect').value = currentFormation;
 
-            // Render formation
             renderFormationSlots();
 
-            // Place players
             lineup.field.forEach((playerId, index) => {
                 if (playerId) {
                     const player = availablePlayers.find(p => p.id === playerId);
@@ -908,12 +1049,12 @@
                 }
             });
 
+            updatePlacedPlayersSet();
             renderAvailablePlayers();
             updateTeamStrength();
             updateBenchCount();
             validateLineup();
 
-            // Re-attach event listeners
             attachSlotEventListeners();
 
             return true;
@@ -924,19 +1065,20 @@
     }
 
     /**
-     * Attach Event Listeners to Slots
+     * Attach Event Listeners to Slots (FIXED)
      */
     function attachSlotEventListeners() {
-        // Drag & Drop listeners (Desktop)
+        // Entferne alle existierenden Event Listener von Slots
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-            addEventListener(slot, 'dragover', handleDragOver);
-            addEventListener(slot, 'dragleave', handleDragLeave);
-            addEventListener(slot, 'drop', handleDrop);
+            const clone = slot.cloneNode(true);
+            slot.parentNode.replaceChild(clone, slot);
+        });
 
-            // Touch click fallback
-            if (isTouchDevice) {
-                addEventListener(slot, 'click', handleSlotClick);
-            }
+        // Füge neue Event Listener hinzu
+        document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
+            slot.addEventListener('dragover', handleDragOver);
+            slot.addEventListener('dragleave', handleDragLeave);
+            slot.addEventListener('drop', handleDrop);
         });
     }
 
@@ -944,7 +1086,6 @@
      * Initialize Event Listeners
      */
     function initEventListeners() {
-        // Detect touch device
         isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
         // Formation selector
@@ -985,7 +1126,7 @@
             addEventListener(sortSelect, 'change', renderAvailablePlayers);
         }
 
-        // Desktop: Drag events
+        // Desktop: Drag events on document level
         addEventListener(document, 'dragstart', (e) => {
             if (e.target.closest('.player-card')) {
                 handleDragStart(e);
@@ -998,7 +1139,7 @@
             }
         });
 
-        // PHASE 1: Touch events
+        // Touch events
         if (isTouchDevice) {
             addEventListener(document, 'touchstart', (e) => {
                 if (e.target.closest('.player-card')) {
@@ -1009,14 +1150,17 @@
             addEventListener(document, 'touchmove', handleTouchMove, { passive: false });
             addEventListener(document, 'touchend', handleTouchEnd);
             addEventListener(document, 'touchcancel', handleTouchCancel);
-
-            // Click fallback
-            addEventListener(document, 'click', (e) => {
-                if (e.target.closest('.player-card')) {
-                    handlePlayerClick(e);
-                }
-            });
         }
+
+        // Quick remove button handler (Event Delegation)
+        addEventListener(document, 'click', (e) => {
+            const removeBtn = e.target.closest('.quick-remove-btn');
+            if (removeBtn) {
+                e.stopPropagation();
+                const playerId = parseInt(removeBtn.dataset.playerId);
+                removePlayerWithAnimation(playerId);
+            }
+        });
 
         // Attach slot listeners
         attachSlotEventListeners();
@@ -1026,18 +1170,22 @@
      * Initialize Module
      */
     function init() {
+        // Initialize audio
+        initAudioContext();
+
         // Load players from config
         availablePlayers = [...config.examplePlayers];
 
         // Render initial state
         renderFormationSlots();
         renderBenchSlots();
-        renderAvailablePlayers();
 
         // Try to load saved lineup
         const loaded = loadLineup();
 
         if (!loaded) {
+            updatePlacedPlayersSet();
+            renderAvailablePlayers();
             updateTeamStrength();
             validateLineup();
         }
@@ -1045,7 +1193,7 @@
         // Setup event listeners
         initEventListeners();
 
-        console.log('✅ Lineup System initialisiert (Phase 1: Touch-Drag aktiv)');
+        console.log('✅ Lineup System initialisiert');
     }
 
     /**
@@ -1071,6 +1219,13 @@
         benchSlots = [];
         selectedPlayer = null;
         selectedSlot = null;
+        placedPlayerIds.clear();
+
+        // Close audio context
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
 
         console.log('🧹 Lineup System Cleanup durchgeführt');
     }
