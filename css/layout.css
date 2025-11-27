@@ -333,7 +333,7 @@ h1, h2, h3 {
     font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     margin-top: 2px;
     color: var(--text-muted);
     transition: color 0.3s ease;

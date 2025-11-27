@@ -11,6 +11,16 @@
     --color-kraft: #9f7aea;
     --color-torschuss: #f56565;
     --color-regeneration: #38b2ac;
+
+    /* Default Fallback Colors for Dynamic Properties */
+    --card-color: #00c78b;
+    --card-glow: rgba(0, 199, 139, 0.4);
+    --slot-color: #00c78b;
+    --effect-color: #00c78b;
+    --effect-glow: rgba(0, 199, 139, 0.5);
+
+    --tx: 0;
+    --ty: 0;
 }
 
 /* Training Page Styles */
@@ -97,19 +107,19 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, var(--card-color), transparent);
+    background: linear-gradient(90deg, var(--card-color, var(--gold-primary)), transparent);
 }
 
 .training-card:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 0 25px 60px rgba(0, 199, 139, 0.3);
-    border-color: var(--card-color);
+    border-color: var(--card-color, var(--gold-primary));
 }
 
 .training-card.selected {
-    border-color: var(--card-color);
+    border-color: var(--card-color, var(--gold-primary));
     background: linear-gradient(135deg, rgba(0, 199, 139, 0.15) 0%, rgba(0, 0, 0, 0.5) 100%);
-    box-shadow: 0 20px 50px var(--card-glow);
+    box-shadow: 0 20px 50px var(--card-glow, var(--turquoise-glow));
 }
 
 .training-card.selecting {
@@ -130,7 +140,7 @@
 .card-title {
     font-size: 22px;
     font-weight: 700;
-    color: var(--card-color);
+    color: var(--card-color, var(--gold-primary));
     margin-bottom: 8px;
     letter-spacing: 1px;
 }
@@ -234,7 +244,7 @@
 .slot-card-title {
     font-size: 15px;
     font-weight: 700;
-    color: var(--slot-color);
+    color: var(--slot-color, var(--gold-primary));
     word-break: break-word;
     line-height: 1.2;
     overflow: hidden;
@@ -346,7 +356,7 @@
 .effect-icon {
     font-size: 120px;
     margin-bottom: 30px;
-    filter: drop-shadow(0 0 50px var(--effect-glow));
+    filter: drop-shadow(0 0 50px var(--effect-glow, var(--turquoise-glow)));
     animation: effectPulse 1s ease infinite;
 }
 
@@ -357,7 +367,7 @@
 
 .effect-title {
     font-size: 48px;
-    color: var(--effect-color);
+    color: var(--effect-color, var(--gold-primary));
     margin-bottom: 15px;
     letter-spacing: 3px;
 }
@@ -382,14 +392,14 @@
     position: absolute;
     width: 10px;
     height: 10px;
-    background: var(--effect-color);
+    background: var(--effect-color, var(--gold-primary));
     border-radius: 50%;
     animation: particleFloat 2s ease-out forwards;
 }
 
 @keyframes particleFloat {
     to {
-        transform: translate(var(--tx), var(--ty));
+        transform: translate(var(--tx, 0), var(--ty, 0));
         opacity: 0;
     }
 }
