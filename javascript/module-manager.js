@@ -138,41 +138,6 @@ const ModuleManager = (() => {
     }
 
     /**
-     * Aktiviert ein Modul (lädt Dependencies UND initialisiert)
-     * DEPRECATED: Navigation sollte stattdessen preloadModule + manuelles init() nutzen
-     */
-    async function activateModule(moduleName) {
-        const config = moduleRegistry[moduleName];
-        if (!config) {
-            throw new Error(`Modul nicht registriert: ${moduleName}`);
-        }
-
-        // Deaktiviere vorheriges Modul
-        await deactivateCurrentModule();
-
-        try {
-            // Preload (falls noch nicht geladen)
-            await preloadModule(moduleName);
-
-            // Initialisiere Modul
-            if (config.module?.init) {
-                await config.module.init();
-            }
-
-            // Merke aktives Modul
-            activeModules.set(moduleName, config);
-
-            console.log(`✅ Modul aktiviert: ${moduleName}`);
-
-            return config.module;
-
-        } catch (error) {
-            console.error(`❌ Fehler beim Aktivieren von ${moduleName}:`, error);
-            throw error;
-        }
-    }
-
-    /**
      * Deaktiviert das aktuell aktive Modul
      */
     async function deactivateCurrentModule() {
@@ -217,7 +182,6 @@ const ModuleManager = (() => {
 
     // Public API
     return {
-        activateModule,
         deactivateCurrentModule,
         isModuleLoaded,
         getActiveModule,
