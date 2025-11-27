@@ -1,6 +1,7 @@
 // =====================================================
 // KICKERSCUP - LINEUP SYSTEM (OPTIMIZED & FIXED)
 // Alle Features + robustes Drag & Drop ohne Layout-Shifts
+// + AUTO-SCROLL für Mobile Geräte
 // =====================================================
 
 (function () {
@@ -12,7 +13,7 @@
     let benchSlots = [];
     let availablePlayers = [];
     let selectedPlayer = null;
-    let currentDragOverSlot = null; // Track aktuelles Slot
+    let currentDragOverSlot = null;
     let eventListeners = [];
     let isTouchDevice = false;
 
@@ -23,6 +24,10 @@
     let isDragging = false;
     let lastTouchMoveTime = 0;
     const TOUCH_MOVE_THROTTLE = 16; // ~60fps
+
+    // Auto-Scroll State
+    let scrollIndicatorElement = null;
+    let isScrolling = false;
 
     // Performance
     let placedPlayerIds = new Set();
@@ -114,6 +119,33 @@
 
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.08);
+    }
+
+    /**
+     * Show Scroll Indicator (NEW)
+     */
+    function showScrollIndicator(direction) {
+        if (!scrollIndicatorElement) {
+            scrollIndicatorElement = document.createElement('div');
+            scrollIndicatorElement.className = 'scroll-indicator';
+            document.body.appendChild(scrollIndicatorElement);
+        }
+
+        isScrolling = true;
+        scrollIndicatorElement.className = `scroll-indicator active ${direction}`;
+        scrollIndicatorElement.innerHTML = direction === 'up'
+            ? '<span class="scroll-arrow">↑</span><span class="scroll-text">Scrolle nach oben</span>'
+            : '<span class="scroll-arrow">↓</span><span class="scroll-text">Scrolle nach unten</span>';
+    }
+
+    /**
+     * Hide Scroll Indicator (NEW)
+     */
+    function hideScrollIndicator() {
+        if (scrollIndicatorElement && isScrolling) {
+            scrollIndicatorElement.classList.remove('active');
+            isScrolling = false;
+        }
     }
 
     /**
@@ -857,7 +889,7 @@
     }
 
     // ========================================
-    // OPTIMIERTE TOUCH-DRAG IMPLEMENTATION
+    // OPTIMIERTE TOUCH-DRAG IMPLEMENTATION + AUTO-SCROLL
     // ========================================
 
     /**
@@ -915,7 +947,7 @@
     }
 
     /**
-     * Handle Touch Move - OPTIMIERT mit Throttling
+     * Handle Touch Move - OPTIMIERT mit Throttling + AUTO-SCROLL
      */
     function handleTouchMove(e) {
         if (!isDragging || !ghostElement) return;
@@ -928,6 +960,38 @@
         // Update Ghost-Position
         ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
         ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
+
+        // ========== AUTO-SCROLL LOGIC (OPTIMIERT - SCHNELLER & REAKTIVER) ==========
+        const viewportHeight = window.innerHeight;
+        const scrollZoneSize = 120; // 120px Scroll-Zone (größer = früher triggern)
+        const baseScrollSpeed = 15; // Basis-Geschwindigkeit erhöht (war 8)
+        const maxScrollSpeed = 35; // Maximale Geschwindigkeit
+        const touchY = touch.clientY;
+
+        // Prüfe ob in oberer Scroll-Zone
+        if (touchY < scrollZoneSize) {
+            // Exponentiell steigende Intensität für aggressiveres Scrolling
+            const intensity = Math.pow(1 - (touchY / scrollZoneSize), 2); // ^2 für stärkere Kurve
+            const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
+            window.scrollBy({ top: -speed, behavior: 'auto' });
+
+            // Visual Feedback
+            showScrollIndicator('up');
+        }
+        // Prüfe ob in unterer Scroll-Zone
+        else if (touchY > viewportHeight - scrollZoneSize) {
+            const distanceFromBottom = viewportHeight - touchY;
+            // Exponentiell steigende Intensität
+            const intensity = Math.pow(1 - (distanceFromBottom / scrollZoneSize), 2);
+            const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
+            window.scrollBy({ top: speed, behavior: 'auto' });
+
+            // Visual Feedback
+            showScrollIndicator('down');
+        } else {
+            hideScrollIndicator();
+        }
+        // ========== END AUTO-SCROLL ==========
 
         // Finde Slot unter dem Finger (nicht unter Ghost!)
         ghostElement.style.pointerEvents = 'none';
@@ -1001,6 +1065,7 @@
         }
 
         removeGhost();
+        hideScrollIndicator();
         touchStartPos = null;
         draggedPlayer = null;
         isDragging = false;
@@ -1014,6 +1079,7 @@
         document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         removeGhost();
+        hideScrollIndicator();
         touchStartPos = null;
         draggedPlayer = null;
         isDragging = false;
@@ -1271,7 +1337,7 @@
         // Setup event listeners
         initEventListeners();
 
-        console.log('✅ Lineup System initialisiert (OPTIMIZED)');
+        console.log('✅ Lineup System initialisiert (OPTIMIZED + AUTO-SCROLL)');
     }
 
     /**
@@ -1288,9 +1354,18 @@
 
         // Cleanup touch state
         removeGhost();
+        hideScrollIndicator();
+
+        // Remove scroll indicator from DOM
+        if (scrollIndicatorElement && scrollIndicatorElement.parentNode) {
+            scrollIndicatorElement.parentNode.removeChild(scrollIndicatorElement);
+            scrollIndicatorElement = null;
+        }
+
         touchStartPos = null;
         draggedPlayer = null;
         isDragging = false;
+        isScrolling = false;
 
         // Reset state
         fieldSlots = [];

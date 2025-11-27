@@ -1,6 +1,6 @@
 /* =====================================================
    KICKERSCUP - LINEUP STYLESHEET (PERFORMANCE OPTIMIZED)
-   Mobile-optimiert mit UX-Verbesserungen
+   Mobile-optimiert mit UX-Verbesserungen + Auto-Scroll
    FIXED: Drag-and-Drop ohne Layout-Shifts
    ===================================================== */
 
@@ -1021,6 +1021,77 @@
     margin: 0;
 }
 
+/* ========== SCROLL INDICATOR (AUTO-SCROLL FEEDBACK) ========== */
+.scroll-indicator {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10002;
+    background: rgba(0, 199, 139, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--gold-primary);
+    border-radius: 20px;
+    padding: 12px 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 40px var(--turquoise-glow);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.scroll-indicator.active {
+    opacity: 1;
+}
+
+.scroll-indicator.up {
+    top: 80px;
+}
+
+.scroll-indicator.down {
+    bottom: 120px;
+}
+
+.scroll-arrow {
+    font-size: 24px;
+    animation: scrollBounce 0.8s ease-in-out infinite;
+}
+
+.scroll-indicator.up .scroll-arrow {
+    animation-name: scrollBounceUp;
+}
+
+.scroll-indicator.down .scroll-arrow {
+    animation-name: scrollBounceDown;
+}
+
+@keyframes scrollBounceUp {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes scrollBounceDown {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+}
+
+.scroll-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark-primary);
+    white-space: nowrap;
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 1200px) {
     .lineup-main-layout {
@@ -1134,6 +1205,27 @@
     .landscape-hint {
         display: block;
     }
+
+    /* Scroll Indicator Mobile */
+    .scroll-indicator {
+        padding: 10px 20px;
+    }
+
+    .scroll-indicator.up {
+        top: 70px;
+    }
+
+    .scroll-indicator.down {
+        bottom: 100px;
+    }
+
+    .scroll-arrow {
+        font-size: 20px;
+    }
+
+    .scroll-text {
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 896px) and (orientation: landscape) {
@@ -1214,6 +1306,15 @@
     .landscape-hint {
         display: none !important;
     }
+
+    /* Scroll Indicator Landscape */
+    .scroll-indicator.up {
+        top: 70px;
+    }
+
+    .scroll-indicator.down {
+        bottom: 100px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1292,6 +1393,15 @@
         max-width: 90%;
         font-size: 14px;
         padding: 10px 20px;
+    }
+
+    /* Scroll Indicator Small Mobile */
+    .scroll-indicator {
+        padding: 8px 16px;
+    }
+
+    .scroll-text {
+        font-size: 11px;
     }
 }
 
