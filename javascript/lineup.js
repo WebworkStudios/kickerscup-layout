@@ -1,7 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (OPTIMIZED & FIXED)
-// Alle Features + robustes Drag & Drop ohne Layout-Shifts
-// + AUTO-SCROLL für Mobile Geräte
+// KICKERSCUP - LINEUP SYSTEM (UPDATED)
+// Angepasste Spieler-Cards: Field (kompakt) vs Squad (vollständig)
 // =====================================================
 
 (function () {
@@ -23,7 +22,7 @@
     let draggedPlayer = null;
     let isDragging = false;
     let lastTouchMoveTime = 0;
-    const TOUCH_MOVE_THROTTLE = 16; // ~60fps
+    const TOUCH_MOVE_THROTTLE = 16;
 
     // Auto-Scroll State
     let scrollIndicatorElement = null;
@@ -122,7 +121,7 @@
     }
 
     /**
-     * Show Scroll Indicator (NEW)
+     * Show Scroll Indicator
      */
     function showScrollIndicator(direction) {
         if (!scrollIndicatorElement) {
@@ -139,7 +138,7 @@
     }
 
     /**
-     * Hide Scroll Indicator (NEW)
+     * Hide Scroll Indicator
      */
     function hideScrollIndicator() {
         if (scrollIndicatorElement && isScrolling) {
@@ -252,25 +251,25 @@
      * Calculate Form Factor
      */
     function calculateFormFactor(form) {
-        return 0.95 + (form - 5) * 0.01;
+        return 0.95 + (form - 50) * 0.001;
     }
 
     /**
      * Calculate Fitness Factor
      */
-    function calculateFitnessFactor(fitness) {
-        return fitness / 100;
+    function calculateFitnessFactor(freshness) {
+        return freshness / 100;
     }
 
     /**
-     * Calculate Effective Strength
+     * Calculate Effective Strength (Einsatzwert)
      */
     function calculateEffectiveStrength(player, slotPosition) {
         const positionFactor = calculatePositionFactor(player.main_position, slotPosition);
         const formFactor = calculateFormFactor(player.form);
-        const fitnessFactor = calculateFitnessFactor(player.fitness);
+        const fitnessFactor = calculateFitnessFactor(player.freshness);
 
-        return Math.round(player.base_strength * positionFactor * formFactor * fitnessFactor);
+        return Math.round(player.strength * 10 * positionFactor * formFactor * fitnessFactor);
     }
 
     /**
@@ -311,10 +310,12 @@
     }
 
     /**
-     * Update Player Visibility (Selective Re-Rendering)
+     * Update Player Visibility (unterstützt beide Card-Typen)
      */
     function updatePlayerVisibility(playerId, isPlaced) {
-        const card = document.querySelector(`.available-players-list .player-card[data-player-id="${playerId}"]`);
+        // Versuche beide Card-Typen zu finden
+        const card = document.querySelector(`.available-players-list .player-card[data-player-id="${playerId}"]`) ||
+            document.querySelector(`.available-players-list .player-mini-card[data-player-id="${playerId}"]`);
         if (!card) return;
 
         if (isPlaced) {
@@ -388,12 +389,12 @@
     }
 
     /**
-     * Render Player Card
+     * Render Player Card - UPDATED mit zwei verschiedenen Ansichten
      */
-    function renderPlayerCard(player, slotPosition = null) {
+    function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
         const effectiveStrength = slotPosition
             ? calculateEffectiveStrength(player, slotPosition)
-            : player.base_strength;
+            : Math.round(player.strength * 10);
 
         const penalty = slotPosition
             ? getPositionPenalty(player.main_position, slotPosition)
@@ -402,30 +403,65 @@
         const isUnavailable = player.status !== 'fit';
         const canPlay = slotPosition ? canPlayPosition(player, slotPosition) : true;
 
+        // FIELD CARD - Nur Einsatzwert und Alter (KOMPAKT: EW statt Einsatzwert)
+        if (isFieldCard) {
+            return `
+                <div class="player-card field-card-compact ${isUnavailable || !canPlay ? 'unavailable' : ''}" 
+                     data-player-id="${player.id}"
+                     draggable="${!isUnavailable && canPlay}">
+                    <div class="player-card-header">
+                        <div class="player-card-name">${player.name}</div>
+                        <div class="player-card-position">${player.main_position}</div>
+                    </div>
+                    <div class="player-card-field-stats">
+                        <div class="field-stat-item">
+                            <span class="field-stat-label">EW</span>
+                            <span class="field-stat-value">${effectiveStrength}</span>
+                        </div>
+                        <div class="field-stat-item">
+                            <span class="field-stat-label">Alter</span>
+                            <span class="field-stat-value">${player.age}</span>
+                        </div>
+                    </div>
+                    ${penalty.text ? `<div class="player-card-penalty ${penalty.severe ? 'severe' : ''}">${penalty.text}</div>` : ''}
+                    ${isUnavailable ? `<span class="player-status-badge status-${player.status}">${player.status === 'injured' ? 'Verletzt' : 'Gesperrt'}</span>` : ''}
+                </div>
+            `;
+        }
+
+        // SQUAD CARD - Vollständige Informationen (KÜRZEL: ST, KO, FO, FR, Mo, EW)
         return `
-            <div class="player-card ${isUnavailable || !canPlay ? 'unavailable' : ''}" 
+            <div class="player-card squad-card-full ${isUnavailable || !canPlay ? 'unavailable' : ''}" 
                  data-player-id="${player.id}"
                  draggable="${!isUnavailable && canPlay}">
                 <div class="player-card-header">
                     <div class="player-card-name">${player.name}</div>
                     <div class="player-card-position">${player.main_position}</div>
                 </div>
-                <div class="player-card-stats">
-                    <div class="player-stat">
-                        <span class="player-stat-label">Basis</span>
-                        <span class="player-stat-value">${player.base_strength}</span>
+                <div class="player-card-stats-grid">
+                    <div class="player-stat-row">
+                        <span class="player-stat-label">ST:</span>
+                        <span class="player-stat-value">${player.strength}</span>
                     </div>
-                    <div class="player-stat">
-                        <span class="player-stat-label">Effektiv</span>
-                        <span class="player-stat-value">${effectiveStrength}</span>
+                    <div class="player-stat-row">
+                        <span class="player-stat-label">KO:</span>
+                        <span class="player-stat-value">${player.stamina}</span>
                     </div>
-                    <div class="player-stat">
-                        <span class="player-stat-label">Form</span>
+                    <div class="player-stat-row">
+                        <span class="player-stat-label">FO:</span>
                         <span class="player-stat-value">${player.form}</span>
                     </div>
-                    <div class="player-stat">
-                        <span class="player-stat-label">Fitness</span>
-                        <span class="player-stat-value">${player.fitness}%</span>
+                    <div class="player-stat-row">
+                        <span class="player-stat-label">FR:</span>
+                        <span class="player-stat-value">${player.freshness}</span>
+                    </div>
+                    <div class="player-stat-row">
+                        <span class="player-stat-label">Mo:</span>
+                        <span class="player-stat-value">${player.motivation}</span>
+                    </div>
+                    <div class="player-stat-row highlight">
+                        <span class="player-stat-label">EW:</span>
+                        <span class="player-stat-value">${effectiveStrength}</span>
                     </div>
                 </div>
                 ${penalty.text ? `<div class="player-card-penalty ${penalty.severe ? 'severe' : ''}">${penalty.text}</div>` : ''}
@@ -435,7 +471,7 @@
     }
 
     /**
-     * Render Available Players
+     * Render Available Players - KOMPAKTE GRID-ANSICHT
      */
     function renderAvailablePlayers() {
         const container = document.getElementById('availablePlayersList');
@@ -456,7 +492,7 @@
         available.sort((a, b) => {
             switch (sortBy) {
                 case 'strength':
-                    return b.base_strength - a.base_strength;
+                    return b.strength - a.strength;
                 case 'name':
                     return a.name.localeCompare(b.name);
                 case 'position':
@@ -466,9 +502,32 @@
             }
         });
 
+        // NEUE KOMPAKTE GRID-ANSICHT
         container.innerHTML = available.map((player, index) => {
-            const card = renderPlayerCard(player);
-            return `<div class="player-card-wrapper" style="animation-delay: ${index * 0.02}s">${card}</div>`;
+            const effectiveStrength = Math.round(player.strength * 10);
+            const isUnavailable = player.status !== 'fit';
+            const statusIcon = player.status === 'injured' ? '🚑' : player.status === 'banned' ? '🚫' : '';
+
+            return `
+                <div class="player-mini-card-wrapper" style="animation-delay: ${index * 0.02}s">
+                    <div class="player-mini-card ${isUnavailable ? 'unavailable' : ''}" 
+                         data-player-id="${player.id}"
+                         draggable="${!isUnavailable}">
+                        <div class="mini-card-header">
+                            <div class="mini-card-name">${player.name}</div>
+                            ${statusIcon ? `<span class="mini-card-status">${statusIcon}</span>` : ''}
+                        </div>
+                        <div class="mini-card-info">
+                            <span class="mini-card-position">${player.main_position}</span>
+                            <span class="mini-card-age">·${player.age}</span>
+                        </div>
+                        <div class="mini-card-ew">
+                            <span class="mini-card-ew-label">EW</span>
+                            <span class="mini-card-ew-value">${effectiveStrength}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }).join('');
     }
 
@@ -481,7 +540,6 @@
 
         if (!slot) return false;
 
-        // Check if position is valid for field slots
         if (slotType === 'field') {
             if (!canPlayPosition(player, slot.position)) {
                 showToast('Spieler kann diese Position nicht spielen', 'error');
@@ -490,17 +548,13 @@
             }
         }
 
-        // Remove player from old position if exists
         const oldPosition = removePlayerFromLineup(player.id);
 
-        // Place player
         slot.player = player;
         placedPlayerIds.add(player.id);
 
-        // Update UI with animation
         renderSlot(slotType, slotIndex, true);
 
-        // Only hide from available list if not moving from another position
         if (!oldPosition) {
             updatePlayerVisibility(player.id, true);
         }
@@ -509,7 +563,6 @@
         updateBenchCount();
         validateLineup();
 
-        // Feedback
         showFloatingSuccess(player.name);
         playSuccessSound();
 
@@ -522,7 +575,6 @@
     function removePlayerFromLineup(playerId) {
         let oldPosition = null;
 
-        // Check field slots
         fieldSlots.forEach((slot, index) => {
             if (slot.player && slot.player.id === playerId) {
                 oldPosition = { type: 'field', index };
@@ -531,7 +583,6 @@
             }
         });
 
-        // Check bench slots
         benchSlots.forEach((slot, index) => {
             if (slot.player && slot.player.id === playerId) {
                 oldPosition = { type: 'bench', index };
@@ -565,7 +616,7 @@
     }
 
     /**
-     * Render Single Slot
+     * Render Single Slot - UPDATED für Field Cards (auch für Ersatzbank)
      */
     function renderSlot(slotType, slotIndex, animate = false) {
         const slots = slotType === 'field' ? fieldSlots : benchSlots;
@@ -580,10 +631,12 @@
                 element.classList.add('just-filled');
                 setTimeout(() => element.classList.remove('just-filled'), 500);
             }
+            // Beide nutzen Field Card (kompakt mit EW + Alter)
             const slotPosition = slotType === 'field' ? slot.position : null;
+            const isFieldCard = true; // Immer kompakte Ansicht für Spielfeld UND Bank
             element.innerHTML = `
                 <div class="field-player-card">
-                    ${renderPlayerCard(slot.player, slotPosition)}
+                    ${renderPlayerCard(slot.player, slotPosition, isFieldCard)}
                     <button class="quick-remove-btn" data-player-id="${slot.player.id}" title="Entfernen">×</button>
                 </div>
             `;
@@ -639,12 +692,10 @@
         const errors = [];
         const warnings = [];
 
-        // Count players
         const fieldCount = fieldSlots.filter(s => s.player).length;
         const benchCount = benchSlots.filter(s => s.player).length;
         const totalCount = fieldCount + benchCount;
 
-        // Check minimum players
         if (totalCount < config.validation.minPlayersInSquad) {
             errors.push({
                 icon: '❌',
@@ -652,7 +703,6 @@
             });
         }
 
-        // Check maximum players
         if (totalCount > config.validation.maxPlayersInSquad) {
             errors.push({
                 icon: '❌',
@@ -660,7 +710,6 @@
             });
         }
 
-        // Check starting eleven
         if (fieldCount < 11) {
             warnings.push({
                 icon: '⚠️',
@@ -668,7 +717,6 @@
             });
         }
 
-        // Check injured/banned players
         [...fieldSlots, ...benchSlots].forEach(slot => {
             if (slot.player && slot.player.status !== 'fit') {
                 errors.push({
@@ -678,7 +726,6 @@
             }
         });
 
-        // Check position penalties
         fieldSlots.forEach(slot => {
             if (slot.player) {
                 const penalty = getPositionPenalty(slot.player.main_position, slot.position);
@@ -696,7 +743,6 @@
             }
         });
 
-        // Render validation
         renderValidation(errors, warnings);
     }
 
@@ -710,7 +756,6 @@
 
         if (!panel || !header || !list) return;
 
-        // Update panel state
         panel.classList.remove('has-errors', 'has-warnings');
 
         if (errors.length > 0) {
@@ -719,7 +764,6 @@
             panel.classList.add('has-warnings');
         }
 
-        // Update header
         const icon = header.querySelector('.validation-icon');
         const title = header.querySelector('.validation-title');
 
@@ -734,7 +778,6 @@
             title.textContent = 'Aufstellung gültig';
         }
 
-        // Render messages
         const allMessages = [
             ...errors.map(e => ({ ...e, type: 'error' })),
             ...warnings.map(w => ({ ...w, type: 'warning' }))
@@ -753,14 +796,11 @@
     }
 
     // ========================================
-    // OPTIMIERTE DESKTOP DRAG & DROP HANDLERS
+    // DRAG & DROP HANDLERS (gekürzt, identisch zum Original)
     // ========================================
 
-    /**
-     * Handle Drag Start - OPTIMIERT
-     */
     function handleDragStart(e) {
-        const card = e.target.closest('.player-card');
+        const card = e.target.closest('.player-card') || e.target.closest('.player-mini-card');
         if (!card) return;
 
         const playerId = parseInt(card.dataset.playerId);
@@ -778,16 +818,12 @@
         e.dataTransfer.setData('text/plain', player.id);
     }
 
-    /**
-     * Handle Drag End - OPTIMIERT
-     */
     function handleDragEnd(e) {
-        const card = e.target.closest('.player-card');
+        const card = e.target.closest('.player-card') || e.target.closest('.player-mini-card');
         if (card) {
             card.classList.remove('dragging');
         }
 
-        // Cleanup aller drag-over States
         document.querySelectorAll('.drag-over').forEach(el => {
             el.classList.remove('drag-over');
         });
@@ -796,16 +832,10 @@
         selectedPlayer = null;
     }
 
-    /**
-     * Handle Drag Enter - OPTIMIERT
-     */
     function handleDragEnter(e) {
         e.preventDefault();
     }
 
-    /**
-     * Handle Drag Over - OPTIMIERT (Verhindert Layout-Shifts)
-     */
     function handleDragOver(e) {
         if (!selectedPlayer) return;
 
@@ -815,12 +845,10 @@
 
         const slot = e.currentTarget;
 
-        // Verhindere redundante Updates
         if (currentDragOverSlot === slot) {
             return;
         }
 
-        // Entferne alte drag-over Klasse
         if (currentDragOverSlot && currentDragOverSlot !== slot) {
             currentDragOverSlot.classList.remove('drag-over');
         }
@@ -828,7 +856,6 @@
         const slotType = slot.dataset.slotType;
         const position = slot.dataset.position;
 
-        // Validiere Position
         let canDrop = false;
         if (slotType === 'field') {
             canDrop = canPlayPosition(selectedPlayer, position);
@@ -845,14 +872,10 @@
         }
     }
 
-    /**
-     * Handle Drag Leave - OPTIMIERT
-     */
     function handleDragLeave(e) {
         const slot = e.currentTarget;
         const relatedTarget = e.relatedTarget;
 
-        // Prüfe ob wir zu einem Kind-Element des Slots wechseln
         if (relatedTarget && slot.contains(relatedTarget)) {
             return;
         }
@@ -864,9 +887,6 @@
         }
     }
 
-    /**
-     * Handle Drop - OPTIMIERT
-     */
     function handleDrop(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -889,12 +909,9 @@
     }
 
     // ========================================
-    // OPTIMIERTE TOUCH-DRAG IMPLEMENTATION + AUTO-SCROLL
+    // TOUCH HANDLERS (identisch zum Original, gekürzt)
     // ========================================
 
-    /**
-     * Create Ghost Element
-     */
     function createGhost(card, touch) {
         ghostElement = card.cloneNode(true);
         ghostElement.classList.add('ghost-dragging');
@@ -910,9 +927,6 @@
         document.body.appendChild(ghostElement);
     }
 
-    /**
-     * Remove Ghost Element
-     */
     function removeGhost() {
         if (ghostElement && ghostElement.parentNode) {
             ghostElement.parentNode.removeChild(ghostElement);
@@ -920,11 +934,8 @@
         ghostElement = null;
     }
 
-    /**
-     * Handle Touch Start
-     */
     function handleTouchStart(e) {
-        const card = e.target.closest('.player-card');
+        const card = e.target.closest('.player-card') || e.target.closest('.player-mini-card');
         if (!card || card.classList.contains('unavailable')) return;
 
         const playerId = parseInt(card.dataset.playerId);
@@ -946,9 +957,6 @@
         }, 150);
     }
 
-    /**
-     * Handle Touch Move - OPTIMIERT mit Throttling + AUTO-SCROLL
-     */
     function handleTouchMove(e) {
         if (!isDragging || !ghostElement) return;
 
@@ -957,50 +965,37 @@
         const touch = e.touches[0];
         const rect = ghostElement.getBoundingClientRect();
 
-        // Update Ghost-Position
         ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
         ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
 
-        // ========== AUTO-SCROLL LOGIC (OPTIMIERT - SCHNELLER & REAKTIVER) ==========
+        // Auto-Scroll Logic
         const viewportHeight = window.innerHeight;
-        const scrollZoneSize = 120; // 120px Scroll-Zone (größer = früher triggern)
-        const baseScrollSpeed = 15; // Basis-Geschwindigkeit erhöht (war 8)
-        const maxScrollSpeed = 35; // Maximale Geschwindigkeit
+        const scrollZoneSize = 120;
+        const baseScrollSpeed = 15;
+        const maxScrollSpeed = 35;
         const touchY = touch.clientY;
 
-        // Prüfe ob in oberer Scroll-Zone
         if (touchY < scrollZoneSize) {
-            // Exponentiell steigende Intensität für aggressiveres Scrolling
-            const intensity = Math.pow(1 - (touchY / scrollZoneSize), 2); // ^2 für stärkere Kurve
+            const intensity = Math.pow(1 - (touchY / scrollZoneSize), 2);
             const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
             window.scrollBy({ top: -speed, behavior: 'auto' });
-
-            // Visual Feedback
             showScrollIndicator('up');
-        }
-        // Prüfe ob in unterer Scroll-Zone
-        else if (touchY > viewportHeight - scrollZoneSize) {
+        } else if (touchY > viewportHeight - scrollZoneSize) {
             const distanceFromBottom = viewportHeight - touchY;
-            // Exponentiell steigende Intensität
             const intensity = Math.pow(1 - (distanceFromBottom / scrollZoneSize), 2);
             const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
             window.scrollBy({ top: speed, behavior: 'auto' });
-
-            // Visual Feedback
             showScrollIndicator('down');
         } else {
             hideScrollIndicator();
         }
-        // ========== END AUTO-SCROLL ==========
 
-        // Finde Slot unter dem Finger (nicht unter Ghost!)
         ghostElement.style.pointerEvents = 'none';
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         ghostElement.style.pointerEvents = '';
 
         const slot = element?.closest('.field-slot, .bench-slot');
 
-        // Cleanup alte drag-over States
         if (currentDragOverSlot && currentDragOverSlot !== slot) {
             currentDragOverSlot.classList.remove('drag-over');
             currentDragOverSlot = null;
@@ -1024,9 +1019,6 @@
         }
     }
 
-    /**
-     * Handle Touch Move - Throttled Version
-     */
     function handleTouchMoveThrottled(e) {
         const now = Date.now();
         if (now - lastTouchMoveTime < TOUCH_MOVE_THROTTLE) {
@@ -1036,9 +1028,6 @@
         handleTouchMove(e);
     }
 
-    /**
-     * Handle Touch End
-     */
     function handleTouchEnd(e) {
         if (!isDragging) {
             touchStartPos = null;
@@ -1047,7 +1036,6 @@
 
         const touch = e.changedTouches[0];
 
-        // Finde Slot unter dem Finger beim Loslassen
         ghostElement.style.pointerEvents = 'none';
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         ghostElement.style.pointerEvents = '';
@@ -1072,9 +1060,6 @@
         currentDragOverSlot = null;
     }
 
-    /**
-     * Handle Touch Cancel
-     */
     function handleTouchCancel() {
         document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -1090,9 +1075,6 @@
     // EVENT LISTENERS & INITIALIZATION
     // ========================================
 
-    /**
-     * Handle Formation Change
-     */
     function handleFormationChange(e) {
         const newFormation = e.target.value;
 
@@ -1113,9 +1095,6 @@
         }
     }
 
-    /**
-     * Clear Lineup
-     */
     function clearLineup() {
         if (!confirm('Möchten Sie die gesamte Aufstellung zurücksetzen?')) return;
 
@@ -1134,9 +1113,6 @@
         showToast('Aufstellung zurückgesetzt', 'success');
     }
 
-    /**
-     * Save Lineup to localStorage
-     */
     function saveLineup() {
         const lineup = {
             formation: currentFormation,
@@ -1156,9 +1132,6 @@
         }
     }
 
-    /**
-     * Load Lineup from localStorage
-     */
     function loadLineup() {
         try {
             const saved = localStorage.getItem('kickerscup_lineup');
@@ -1206,19 +1179,13 @@
         }
     }
 
-    /**
-     * Attach Event Listeners to Slots - OPTIMIERT
-     */
     function attachSlotEventListeners() {
-        // Entferne Event Listener durch Cloning (verhindert Memory Leaks)
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
             const clone = slot.cloneNode(true);
             slot.parentNode.replaceChild(clone, slot);
         });
 
-        // Füge optimierte Event Listener hinzu
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-            // WICHTIG: useCapture = false für bessere Performance
             slot.addEventListener('dragenter', handleDragEnter, false);
             slot.addEventListener('dragover', handleDragOver, false);
             slot.addEventListener('dragleave', handleDragLeave, false);
@@ -1226,26 +1193,20 @@
         });
     }
 
-    /**
-     * Initialize Event Listeners
-     */
     function initEventListeners() {
         isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-        // Formation selector
         const formationSelect = document.getElementById('formationSelect');
         if (formationSelect) {
             addEventListener(formationSelect, 'change', handleFormationChange);
         }
 
-        // Action buttons
         const clearBtn = document.getElementById('clearLineup');
         const saveBtn = document.getElementById('saveLineup');
 
         if (clearBtn) addEventListener(clearBtn, 'click', clearLineup);
         if (saveBtn) addEventListener(saveBtn, 'click', saveLineup);
 
-        // Validation toggle
         const validationHeader = document.getElementById('validationHeader');
         const validationPanel = document.getElementById('validationPanel');
 
@@ -1255,7 +1216,6 @@
             });
         }
 
-        // Player search and filters
         const searchInput = document.getElementById('playerSearch');
         const positionFilter = document.getElementById('positionFilter');
         const sortSelect = document.getElementById('sortSelect');
@@ -1270,23 +1230,21 @@
             addEventListener(sortSelect, 'change', renderAvailablePlayers);
         }
 
-        // Desktop: Drag events on document level
         addEventListener(document, 'dragstart', (e) => {
-            if (e.target.closest('.player-card')) {
+            if (e.target.closest('.player-card') || e.target.closest('.player-mini-card')) {
                 handleDragStart(e);
             }
         });
 
         addEventListener(document, 'dragend', (e) => {
-            if (e.target.closest('.player-card')) {
+            if (e.target.closest('.player-card') || e.target.closest('.player-mini-card')) {
                 handleDragEnd(e);
             }
         });
 
-        // Touch events
         if (isTouchDevice) {
             addEventListener(document, 'touchstart', (e) => {
-                if (e.target.closest('.player-card')) {
+                if (e.target.closest('.player-card') || e.target.closest('.player-mini-card')) {
                     handleTouchStart(e);
                 }
             }, { passive: false });
@@ -1296,7 +1254,6 @@
             addEventListener(document, 'touchcancel', handleTouchCancel);
         }
 
-        // Quick remove button handler (Event Delegation)
         addEventListener(document, 'click', (e) => {
             const removeBtn = e.target.closest('.quick-remove-btn');
             if (removeBtn) {
@@ -1306,25 +1263,17 @@
             }
         });
 
-        // Attach slot listeners
         attachSlotEventListeners();
     }
 
-    /**
-     * Initialize Module
-     */
     function init() {
-        // Initialize audio
         initAudioContext();
 
-        // Load players from config
         availablePlayers = [...config.examplePlayers];
 
-        // Render initial state
         renderFormationSlots();
         renderBenchSlots();
 
-        // Try to load saved lineup
         const loaded = loadLineup();
 
         if (!loaded) {
@@ -1334,17 +1283,12 @@
             validateLineup();
         }
 
-        // Setup event listeners
         initEventListeners();
 
-        console.log('✅ Lineup System initialisiert (OPTIMIZED + AUTO-SCROLL)');
+        console.log('✅ Lineup System initialisiert (UPDATED)');
     }
 
-    /**
-     * Cleanup
-     */
     function cleanup() {
-        // Remove all event listeners
         eventListeners.forEach(({ element, event, handler, options }) => {
             if (element) {
                 element.removeEventListener(event, handler, options);
@@ -1352,11 +1296,9 @@
         });
         eventListeners = [];
 
-        // Cleanup touch state
         removeGhost();
         hideScrollIndicator();
 
-        // Remove scroll indicator from DOM
         if (scrollIndicatorElement && scrollIndicatorElement.parentNode) {
             scrollIndicatorElement.parentNode.removeChild(scrollIndicatorElement);
             scrollIndicatorElement = null;
@@ -1367,14 +1309,12 @@
         isDragging = false;
         isScrolling = false;
 
-        // Reset state
         fieldSlots = [];
         benchSlots = [];
         selectedPlayer = null;
         currentDragOverSlot = null;
         placedPlayerIds.clear();
 
-        // Close audio context
         if (audioContext) {
             audioContext.close();
             audioContext = null;
@@ -1383,7 +1323,6 @@
         console.log('🧹 Lineup System Cleanup durchgeführt');
     }
 
-    // Expose für ModuleManager
     window.__KICKERSCUP_MODULE__ = {
         init,
         cleanup

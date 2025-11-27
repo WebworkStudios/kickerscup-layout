@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - LINEUP CONFIGURATION
+// KICKERSCUP - LINEUP CONFIGURATION (UPDATED)
 // Formationen, Positionen, Regeln & Beispieldaten
+// UPDATED: Neue Attribute (strength 1-10, stamina, form, freshness, motivation, age)
 // =====================================================
 
 const LineupConfig = {
@@ -172,8 +173,7 @@ const LineupConfig = {
     positionCompatibility: {
         // Goalkeeper
         'TW': {
-            'TW': 1.0, // Perfect match
-            // All field positions forbidden
+            'TW': 1.0,
             'LI': 0, 'LV': 0, 'IV': 0, 'RV': 0,
             'LM': 0, 'RM': 0, 'ZOM': 0, 'ZDM': 0,
             'MS': 0, 'LS': 0, 'RS': 0
@@ -182,17 +182,17 @@ const LineupConfig = {
         // Defense
         'LI': {
             'LI': 1.0,
-            'LV': 0.95, 'IV': 0.95, // Close relation
-            'RV': 0.9, // Same category
-            'ZDM': 0.9, // Can play defensive mid
-            'TW': 0, 'LM': 0.8, 'RM': 0.8, 'ZOM': 0.8, // Other categories
+            'LV': 0.95, 'IV': 0.95,
+            'RV': 0.9,
+            'ZDM': 0.9,
+            'TW': 0, 'LM': 0.8, 'RM': 0.8, 'ZOM': 0.8,
             'MS': 0.8, 'LS': 0.8, 'RS': 0.8
         },
         'LV': {
             'LV': 1.0,
             'LI': 0.95, 'IV': 0.95,
             'RV': 0.9,
-            'LM': 0.9, // Can support wing
+            'LM': 0.9,
             'ZDM': 0.9,
             'TW': 0, 'RM': 0.8, 'ZOM': 0.8,
             'MS': 0.8, 'LS': 0.8, 'RS': 0.8
@@ -215,9 +215,9 @@ const LineupConfig = {
         // Midfield
         'LM': {
             'LM': 1.0,
-            'RM': 0.95, // Similar wing role
+            'RM': 0.95,
             'LV': 0.9, 'ZOM': 0.9, 'ZDM': 0.9,
-            'LS': 0.9, // Can support attack
+            'LS': 0.9,
             'TW': 0, 'IV': 0.8, 'RV': 0.8, 'LI': 0.8,
             'MS': 0.8, 'RS': 0.8
         },
@@ -231,9 +231,9 @@ const LineupConfig = {
         },
         'ZOM': {
             'ZOM': 1.0,
-            'ZDM': 0.95, // Central midfield
+            'ZDM': 0.95,
             'LM': 0.9, 'RM': 0.9,
-            'MS': 0.9, // Can play forward
+            'MS': 0.9,
             'TW': 0, 'LI': 0.8, 'LV': 0.8, 'IV': 0.8, 'RV': 0.8,
             'LS': 0.8, 'RS': 0.8
         },
@@ -249,15 +249,15 @@ const LineupConfig = {
         // Attack
         'MS': {
             'MS': 1.0,
-            'LS': 0.95, 'RS': 0.95, // Similar striker roles
-            'ZOM': 0.9, // Can drop back
+            'LS': 0.95, 'RS': 0.95,
+            'ZOM': 0.9,
             'TW': 0, 'LI': 0.8, 'LV': 0.8, 'IV': 0.8, 'RV': 0.8,
             'LM': 0.8, 'RM': 0.8, 'ZDM': 0.8
         },
         'LS': {
             'LS': 1.0,
             'MS': 0.95, 'RS': 0.95,
-            'LM': 0.9, // Wing connection
+            'LM': 0.9,
             'ZOM': 0.9,
             'TW': 0, 'LI': 0.8, 'LV': 0.8, 'IV': 0.8, 'RV': 0.8,
             'RM': 0.8, 'ZDM': 0.8
@@ -280,208 +280,268 @@ const LineupConfig = {
         startingEleven: 11
     },
 
-    // Example Players
+    // Example Players - UPDATED mit neuen Attributen
     examplePlayers: [
         {
             id: 1,
             name: 'Max Neuer',
-            base_strength: 88,
+            age: 28,
+            strength: 9,          // 1-10
+            stamina: 88,          // 1-100
+            form: 85,             // 1-100
+            freshness: 95,        // 1-100
+            motivation: 10,       // 1-12
             main_position: 'TW',
             positions: { 'TW': 100 },
-            status: 'fit',
-            form: 8,
-            fitness: 95
+            status: 'fit'
         },
         {
             id: 2,
             name: 'Leon Müller',
-            base_strength: 85,
+            age: 25,
+            strength: 8,
+            stamina: 85,
+            form: 88,
+            freshness: 92,
+            motivation: 10,
             main_position: 'IV',
             positions: { 'IV': 100, 'LV': 85, 'RV': 85, 'ZDM': 75 },
-            status: 'fit',
-            form: 9,
-            fitness: 92
+            status: 'fit'
         },
         {
             id: 3,
             name: 'Tom Wagner',
-            base_strength: 84,
+            age: 29,
+            strength: 8,
+            stamina: 82,
+            form: 75,
+            freshness: 88,
+            motivation: 9,
             main_position: 'IV',
             positions: { 'IV': 100, 'LI': 90, 'ZDM': 70 },
-            status: 'fit',
-            form: 7,
-            fitness: 88
+            status: 'fit'
         },
         {
             id: 4,
             name: 'Felix Schmidt',
-            base_strength: 82,
+            age: 24,
+            strength: 8,
+            stamina: 90,
+            form: 80,
+            freshness: 90,
+            motivation: 9,
             main_position: 'LV',
             positions: { 'LV': 100, 'LI': 85, 'LM': 75, 'IV': 80 },
-            status: 'fit',
-            form: 8,
-            fitness: 90
+            status: 'fit'
         },
         {
             id: 5,
             name: 'Paul Becker',
-            base_strength: 81,
+            age: 26,
+            strength: 8,
+            stamina: 88,
+            form: 72,
+            freshness: 87,
+            motivation: 8,
             main_position: 'RV',
             positions: { 'RV': 100, 'RM': 75, 'IV': 80 },
-            status: 'fit',
-            form: 7,
-            fitness: 87
+            status: 'fit'
         },
         {
             id: 6,
             name: 'Jonas Fischer',
-            base_strength: 86,
+            age: 27,
+            strength: 9,
+            stamina: 85,
+            form: 90,
+            freshness: 94,
+            motivation: 11,
             main_position: 'ZDM',
             positions: { 'ZDM': 100, 'ZOM': 85, 'IV': 70 },
-            status: 'fit',
-            form: 9,
-            fitness: 94
+            status: 'fit'
         },
         {
             id: 7,
             name: 'Lukas Weber',
-            base_strength: 87,
+            age: 23,
+            strength: 9,
+            stamina: 82,
+            form: 95,
+            freshness: 96,
+            motivation: 12,
             main_position: 'ZOM',
             positions: { 'ZOM': 100, 'ZDM': 85, 'LM': 80, 'RM': 80, 'MS': 75 },
-            status: 'fit',
-            form: 10,
-            fitness: 96
+            status: 'fit'
         },
         {
             id: 8,
             name: 'David Hoffmann',
-            base_strength: 83,
+            age: 25,
+            strength: 8,
+            stamina: 92,
+            form: 82,
+            freshness: 91,
+            motivation: 9,
             main_position: 'LM',
             positions: { 'LM': 100, 'LS': 80, 'LV': 70, 'ZOM': 75 },
-            status: 'fit',
-            form: 8,
-            fitness: 91
+            status: 'fit'
         },
         {
             id: 9,
             name: 'Tim Schulz',
-            base_strength: 82,
+            age: 24,
+            strength: 8,
+            stamina: 90,
+            form: 78,
+            freshness: 89,
+            motivation: 8,
             main_position: 'RM',
             positions: { 'RM': 100, 'RS': 80, 'RV': 70, 'ZOM': 75 },
-            status: 'fit',
-            form: 7,
-            fitness: 89
+            status: 'fit'
         },
         {
             id: 10,
             name: 'Marco Richter',
-            base_strength: 90,
+            age: 27,
+            strength: 9,
+            stamina: 85,
+            form: 92,
+            freshness: 93,
+            motivation: 11,
             main_position: 'MS',
             positions: { 'MS': 100, 'LS': 90, 'RS': 90, 'ZOM': 75 },
-            status: 'fit',
-            form: 9,
-            fitness: 93
+            status: 'fit'
         },
         {
             id: 11,
             name: 'Simon Krause',
-            base_strength: 88,
+            age: 22,
+            strength: 9,
+            stamina: 88,
+            form: 88,
+            freshness: 90,
+            motivation: 10,
             main_position: 'MS',
             positions: { 'MS': 100, 'LS': 85, 'RS': 85, 'ZOM': 70 },
-            status: 'fit',
-            form: 8,
-            fitness: 90
+            status: 'fit'
         },
         // Bench players
         {
             id: 12,
             name: 'Jan Braun',
-            base_strength: 78,
+            age: 32,
+            strength: 8,
+            stamina: 75,
+            form: 70,
+            freshness: 92,
+            motivation: 8,
             main_position: 'TW',
             positions: { 'TW': 100 },
-            status: 'fit',
-            form: 7,
-            fitness: 92
+            status: 'fit'
         },
         {
             id: 13,
             name: 'Elias Krüger',
-            base_strength: 80,
+            age: 30,
+            strength: 8,
+            stamina: 78,
+            form: 65,
+            freshness: 45,
+            motivation: 6,
             main_position: 'IV',
             positions: { 'IV': 100, 'LV': 75, 'RV': 75 },
-            status: 'injured',
-            form: 6,
-            fitness: 45
+            status: 'injured'
         },
         {
             id: 14,
             name: 'Moritz Klein',
-            base_strength: 79,
+            age: 26,
+            strength: 8,
+            stamina: 82,
+            form: 75,
+            freshness: 88,
+            motivation: 8,
             main_position: 'ZDM',
             positions: { 'ZDM': 100, 'ZOM': 80, 'IV': 70 },
-            status: 'fit',
-            form: 7,
-            fitness: 88
+            status: 'fit'
         },
         {
             id: 15,
             name: 'Noah Lang',
-            base_strength: 81,
+            age: 23,
+            strength: 8,
+            stamina: 88,
+            form: 82,
+            freshness: 91,
+            motivation: 9,
             main_position: 'LM',
             positions: { 'LM': 100, 'LS': 75, 'LV': 65 },
-            status: 'fit',
-            form: 8,
-            fitness: 91
+            status: 'fit'
         },
         {
             id: 16,
             name: 'Ben Wolf',
-            base_strength: 80,
+            age: 25,
+            strength: 8,
+            stamina: 85,
+            form: 78,
+            freshness: 87,
+            motivation: 8,
             main_position: 'RM',
             positions: { 'RM': 100, 'RS': 75, 'RV': 65 },
-            status: 'banned',
-            form: 7,
-            fitness: 87
+            status: 'banned'
         },
         {
             id: 17,
             name: 'Finn Schröder',
-            base_strength: 85,
+            age: 22,
+            strength: 8,
+            stamina: 86,
+            form: 85,
+            freshness: 89,
+            motivation: 9,
             main_position: 'MS',
             positions: { 'MS': 100, 'LS': 85, 'RS': 85 },
-            status: 'fit',
-            form: 8,
-            fitness: 89
+            status: 'fit'
         },
         {
             id: 18,
             name: 'Niklas Hartmann',
-            base_strength: 77,
+            age: 28,
+            strength: 7,
+            stamina: 80,
+            form: 68,
+            freshness: 85,
+            motivation: 7,
             main_position: 'LV',
             positions: { 'LV': 100, 'LI': 80, 'LM': 70 },
-            status: 'fit',
-            form: 6,
-            fitness: 85
+            status: 'fit'
         },
         {
             id: 19,
             name: 'Alex Zimmermann',
-            base_strength: 76,
+            age: 29,
+            strength: 7,
+            stamina: 78,
+            form: 65,
+            freshness: 84,
+            motivation: 7,
             main_position: 'RV',
             positions: { 'RV': 100, 'RM': 70, 'IV': 75 },
-            status: 'fit',
-            form: 6,
-            fitness: 84
+            status: 'fit'
         },
         {
             id: 20,
             name: 'Erik Meyer',
-            base_strength: 78,
+            age: 26,
+            strength: 8,
+            stamina: 84,
+            form: 72,
+            freshness: 86,
+            motivation: 8,
             main_position: 'ZOM',
             positions: { 'ZOM': 100, 'ZDM': 80, 'MS': 65 },
-            status: 'fit',
-            form: 7,
-            fitness: 86
+            status: 'fit'
         }
     ]
 };

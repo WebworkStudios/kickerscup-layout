@@ -1,7 +1,6 @@
 /* =====================================================
-   KICKERSCUP - LINEUP STYLESHEET (PERFORMANCE OPTIMIZED)
-   Mobile-optimiert mit UX-Verbesserungen + Auto-Scroll
-   FIXED: Drag-and-Drop ohne Layout-Shifts
+   KICKERSCUP - LINEUP STYLESHEET (UPDATED)
+   Neue Card-Styles: Field (kompakt) vs Squad (vollständig)
    ===================================================== */
 
 /* ========== LINEUP HEADER ========== */
@@ -103,7 +102,6 @@
     transition: all 0.3s ease;
 }
 
-/* ========== STRENGTH VALUE ANIMATION ========== */
 .strength-value.updating {
     animation: strengthPulse 0.4s ease;
 }
@@ -356,7 +354,7 @@
     border-bottom: none;
 }
 
-/* ========== FIELD SLOTS - OPTIMIERT OHNE LAYOUT-SHIFTS ========== */
+/* ========== FIELD SLOTS ========== */
 .field-slots {
     position: relative;
     width: 100%;
@@ -380,14 +378,12 @@
     cursor: pointer;
     min-width: 44px;
     min-height: 44px;
-    /* KRITISCH: box-sizing verhindert Layout-Verschiebungen bei border-Änderungen */
     box-sizing: border-box;
 }
 
 .field-slot:hover {
     background: rgba(0, 199, 139, 0.2);
     border-color: var(--gold-primary);
-    /* ENTFERNT: transform: scale(1.05) - verhindert Layout-Shifts */
 }
 
 .field-slot.occupied {
@@ -395,22 +391,18 @@
     border: none;
 }
 
-/* NEUE OPTIMIERTE drag-over Animation - OHNE Größenänderung */
 .field-slot.drag-over {
     background: rgba(0, 199, 139, 0.3);
     border-color: var(--gold-primary);
     border-style: solid;
-    border-width: 3px; /* Dicker, aber kein Layout-Shift wegen box-sizing */
-    /* Starker Glow-Effekt statt Skalierung */
+    border-width: 3px;
     box-shadow:
             0 0 30px var(--turquoise-glow),
             0 0 50px rgba(0, 199, 139, 0.4),
             inset 0 0 25px rgba(0, 199, 139, 0.3);
-    /* Pulsierender Glow statt Größenänderung */
     animation: glowPulse 0.8s ease-in-out infinite;
 }
 
-/* NEUE Animation - nur Glow, keine Transformation */
 @keyframes glowPulse {
     0%, 100% {
         box-shadow:
@@ -473,7 +465,7 @@
     opacity: 0.5;
 }
 
-/* ========== PLAYER CARDS ========== */
+/* ========== PLAYER CARDS - BASE STYLES ========== */
 .player-card {
     background: rgba(26, 26, 26, 0.95);
     border: 2px solid var(--turquoise-border);
@@ -523,7 +515,171 @@
     box-shadow: 0 0 20px var(--turquoise-glow);
 }
 
-/* ========== PERFORMANCE: CARD ANIMATIONS ========== */
+/* ========== FIELD CARD - KOMPAKTE ANSICHT (NUR EINSATZWERT & ALTER) ========== */
+.field-card-compact {
+    padding: 10px;
+    min-height: 100px;
+}
+
+.field-card-compact .player-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.field-card-compact .player-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-white);
+    line-height: 1.2;
+}
+
+.field-card-compact .player-card-position {
+    font-size: 10px;
+    color: var(--gold-primary);
+    font-weight: 600;
+    background: rgba(0, 199, 139, 0.1);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.player-card-field-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 6px;
+}
+
+.field-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+/* ========== SQUAD CARD - VOLLSTÄNDIGE ANSICHT ========== */
+.squad-card-full {
+    padding: 12px;
+}
+
+.squad-card-full .player-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.squad-card-full .player-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-white);
+    line-height: 1.2;
+}
+
+.squad-card-full .player-card-position {
+    font-size: 11px;
+    color: var(--gold-primary);
+    font-weight: 600;
+    background: rgba(0, 199, 139, 0.1);
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+.player-card-stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.player-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.player-stat-row:hover {
+    background: rgba(0, 199, 139, 0.08);
+}
+
+.player-stat-row.highlight {
+    background: rgba(0, 199, 139, 0.15);
+    border: 1px solid var(--turquoise-border);
+}
+
+.player-stat-row .player-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.player-stat-row .player-stat-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.player-stat-row.highlight .player-stat-value {
+    font-size: 14px;
+}
+
+/* ========== SHARED CARD ELEMENTS ========== */
+.player-card-penalty {
+    font-size: 11px;
+    color: #ecc94b;
+    text-align: center;
+    padding: 4px;
+    background: rgba(236, 201, 75, 0.1);
+    border-radius: 6px;
+    margin-top: 6px;
+}
+
+.player-card-penalty.severe {
+    color: #f56565;
+    background: rgba(245, 101, 101, 0.1);
+}
+
+.player-status-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+.status-injured {
+    background: rgba(245, 101, 101, 0.2);
+    color: #fc8181;
+}
+
+.status-banned {
+    background: rgba(237, 137, 54, 0.2);
+    color: #f6ad55;
+}
+
+/* ========== ANIMATION WRAPPERS ========== */
 .player-card-wrapper {
     animation: cardFadeIn 0.3s ease backwards;
 }
@@ -554,88 +710,7 @@
     animation: cardFadeIn 0.3s ease;
 }
 
-.player-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-.player-card-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-white);
-    line-height: 1.2;
-}
-
-.player-card-position {
-    font-size: 11px;
-    color: var(--gold-primary);
-    font-weight: 600;
-    background: rgba(0, 199, 139, 0.1);
-    padding: 2px 8px;
-    border-radius: 8px;
-}
-
-.player-card-stats {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.player-stat {
-    flex: 1;
-    text-align: center;
-}
-
-.player-stat-label {
-    font-size: 9px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 2px;
-}
-
-.player-stat-value {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--gold-primary);
-}
-
-.player-card-penalty {
-    font-size: 11px;
-    color: #ecc94b;
-    text-align: center;
-    padding: 4px;
-    background: rgba(236, 201, 75, 0.1);
-    border-radius: 6px;
-    margin-top: 6px;
-}
-
-.player-card-penalty.severe {
-    color: #f56565;
-    background: rgba(245, 101, 101, 0.1);
-}
-
-.player-status-badge {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.status-injured {
-    background: rgba(245, 101, 101, 0.2);
-    color: #fc8181;
-}
-
-.status-banned {
-    background: rgba(237, 137, 54, 0.2);
-    color: #f6ad55;
-}
-
-/* ========== FIELD PLAYER CARD ========== */
+/* ========== FIELD PLAYER CARD CONTAINER ========== */
 .field-player-card {
     width: 100%;
     height: 100%;
@@ -702,7 +777,7 @@
     gap: 20px;
 }
 
-/* ========== BENCH SECTION - OPTIMIERT ========== */
+/* ========== BENCH SECTION ========== */
 .bench-section {
     padding: 20px;
     border-radius: 15px;
@@ -737,7 +812,6 @@
 .bench-slot:hover {
     background: rgba(0, 199, 139, 0.1);
     border-color: var(--gold-primary);
-    /* ENTFERNT: transform - verhindert Layout-Shifts */
 }
 
 .bench-slot.occupied {
@@ -745,7 +819,6 @@
     border: none;
 }
 
-/* OPTIMIERTE bench drag-over Animation */
 .bench-slot.drag-over {
     background: rgba(0, 199, 139, 0.2);
     border-color: var(--gold-primary);
@@ -823,10 +896,11 @@
 .available-players-list {
     flex: 1;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 500px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-height: 400px;
+    padding: 5px;
 }
 
 .available-players-list::-webkit-scrollbar {
@@ -841,6 +915,125 @@
 .available-players-list::-webkit-scrollbar-thumb {
     background: var(--gold-primary);
     border-radius: 10px;
+}
+
+/* ========== MINI PLAYER CARDS - KOMPAKTE GRID-ANSICHT ========== */
+.player-mini-card-wrapper {
+    animation: cardFadeIn 0.3s ease backwards;
+}
+
+.player-mini-card {
+    background: rgba(26, 26, 26, 0.95);
+    border: 2px solid var(--turquoise-border);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: grab;
+    transition: all 0.3s ease;
+    user-select: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 90px;
+}
+
+.player-mini-card:active {
+    cursor: grabbing;
+}
+
+.player-mini-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.player-mini-card.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #f56565;
+}
+
+.player-mini-card:hover:not(.unavailable) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px var(--turquoise-shadow);
+    border-color: var(--gold-primary);
+}
+
+.mini-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.mini-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-white);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.mini-card-status {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.mini-card-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.mini-card-position {
+    color: var(--gold-primary);
+    font-weight: 600;
+    background: rgba(0, 199, 139, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.mini-card-age {
+    font-weight: 500;
+}
+
+.mini-card-ew {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 199, 139, 0.1);
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-top: auto;
+}
+
+.mini-card-ew-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.mini-card-ew-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.player-mini-card.placing {
+    animation: cardFadeOut 0.3s ease forwards;
+}
+
+.player-mini-card.returning {
+    animation: cardFadeIn 0.3s ease;
 }
 
 /* ========== TOAST NOTIFICATIONS ========== */
@@ -1021,7 +1214,7 @@
     margin: 0;
 }
 
-/* ========== SCROLL INDICATOR (AUTO-SCROLL FEEDBACK) ========== */
+/* ========== SCROLL INDICATOR ========== */
 .scroll-indicator {
     position: fixed;
     left: 50%;
@@ -1118,6 +1311,26 @@
         align-items: stretch;
     }
 
+    /* Mini Cards - 2 Spalten auf Mobile */
+    .available-players-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        max-height: 350px;
+    }
+
+    .player-mini-card {
+        min-height: 85px;
+        padding: 9px;
+    }
+
+    .mini-card-name {
+        font-size: 12px;
+    }
+
+    .mini-card-ew-value {
+        font-size: 15px;
+    }
+
     .formation-selector {
         width: 100%;
         flex-direction: column;
@@ -1156,7 +1369,6 @@
         height: 110px;
     }
 
-    /* Stärkeres visuelles Feedback auf Mobile */
     .field-slot.drag-over {
         border-width: 4px;
         box-shadow:
@@ -1190,10 +1402,6 @@
         padding: 10px;
     }
 
-    .player-card-name {
-        font-size: 13px;
-    }
-
     .validation-header {
         padding: 15px 20px;
     }
@@ -1206,7 +1414,6 @@
         display: block;
     }
 
-    /* Scroll Indicator Mobile */
     .scroll-indicator {
         padding: 10px 20px;
     }
@@ -1239,6 +1446,34 @@
 
     .lineup-subtitle {
         font-size: 13px;
+    }
+
+    /* Mini Cards - 3 Spalten behalten auf Landscape */
+    .available-players-list {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        max-height: 300px;
+    }
+
+    .player-mini-card {
+        min-height: 80px;
+        padding: 8px;
+    }
+
+    .mini-card-name {
+        font-size: 11px;
+    }
+
+    .mini-card-info {
+        font-size: 10px;
+    }
+
+    .mini-card-ew {
+        padding: 5px 7px;
+    }
+
+    .mini-card-ew-value {
+        font-size: 14px;
     }
 
     .formation-controls {
@@ -1282,14 +1517,6 @@
         padding: 8px;
     }
 
-    .player-card-name {
-        font-size: 12px;
-    }
-
-    .player-stat-value {
-        font-size: 12px;
-    }
-
     .bench-slots {
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
@@ -1307,7 +1534,6 @@
         display: none !important;
     }
 
-    /* Scroll Indicator Landscape */
     .scroll-indicator.up {
         top: 70px;
     }
@@ -1321,6 +1547,43 @@
     .lineup-title {
         font-size: 28px;
         letter-spacing: 2px;
+    }
+
+    /* Mini Cards - 2 Spalten auf kleinen Screens */
+    .available-players-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        max-height: 320px;
+    }
+
+    .player-mini-card {
+        min-height: 80px;
+        padding: 8px;
+    }
+
+    .mini-card-name {
+        font-size: 11px;
+    }
+
+    .mini-card-position {
+        font-size: 10px;
+        padding: 1px 5px;
+    }
+
+    .mini-card-age {
+        font-size: 10px;
+    }
+
+    .mini-card-ew {
+        padding: 5px 6px;
+    }
+
+    .mini-card-ew-label {
+        font-size: 9px;
+    }
+
+    .mini-card-ew-value {
+        font-size: 14px;
     }
 
     .formation-controls {
@@ -1347,14 +1610,6 @@
 
     .slot-placeholder {
         font-size: 20px;
-    }
-
-    .player-card-name {
-        font-size: 12px;
-    }
-
-    .player-stat-value {
-        font-size: 12px;
     }
 
     .bench-slots {
@@ -1395,7 +1650,6 @@
         padding: 10px 20px;
     }
 
-    /* Scroll Indicator Small Mobile */
     .scroll-indicator {
         padding: 8px 16px;
     }
