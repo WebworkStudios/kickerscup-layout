@@ -22,6 +22,10 @@ const NavigationSystem = (() => {
             html: 'team.html',
             module: 'team'
         },
+        lineup: {
+            html: 'lineup.html',
+            module: 'lineup'
+        },
         training: {
             html: 'training.html',
             module: 'training'
@@ -263,7 +267,7 @@ const NavigationSystem = (() => {
         // Preload wahrscheinliche nächste Seiten basierend auf aktueller Seite
         const preloadMap = {
             dashboard: ['team', 'league'],
-            team: ['tactics', 'training'],
+            team: ['tactics', 'training', 'lineup'],
             league: ['cup'],
         };
 

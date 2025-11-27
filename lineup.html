@@ -1,0 +1,127 @@
+<!-- AUFSTELLUNG PAGE -->
+<div class="lineup-header">
+    <h1 class="lineup-title">AUFSTELLUNG</h1>
+    <p class="lineup-subtitle">Stelle dein Team taktisch auf</p>
+</div>
+
+<!-- Formation & Controls -->
+<div class="formation-controls glass">
+    <div class="formation-selector">
+        <label for="formationSelect" class="formation-label">Formation:</label>
+        <select id="formationSelect" class="formation-dropdown">
+            <option value="4-4-2">4-4-2</option>
+            <option value="4-3-3">4-3-3</option>
+            <option value="4-2-3-1">4-2-3-1</option>
+            <option value="3-4-3">3-4-3</option>
+            <option value="4-5-1">4-5-1</option>
+            <option value="3-5-2">3-5-2</option>
+            <option value="5-3-2">5-3-2</option>
+            <option value="4-1-4-1">4-1-4-1</option>
+            <option value="4-3-1-2">4-3-1-2</option>
+        </select>
+    </div>
+
+    <div class="team-strength-display">
+        <span class="strength-label">Teamstärke:</span>
+        <span class="strength-value" id="teamStrength">0</span>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn btn-secondary" id="clearLineup">🗑️ Zurücksetzen</button>
+        <button class="btn btn-primary" id="saveLineup">💾 Speichern</button>
+    </div>
+</div>
+
+<!-- Validation Messages -->
+<div class="validation-panel" id="validationPanel">
+    <div class="validation-header" id="validationHeader">
+        <span class="validation-icon">✓</span>
+        <span class="validation-title">Aufstellung gültig</span>
+        <button class="validation-toggle" id="validationToggle">▼</button>
+    </div>
+    <div class="validation-content" id="validationContent">
+        <ul class="validation-list" id="validationList">
+            <!-- Validation messages will be inserted here -->
+        </ul>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="lineup-main-layout">
+    <!-- Football Field -->
+    <div class="field-container glass">
+        <div class="field-background">
+            <div class="field-lines">
+                <div class="field-line center-line"></div>
+                <div class="field-line center-circle"></div>
+                <div class="field-line penalty-area penalty-area-top"></div>
+                <div class="field-line penalty-area penalty-area-bottom"></div>
+            </div>
+            <div class="field-slots" id="fieldSlots">
+                <!-- Formation slots will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Squad Panel -->
+    <div class="squad-panel">
+        <!-- Bench Section -->
+        <div class="bench-section glass">
+            <h3 class="section-title">
+                <span>📋</span>
+                <span>Bank</span>
+                <span class="bench-count" id="benchCount">(0/9)</span>
+            </h3>
+            <div class="bench-slots" id="benchSlots">
+                <!-- Bench slots will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Available Players Section -->
+        <div class="available-players-section glass">
+            <div class="players-header">
+                <h3 class="section-title">
+                    <span>👥</span>
+                    <span>Kader</span>
+                </h3>
+                <div class="players-controls">
+                    <input type="text"
+                           class="player-search"
+                           id="playerSearch"
+                           placeholder="🔍 Spieler suchen...">
+                    <select class="position-filter" id="positionFilter">
+                        <option value="">Alle Positionen</option>
+                        <option value="TW">TW</option>
+                        <option value="LI">LI</option>
+                        <option value="LV">LV</option>
+                        <option value="IV">IV</option>
+                        <option value="RV">RV</option>
+                        <option value="LM">LM</option>
+                        <option value="RM">RM</option>
+                        <option value="ZOM">ZOM</option>
+                        <option value="ZDM">ZDM</option>
+                        <option value="MS">MS</option>
+                        <option value="LS">LS</option>
+                        <option value="RS">RS</option>
+                    </select>
+                    <select class="sort-select" id="sortSelect">
+                        <option value="strength">Nach Stärke</option>
+                        <option value="name">Nach Name</option>
+                        <option value="position">Nach Position</option>
+                    </select>
+                </div>
+            </div>
+            <div class="available-players-list" id="availablePlayersList">
+                <!-- Available players will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Touch Mode Instructions (Mobile) -->
+<div class="touch-instructions" id="touchInstructions">
+    <div class="touch-instructions-content">
+        <span class="touch-icon">👆</span>
+        <p>Tippe auf einen Spieler, dann auf eine Position</p>
+    </div>
+</div>

@@ -22,6 +22,11 @@ const ModuleManager = (() => {
             css: ['css/team.css'],
             module: null
         },
+        lineup: {
+            scripts: ['javascript/lineup-config.js', 'javascript/lineup.js'],
+            css: ['css/lineup.css'],
+            module: null
+        },
         training: {
             scripts: ['javascript/training.js'],
             css: ['css/training.css'],
