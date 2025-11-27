@@ -1,6 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (COMPLETE & FIXED)
-// Alle Features + funktionierendes Drag & Drop
+// KICKERSCUP - LINEUP SYSTEM (OPTIMIZED & FIXED)
+// Alle Features + robustes Drag & Drop ohne Layout-Shifts
 // =====================================================
 
 (function () {
@@ -12,7 +12,7 @@
     let benchSlots = [];
     let availablePlayers = [];
     let selectedPlayer = null;
-    let selectedSlot = null;
+    let currentDragOverSlot = null; // Track aktuelles Slot
     let eventListeners = [];
     let isTouchDevice = false;
 
@@ -21,6 +21,8 @@
     let ghostElement = null;
     let draggedPlayer = null;
     let isDragging = false;
+    let lastTouchMoveTime = 0;
+    const TOUCH_MOVE_THROTTLE = 16; // ~60fps
 
     // Performance
     let placedPlayerIds = new Set();
@@ -181,7 +183,6 @@
     function animateNumber(element, from, to, duration = 400) {
         const startTime = performance.now();
         const diff = to - from;
-        const steps = 20;
 
         element.classList.add('updating');
 
@@ -720,7 +721,143 @@
     }
 
     // ========================================
-    // TOUCH-DRAG IMPLEMENTATION
+    // OPTIMIERTE DESKTOP DRAG & DROP HANDLERS
+    // ========================================
+
+    /**
+     * Handle Drag Start - OPTIMIERT
+     */
+    function handleDragStart(e) {
+        const card = e.target.closest('.player-card');
+        if (!card) return;
+
+        const playerId = parseInt(card.dataset.playerId);
+        const player = availablePlayers.find(p => p.id === playerId);
+
+        if (!player || player.status !== 'fit') {
+            e.preventDefault();
+            return;
+        }
+
+        selectedPlayer = player;
+        card.classList.add('dragging');
+
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', player.id);
+    }
+
+    /**
+     * Handle Drag End - OPTIMIERT
+     */
+    function handleDragEnd(e) {
+        const card = e.target.closest('.player-card');
+        if (card) {
+            card.classList.remove('dragging');
+        }
+
+        // Cleanup aller drag-over States
+        document.querySelectorAll('.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+        });
+
+        currentDragOverSlot = null;
+        selectedPlayer = null;
+    }
+
+    /**
+     * Handle Drag Enter - OPTIMIERT
+     */
+    function handleDragEnter(e) {
+        e.preventDefault();
+    }
+
+    /**
+     * Handle Drag Over - OPTIMIERT (Verhindert Layout-Shifts)
+     */
+    function handleDragOver(e) {
+        if (!selectedPlayer) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+
+        const slot = e.currentTarget;
+
+        // Verhindere redundante Updates
+        if (currentDragOverSlot === slot) {
+            return;
+        }
+
+        // Entferne alte drag-over Klasse
+        if (currentDragOverSlot && currentDragOverSlot !== slot) {
+            currentDragOverSlot.classList.remove('drag-over');
+        }
+
+        const slotType = slot.dataset.slotType;
+        const position = slot.dataset.position;
+
+        // Validiere Position
+        let canDrop = false;
+        if (slotType === 'field') {
+            canDrop = canPlayPosition(selectedPlayer, position);
+        } else {
+            canDrop = true;
+        }
+
+        if (canDrop) {
+            slot.classList.add('drag-over');
+            currentDragOverSlot = slot;
+            e.dataTransfer.dropEffect = 'move';
+        } else {
+            e.dataTransfer.dropEffect = 'none';
+        }
+    }
+
+    /**
+     * Handle Drag Leave - OPTIMIERT
+     */
+    function handleDragLeave(e) {
+        const slot = e.currentTarget;
+        const relatedTarget = e.relatedTarget;
+
+        // Prüfe ob wir zu einem Kind-Element des Slots wechseln
+        if (relatedTarget && slot.contains(relatedTarget)) {
+            return;
+        }
+
+        slot.classList.remove('drag-over');
+
+        if (currentDragOverSlot === slot) {
+            currentDragOverSlot = null;
+        }
+    }
+
+    /**
+     * Handle Drop - OPTIMIERT
+     */
+    function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const slot = e.currentTarget;
+        slot.classList.remove('drag-over');
+
+        if (!selectedPlayer) {
+            currentDragOverSlot = null;
+            return;
+        }
+
+        const slotType = slot.dataset.slotType;
+        const slotIndex = parseInt(slot.dataset.slotIndex);
+
+        placePlayer(selectedPlayer, slotType, slotIndex);
+
+        currentDragOverSlot = null;
+        selectedPlayer = null;
+    }
+
+    // ========================================
+    // OPTIMIERTE TOUCH-DRAG IMPLEMENTATION
     // ========================================
 
     /**
@@ -778,7 +915,7 @@
     }
 
     /**
-     * Handle Touch Move
+     * Handle Touch Move - OPTIMIERT mit Throttling
      */
     function handleTouchMove(e) {
         if (!isDragging || !ghostElement) return;
@@ -786,28 +923,53 @@
         e.preventDefault();
 
         const touch = e.touches[0];
-
         const rect = ghostElement.getBoundingClientRect();
+
+        // Update Ghost-Position
         ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
         ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
 
+        // Finde Slot unter dem Finger (nicht unter Ghost!)
+        ghostElement.style.pointerEvents = 'none';
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        ghostElement.style.pointerEvents = '';
+
         const slot = element?.closest('.field-slot, .bench-slot');
 
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        // Cleanup alte drag-over States
+        if (currentDragOverSlot && currentDragOverSlot !== slot) {
+            currentDragOverSlot.classList.remove('drag-over');
+            currentDragOverSlot = null;
+        }
 
         if (slot && draggedPlayer) {
             const slotType = slot.dataset.slotType;
             const position = slot.dataset.position;
 
+            let canDrop = false;
             if (slotType === 'field') {
-                if (canPlayPosition(draggedPlayer, position)) {
-                    slot.classList.add('drag-over');
-                }
+                canDrop = canPlayPosition(draggedPlayer, position);
             } else {
+                canDrop = true;
+            }
+
+            if (canDrop) {
                 slot.classList.add('drag-over');
+                currentDragOverSlot = slot;
             }
         }
+    }
+
+    /**
+     * Handle Touch Move - Throttled Version
+     */
+    function handleTouchMoveThrottled(e) {
+        const now = Date.now();
+        if (now - lastTouchMoveTime < TOUCH_MOVE_THROTTLE) {
+            return;
+        }
+        lastTouchMoveTime = now;
+        handleTouchMove(e);
     }
 
     /**
@@ -820,7 +982,12 @@
         }
 
         const touch = e.changedTouches[0];
+
+        // Finde Slot unter dem Finger beim Loslassen
+        ghostElement.style.pointerEvents = 'none';
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        ghostElement.style.pointerEvents = '';
+
         const slot = element?.closest('.field-slot, .bench-slot');
 
         document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
@@ -837,6 +1004,7 @@
         touchStartPos = null;
         draggedPlayer = null;
         isDragging = false;
+        currentDragOverSlot = null;
     }
 
     /**
@@ -849,104 +1017,12 @@
         touchStartPos = null;
         draggedPlayer = null;
         isDragging = false;
+        currentDragOverSlot = null;
     }
 
     // ========================================
-    // DESKTOP DRAG & DROP HANDLERS (FIXED)
+    // EVENT LISTENERS & INITIALIZATION
     // ========================================
-
-    /**
-     * Handle Drag Start
-     */
-    function handleDragStart(e) {
-        const card = e.target.closest('.player-card');
-        if (!card) return;
-
-        const playerId = parseInt(card.dataset.playerId);
-        const player = availablePlayers.find(p => p.id === playerId);
-
-        if (!player || player.status !== 'fit') {
-            e.preventDefault();
-            return;
-        }
-
-        selectedPlayer = player;
-        card.classList.add('dragging');
-
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', player.id);
-    }
-
-    /**
-     * Handle Drag End
-     */
-    function handleDragEnd(e) {
-        const card = e.target.closest('.player-card');
-        if (card) {
-            card.classList.remove('dragging');
-        }
-
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        selectedPlayer = null;
-    }
-
-    /**
-     * Handle Drag Over
-     */
-    function handleDragOver(e) {
-        if (!selectedPlayer) return;
-
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-
-        const slot = e.target.closest('.field-slot, .bench-slot');
-        if (slot) {
-            const slotType = slot.dataset.slotType;
-            const position = slot.dataset.position;
-
-            if (slotType === 'field') {
-                if (canPlayPosition(selectedPlayer, position)) {
-                    slot.classList.add('drag-over');
-                }
-            } else {
-                slot.classList.add('drag-over');
-            }
-        }
-    }
-
-    /**
-     * Handle Drag Leave
-     */
-    function handleDragLeave(e) {
-        const slot = e.target.closest('.field-slot, .bench-slot');
-        if (slot) {
-            slot.classList.remove('drag-over');
-        }
-    }
-
-    /**
-     * Handle Drop (FIXED VERSION)
-     */
-    function handleDrop(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const slot = e.target.closest('.field-slot, .bench-slot');
-        if (!slot) {
-            selectedPlayer = null;
-            return;
-        }
-
-        slot.classList.remove('drag-over');
-
-        if (!selectedPlayer) return;
-
-        const slotType = slot.dataset.slotType;
-        const slotIndex = parseInt(slot.dataset.slotIndex);
-
-        placePlayer(selectedPlayer, slotType, slotIndex);
-        selectedPlayer = null;
-    }
 
     /**
      * Handle Formation Change
@@ -1065,20 +1141,22 @@
     }
 
     /**
-     * Attach Event Listeners to Slots (FIXED)
+     * Attach Event Listeners to Slots - OPTIMIERT
      */
     function attachSlotEventListeners() {
-        // Entferne alle existierenden Event Listener von Slots
+        // Entferne Event Listener durch Cloning (verhindert Memory Leaks)
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
             const clone = slot.cloneNode(true);
             slot.parentNode.replaceChild(clone, slot);
         });
 
-        // Füge neue Event Listener hinzu
+        // Füge optimierte Event Listener hinzu
         document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-            slot.addEventListener('dragover', handleDragOver);
-            slot.addEventListener('dragleave', handleDragLeave);
-            slot.addEventListener('drop', handleDrop);
+            // WICHTIG: useCapture = false für bessere Performance
+            slot.addEventListener('dragenter', handleDragEnter, false);
+            slot.addEventListener('dragover', handleDragOver, false);
+            slot.addEventListener('dragleave', handleDragLeave, false);
+            slot.addEventListener('drop', handleDrop, false);
         });
     }
 
@@ -1147,7 +1225,7 @@
                 }
             }, { passive: false });
 
-            addEventListener(document, 'touchmove', handleTouchMove, { passive: false });
+            addEventListener(document, 'touchmove', handleTouchMoveThrottled, { passive: false });
             addEventListener(document, 'touchend', handleTouchEnd);
             addEventListener(document, 'touchcancel', handleTouchCancel);
         }
@@ -1193,7 +1271,7 @@
         // Setup event listeners
         initEventListeners();
 
-        console.log('✅ Lineup System initialisiert');
+        console.log('✅ Lineup System initialisiert (OPTIMIZED)');
     }
 
     /**
@@ -1218,7 +1296,7 @@
         fieldSlots = [];
         benchSlots = [];
         selectedPlayer = null;
-        selectedSlot = null;
+        currentDragOverSlot = null;
         placedPlayerIds.clear();
 
         // Close audio context

@@ -1,6 +1,7 @@
 /* =====================================================
    KICKERSCUP - LINEUP STYLESHEET (PERFORMANCE OPTIMIZED)
    Mobile-optimiert mit UX-Verbesserungen
+   FIXED: Drag-and-Drop ohne Layout-Shifts
    ===================================================== */
 
 /* ========== LINEUP HEADER ========== */
@@ -355,7 +356,7 @@
     border-bottom: none;
 }
 
-/* ========== FIELD SLOTS ========== */
+/* ========== FIELD SLOTS - OPTIMIERT OHNE LAYOUT-SHIFTS ========== */
 .field-slots {
     position: relative;
     width: 100%;
@@ -379,12 +380,14 @@
     cursor: pointer;
     min-width: 44px;
     min-height: 44px;
+    /* KRITISCH: box-sizing verhindert Layout-Verschiebungen bei border-Änderungen */
+    box-sizing: border-box;
 }
 
 .field-slot:hover {
     background: rgba(0, 199, 139, 0.2);
     border-color: var(--gold-primary);
-    transform: scale(1.05);
+    /* ENTFERNT: transform: scale(1.05) - verhindert Layout-Shifts */
 }
 
 .field-slot.occupied {
@@ -392,22 +395,34 @@
     border: none;
 }
 
+/* NEUE OPTIMIERTE drag-over Animation - OHNE Größenänderung */
 .field-slot.drag-over {
     background: rgba(0, 199, 139, 0.3);
     border-color: var(--gold-primary);
     border-style: solid;
-    box-shadow: 0 0 20px var(--turquoise-glow);
-    animation: slotPulseStrong 0.6s ease infinite;
+    border-width: 3px; /* Dicker, aber kein Layout-Shift wegen box-sizing */
+    /* Starker Glow-Effekt statt Skalierung */
+    box-shadow:
+            0 0 30px var(--turquoise-glow),
+            0 0 50px rgba(0, 199, 139, 0.4),
+            inset 0 0 25px rgba(0, 199, 139, 0.3);
+    /* Pulsierender Glow statt Größenänderung */
+    animation: glowPulse 0.8s ease-in-out infinite;
 }
 
-@keyframes slotPulseStrong {
+/* NEUE Animation - nur Glow, keine Transformation */
+@keyframes glowPulse {
     0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 0 20px var(--turquoise-glow);
+        box-shadow:
+                0 0 30px var(--turquoise-glow),
+                0 0 50px rgba(0, 199, 139, 0.4),
+                inset 0 0 25px rgba(0, 199, 139, 0.3);
     }
     50% {
-        transform: scale(1.08);
-        box-shadow: 0 0 30px var(--turquoise-glow);
+        box-shadow:
+                0 0 45px var(--turquoise-glow),
+                0 0 70px rgba(0, 199, 139, 0.5),
+                inset 0 0 35px rgba(0, 199, 139, 0.4);
     }
 }
 
@@ -423,8 +438,12 @@
 }
 
 @keyframes slotPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+    0%, 100% {
+        box-shadow: 0 0 20px var(--turquoise-glow);
+    }
+    50% {
+        box-shadow: 0 0 35px var(--turquoise-glow);
+    }
 }
 
 @keyframes playerPlace {
@@ -464,7 +483,10 @@
     transition: all 0.3s ease;
     user-select: none;
     touch-action: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     position: relative;
+    box-sizing: border-box;
 }
 
 .player-card:active {
@@ -680,7 +702,7 @@
     gap: 20px;
 }
 
-/* ========== BENCH SECTION ========== */
+/* ========== BENCH SECTION - OPTIMIERT ========== */
 .bench-section {
     padding: 20px;
     border-radius: 15px;
@@ -709,11 +731,13 @@
     justify-content: center;
     transition: all 0.3s ease;
     min-width: 44px;
+    box-sizing: border-box;
 }
 
 .bench-slot:hover {
     background: rgba(0, 199, 139, 0.1);
     border-color: var(--gold-primary);
+    /* ENTFERNT: transform - verhindert Layout-Shifts */
 }
 
 .bench-slot.occupied {
@@ -721,11 +745,17 @@
     border: none;
 }
 
+/* OPTIMIERTE bench drag-over Animation */
 .bench-slot.drag-over {
     background: rgba(0, 199, 139, 0.2);
     border-color: var(--gold-primary);
     border-style: solid;
-    animation: slotPulseStrong 0.6s ease infinite;
+    border-width: 3px;
+    box-shadow:
+            0 0 30px var(--turquoise-glow),
+            0 0 50px rgba(0, 199, 139, 0.4),
+            inset 0 0 25px rgba(0, 199, 139, 0.3);
+    animation: glowPulse 0.8s ease-in-out infinite;
 }
 
 .bench-placeholder {
@@ -814,7 +844,7 @@
 }
 
 /* ========== TOAST NOTIFICATIONS ========== */
-.toast {
+.toast-notification {
     position: fixed;
     bottom: 140px;
     left: 50%;
@@ -835,7 +865,7 @@
     min-height: 44px;
 }
 
-.toast.show {
+.toast-notification.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
@@ -850,17 +880,17 @@
     color: var(--text-white);
 }
 
-.toast-success {
+.toast-notification.toast-success {
     border-color: #48bb78;
     box-shadow: 0 10px 40px rgba(72, 187, 120, 0.3);
 }
 
-.toast-error {
+.toast-notification.toast-error {
     border-color: #f56565;
     box-shadow: 0 10px 40px rgba(245, 101, 101, 0.3);
 }
 
-.toast-info {
+.toast-notification.toast-info {
     border-color: var(--gold-primary);
     box-shadow: 0 10px 40px var(--turquoise-glow);
 }
@@ -881,11 +911,22 @@
     z-index: 10001;
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .floating-success.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+}
+
+.floating-success-icon {
+    font-size: 20px;
+}
+
+.floating-success-text {
+    font-size: 16px;
 }
 
 /* ========== TOUCH INSTRUCTIONS ========== */
@@ -1044,6 +1085,15 @@
         height: 110px;
     }
 
+    /* Stärkeres visuelles Feedback auf Mobile */
+    .field-slot.drag-over {
+        border-width: 4px;
+        box-shadow:
+                0 0 35px var(--turquoise-glow),
+                0 0 60px rgba(0, 199, 139, 0.5),
+                inset 0 0 30px rgba(0, 199, 139, 0.4);
+    }
+
     .slot-position {
         font-size: 11px;
     }
@@ -1059,6 +1109,10 @@
 
     .bench-slot {
         min-height: 130px;
+    }
+
+    .bench-slot.drag-over {
+        border-width: 4px;
     }
 
     .player-card {
@@ -1228,7 +1282,7 @@
         font-size: 12px;
     }
 
-    .toast {
+    .toast-notification {
         bottom: 100px;
         max-width: 90%;
     }
