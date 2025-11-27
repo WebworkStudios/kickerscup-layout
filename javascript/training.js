@@ -34,6 +34,16 @@
 
     // Selected Trainings State
     let selectedTrainings = [null, null, null, null];
+    let eventListeners = [];
+
+    /**
+     * Helper: Event Listener registrieren (für Cleanup)
+     */
+    function addEventListener(element, event, handler, options) {
+        if (!element) return;
+        element.addEventListener(event, handler, options);
+        eventListeners.push({element, event, handler, options});
+    }
 
     /**
      * Render Training Cards
@@ -44,9 +54,8 @@
 
         container.innerHTML = trainingTypes.map(training => `
             <div class="training-card" 
-                 data-id="${training.id}"
-                 style="--card-color: ${training.color}; --card-glow: ${training.color}40;"
-                 onclick="window.TrainingSystem.selectTraining('${training.id}')">
+                 data-training-id="${training.id}"
+                 style="--card-color: ${training.color}; --card-glow: ${training.color}40;">
                 <div class="card-icon">${training.icon}</div>
                 <h3 class="card-title">${training.title}</h3>
                 <p class="card-subtitle">${training.subtitle}</p>
@@ -77,7 +86,7 @@
     }
 
     /**
-     * Render Filled Slot
+     * Render Filled Slot (ohne onclick)
      */
     function renderFilledSlot(trainingId, slotIndex) {
         const training = trainingTypes.find(t => t.id === trainingId);
@@ -88,7 +97,7 @@
                     <div class="slot-card-title">${training.title}</div>
                     <div class="slot-card-subtitle">${training.subtitle}</div>
                 </div>
-                <div class="slot-card-remove" onclick="window.TrainingSystem.removeTraining(${slotIndex}, event)">×</div>
+                <div class="slot-card-remove" data-slot-index="${slotIndex}">×</div>
             </div>
         `;
     }
@@ -108,7 +117,7 @@
         const training = trainingTypes.find(t => t.id === trainingId);
 
         // Add selecting animation to card
-        const card = document.querySelector(`[data-id="${trainingId}"]`);
+        const card = document.querySelector(`[data-training-id="${trainingId}"]`);
         if (card) {
             card.classList.add('selecting');
             setTimeout(() => card.classList.remove('selecting'), 600);
@@ -184,10 +193,7 @@
     /**
      * Remove Training
      */
-    function removeTraining(slotIndex, event) {
-        if (event) {
-            event.stopPropagation();
-        }
+    function removeTraining(slotIndex) {
         selectedTrainings[slotIndex] = null;
         renderTimeline();
         updateSaveButton();
@@ -216,6 +222,31 @@
     }
 
     /**
+     * Event Delegation Handler für alle Klicks
+     */
+    function handleDocumentClick(e) {
+        // Training Card Click
+        const trainingCard = e.target.closest('.training-card');
+        if (trainingCard) {
+            const trainingId = trainingCard.dataset.trainingId;
+            if (trainingId) {
+                selectTraining(trainingId);
+            }
+            return;
+        }
+
+        // Remove Button Click
+        const removeBtn = e.target.closest('.slot-card-remove');
+        if (removeBtn) {
+            const slotIndex = parseInt(removeBtn.dataset.slotIndex);
+            if (!isNaN(slotIndex)) {
+                removeTraining(slotIndex);
+            }
+
+        }
+    }
+
+    /**
      * Initialize Training Page
      */
     function init() {
@@ -223,10 +254,13 @@
         renderTrainingCards();
         renderTimeline();
 
+        // Event Delegation für alle Klicks
+        addEventListener(document, 'click', handleDocumentClick);
+
         // Setup save button
         const saveBtn = document.getElementById('saveBtn');
         if (saveBtn) {
-            saveBtn.addEventListener('click', saveTrainingPlan);
+            addEventListener(saveBtn, 'click', saveTrainingPlan);
         }
 
         console.log('✅ Training System initialisiert');
@@ -236,30 +270,24 @@
      * Cleanup beim Verlassen
      */
     function cleanup() {
+        // Entferne alle Event Listener
+        eventListeners.forEach(({element, event, handler, options}) => {
+            if (element) {
+                element.removeEventListener(event, handler, options);
+            }
+        });
+        eventListeners = [];
+
         // Reset state
         selectedTrainings = [null, null, null, null];
-
-        // Remove event listeners
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn) {
-            saveBtn.removeEventListener('click', saveTrainingPlan);
-        }
 
         console.log('🧹 Training Cleanup durchgeführt');
     }
 
-    // Public API
-    const TrainingSystem = {
-        init,
-        cleanup,
-        selectTraining,
-        removeTraining
-    };
-
     // Expose für ModuleManager
-    window.__KICKERSCUP_MODULE__ = TrainingSystem;
-
-    // Expose für onclick-Handler in HTML
-    window.TrainingSystem = TrainingSystem;
+    window.__KICKERSCUP_MODULE__ = {
+        init,
+        cleanup
+    };
 
 })();
