@@ -50,7 +50,10 @@
     flex-wrap: wrap;
 }
 
-.league-selector-btn {
+/* ========== SHARED BUTTON STYLES ========== */
+/* Base style for selector buttons and tabs */
+.league-selector-btn,
+.table-tab {
     padding: 12px 24px;
     background: rgba(0, 199, 139, 0.05);
     border: 2px solid var(--turquoise-border);
@@ -65,17 +68,23 @@
     letter-spacing: 1px;
 }
 
-.league-selector-btn:hover {
+.league-selector-btn:hover,
+.table-tab:hover {
     background: rgba(0, 199, 139, 0.1);
     border-color: var(--gold-primary);
-    transform: translateY(-2px);
 }
 
-.league-selector-btn.active {
+.league-selector-btn.active,
+.table-tab.active {
     background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
     color: var(--dark-primary);
     border-color: var(--gold-primary);
     box-shadow: 0 5px 20px var(--turquoise-shadow);
+}
+
+/* Specific override for league selector button */
+.league-selector-btn:hover {
+    transform: translateY(-2px);
 }
 
 /* ========== SECTION HEADER ========== */
@@ -305,33 +314,6 @@
 .table-tabs {
     display: flex;
     gap: 10px;
-}
-
-.table-tab {
-    padding: 12px 24px;
-    background: rgba(0, 199, 139, 0.05);
-    border: 2px solid var(--turquoise-border);
-    border-radius: 10px;
-    color: var(--text-white);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.table-tab:hover {
-    background: rgba(0, 199, 139, 0.1);
-    border-color: var(--gold-primary);
-}
-
-.table-tab.active {
-    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
-    color: var(--dark-primary);
-    border-color: var(--gold-primary);
-    box-shadow: 0 5px 20px var(--turquoise-shadow);
 }
 
 .table-container {
