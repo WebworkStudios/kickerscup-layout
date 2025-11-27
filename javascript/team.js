@@ -486,6 +486,7 @@
             progressForm: document.getElementById('progressForm'),
             progressFreshness: document.getElementById('progressFreshness'),
             progressMotivation: document.getElementById('progressMotivation'),
+            // DIESE ZEILEN FEHLTEN:
             progressStrengthLabel: document.getElementById('progressStrengthLabel'),
             progressStaminaLabel: document.getElementById('progressStaminaLabel'),
             progressFormLabel: document.getElementById('progressFormLabel'),
