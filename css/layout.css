@@ -1,6 +1,7 @@
 /* =====================================================
-   KICKERSCUP - LAYOUT STYLESHEET
+   KICKERSCUP - LAYOUT STYLESHEET (375px MINIMUM)
    Header, Navigation & gemeinsame Styles
+   Minimum Supported Viewport: 375px (iPhone SE 2020)
    ===================================================== */
 
 :root {
@@ -21,6 +22,19 @@
     --turquoise-border: rgba(0, 199, 139, 0.4);
     --turquoise-shadow: rgba(0, 199, 139, 0.2);
     --turquoise-light: rgba(0, 230, 160, 0.15);
+
+    /* Viewport Breakpoints */
+    --bp-mobile-min: 375px;
+    --bp-mobile-std: 390px;
+    --bp-mobile-max: 428px;
+    --bp-tablet: 768px;
+    --bp-desktop: 1024px;
+}
+
+/* ========== HARD MINIMUM ENFORCEMENT ========== */
+html {
+    min-width: 375px;
+    overflow-x: hidden;
 }
 
 * {
@@ -35,15 +49,12 @@ body {
     color: var(--text-white);
     overflow-x: hidden;
     animation: fadeIn 0.5s ease-out;
+    min-width: 375px;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 h1, h2, h3 {
@@ -52,12 +63,41 @@ h1, h2, h3 {
     text-transform: uppercase;
 }
 
-/* Improved Glass Morphism */
+/* Improved Glass Morphism with Fallback */
 .glass {
-    background: rgba(0, 199, 139, 0.03);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: rgba(0, 199, 139, 0.15);
     border: 1px solid var(--turquoise-border);
+}
+
+@supports (backdrop-filter: blur(15px)) {
+    .glass {
+        background: rgba(0, 199, 139, 0.03);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+}
+
+/* ========== VIEWPORT WARNING (< 375px) ========== */
+@media (max-width: 374px) {
+    body::before {
+        content: "⚠️ Bildschirm zu klein. Bitte verwende ein neueres Gerät.";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #f56565;
+        color: white;
+        padding: 12px 15px;
+        text-align: center;
+        z-index: 99999;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .content-wrapper {
+        margin-top: 48px;
+    }
 }
 
 /* ========== FIXED BACKGROUND ========== */
@@ -75,22 +115,18 @@ h1, h2, h3 {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    animation: kenBurns 30s ease-in-out infinite alternate;
+}
+
+/* Deaktiviere Animation auf Touch-Geräten */
+@media (hover: hover) and (pointer: fine) {
+    .hero-bg-image {
+        animation: kenBurns 30s ease-in-out infinite alternate;
+    }
 }
 
 @keyframes kenBurns {
-    0% {
-        transform: scale(1) translateX(0);
-    }
-    100% {
-        transform: scale(1.15) translateX(-5%);
-    }
-}
-
-@media (max-width: 768px) {
-    .hero-bg-image {
-        animation: none;
-    }
+    0% { transform: scale(1) translateX(0); }
+    100% { transform: scale(1.15) translateX(-5%); }
 }
 
 .animated-bg-overlay {
@@ -131,84 +167,92 @@ h1, h2, h3 {
     right: 0;
     height: 60px;
     background: rgba(13, 13, 13, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--turquoise-border);
     z-index: 1000;
-    padding: 0 30px;
+    padding: 0 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+@supports (backdrop-filter: blur(20px)) {
+    .top-status-bar {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+}
+
 .status-left {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
 }
 
 .compact-logo {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
+    white-space: nowrap;
 }
 
 .team-info-pill {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background: rgba(0, 199, 139, 0.1);
     border: 1px solid var(--turquoise-border);
-    padding: 8px 20px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    min-width: 0;
+    max-width: 140px;
 }
 
 .team-logo-small {
-    font-size: 20px;
+    font-size: 16px;
+    flex-shrink: 0;
 }
 
 .team-name-top {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .date-time {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.current-date,
-.current-time {
-    font-size: 11px;
-    color: var(--text-muted);
+    display: none; /* Versteckt auf Mobile */
 }
 
 .status-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .budget-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     background: rgba(0, 199, 139, 0.1);
     border: 1px solid var(--turquoise-border);
-    padding: 8px 20px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 16px;
 }
 
 .budget-icon {
-    font-size: 24px;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
 .budget-details {
@@ -218,29 +262,32 @@ h1, h2, h3 {
 }
 
 .budget-label {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-muted);
     text-transform: uppercase;
+    line-height: 1;
 }
 
 .budget-amount {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--gold-primary);
+    line-height: 1;
 }
 
 .notification-icon {
     position: relative;
     cursor: pointer;
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 50%;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .notification-icon:hover {
@@ -250,10 +297,10 @@ h1, h2, h3 {
 
 .notification-dot {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 10px;
-    height: 10px;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
     background: #ff4444;
     border-radius: 50%;
     border: 2px solid var(--dark-primary);
@@ -261,38 +308,40 @@ h1, h2, h3 {
 }
 
 @keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 0.7;
-    }
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
 }
 
-/* ========== FLOATING NAVIGATION ========== */
+/* ========== FLOATING NAVIGATION (375px OPTIMIZED) ========== */
 .floating-nav {
     position: fixed;
-    bottom: 20px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
     background: rgba(13, 13, 13, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--turquoise-border);
-    border-radius: 60px;
-    padding: 12px 20px;
+    border-radius: 50px;
+    padding: 8px 10px;
     display: flex;
-    gap: 12px;
+    gap: 6px;
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    max-width: calc(100vw - 24px);
+}
+
+@supports (backdrop-filter: blur(20px)) {
+    .floating-nav {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
 }
 
 .nav-btn {
     position: relative;
-    width: 55px;
-    height: 55px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -302,12 +351,13 @@ h1, h2, h3 {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid transparent;
+    flex-shrink: 0;
 }
 
 .nav-btn:hover {
     background: rgba(0, 199, 139, 0.1);
     border-color: var(--turquoise-border);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .nav-btn.active {
@@ -325,18 +375,12 @@ h1, h2, h3 {
 }
 
 .nav-btn-icon {
-    font-size: 22px;
+    font-size: 18px;
     transition: transform 0.3s ease;
 }
 
 .nav-btn-label {
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 2px;
-    color: var(--text-muted);
-    transition: color 0.3s ease;
+    display: none; /* Versteckt auf 375px */
 }
 
 .nav-btn:hover .nav-btn-label {
@@ -345,35 +389,35 @@ h1, h2, h3 {
 
 .nav-badge {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 4px;
+    right: 4px;
     background: #ff4444;
     color: white;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 10px;
-    min-width: 18px;
+    min-width: 16px;
     text-align: center;
+    line-height: 1;
 }
 
 /* ========== CONTENT WRAPPER ========== */
 .content-wrapper {
     position: relative;
     z-index: 10;
-    padding: 100px 60px 120px;
+    padding: 90px 15px 100px;
     min-height: 100vh;
-    max-width: 1600px;
-    margin: 0 auto;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
-@media (max-width: 768px) {
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* iPhone 12/13/14 Standard (390px - 427px) */
+@media (min-width: 390px) and (max-width: 427px) {
     .top-status-bar {
-        padding: 12px 20px;
-        flex-wrap: wrap;
-        gap: 10px;
-        height: auto;
+        padding: 0 20px;
     }
 
     .status-left {
@@ -381,67 +425,272 @@ h1, h2, h3 {
     }
 
     .compact-logo {
-        font-size: 18px;
+        font-size: 19px;
     }
 
     .team-info-pill {
-        padding: 6px 15px;
+        max-width: 160px;
+        padding: 7px 14px;
     }
 
-    .date-time {
-        display: none;
+    .team-name-top {
+        font-size: 13px;
     }
 
-    .budget-details {
-        display: none;
+    .floating-nav {
+        padding: 9px 12px;
+        gap: 7px;
+    }
+
+    .nav-btn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .nav-btn-icon {
+        font-size: 19px;
+    }
+
+    .content-wrapper {
+        padding: 90px 20px 100px;
+    }
+}
+
+/* iPhone Pro Max (428px - 767px) */
+@media (min-width: 428px) and (max-width: 767px) {
+    .top-status-bar {
+        padding: 0 25px;
+    }
+
+    .status-left {
+        gap: 20px;
+    }
+
+    .compact-logo {
+        font-size: 20px;
+        letter-spacing: 3px;
+    }
+
+    .team-info-pill {
+        max-width: 180px;
+        padding: 8px 16px;
+    }
+
+    .team-name-top {
+        font-size: 14px;
     }
 
     .budget-icon {
         font-size: 20px;
     }
 
+    .budget-amount {
+        font-size: 13px;
+    }
+
     .floating-nav {
-        bottom: 15px;
-        padding: 10px 15px;
+        padding: 10px 14px;
         gap: 8px;
     }
 
     .nav-btn {
-        width: 45px;
-        height: 45px;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
     }
 
     .nav-btn-icon {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     .nav-btn-label {
+        display: block;
         font-size: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 2px;
+        color: var(--text-muted);
+        transition: color 0.3s ease;
     }
 
     .content-wrapper {
-        padding: 80px 25px 100px;
+        padding: 90px 25px 110px;
     }
 }
 
-@media (max-width: 480px) {
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .top-status-bar {
+        padding: 0 30px;
+        height: 70px;
+    }
+
+    .status-left {
+        gap: 25px;
+    }
+
+    .compact-logo {
+        font-size: 22px;
+        letter-spacing: 3px;
+    }
+
+    .team-info-pill {
+        max-width: 200px;
+        padding: 10px 20px;
+    }
+
+    .team-logo-small {
+        font-size: 20px;
+    }
+
+    .team-name-top {
+        font-size: 15px;
+    }
+
+    .date-time {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .current-date,
+    .current-time {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .budget-info {
+        padding: 10px 20px;
+    }
+
+    .budget-icon {
+        font-size: 24px;
+    }
+
+    .budget-label {
+        font-size: 10px;
+    }
+
+    .budget-amount {
+        font-size: 14px;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+
     .floating-nav {
-        bottom: 10px;
-        padding: 8px 12px;
-        gap: 6px;
+        bottom: 20px;
+        padding: 12px 20px;
+        gap: 12px;
     }
 
     .nav-btn {
-        width: 40px;
-        height: 40px;
+        width: 55px;
+        height: 55px;
+        min-width: 55px;
+        min-height: 55px;
     }
 
     .nav-btn-icon {
-        font-size: 16px;
+        font-size: 22px;
     }
 
     .nav-btn-label {
-        display: none;
+        display: block;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 2px;
+        color: var(--text-muted);
+    }
+
+    .content-wrapper {
+        padding: 100px 40px 120px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .top-status-bar {
+        padding: 0 60px;
+        height: 80px;
+    }
+
+    .status-left {
+        gap: 30px;
+    }
+
+    .compact-logo {
+        font-size: 24px;
+        letter-spacing: 4px;
+    }
+
+    .team-info-pill {
+        max-width: none;
+        padding: 12px 24px;
+    }
+
+    .team-logo-small {
+        font-size: 22px;
+    }
+
+    .team-name-top {
+        font-size: 16px;
+    }
+
+    .date-time {
+        display: flex;
+    }
+
+    .current-date,
+    .current-time {
+        font-size: 12px;
+    }
+
+    .budget-info {
+        padding: 12px 24px;
+    }
+
+    .budget-details {
+        display: flex;
+    }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+
+    .floating-nav {
+        bottom: 20px;
+        padding: 12px 20px;
+        gap: 12px;
+    }
+
+    .nav-btn {
+        width: 55px;
+        height: 55px;
+    }
+
+    .nav-btn-label {
+        display: block;
+        font-size: 9px;
+    }
+
+    .content-wrapper {
+        padding: 100px 60px 120px;
+        max-width: 1600px;
+        margin: 0 auto;
     }
 }
 
@@ -450,7 +699,7 @@ h1, h2, h3 {
     display: none !important;
 }
 
-/* Reduced Motion für Accessibility */
+/* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
