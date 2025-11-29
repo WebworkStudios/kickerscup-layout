@@ -135,8 +135,9 @@
     min-height: 48px;
 }
 
+/* KORRIGIERTE REGEL FÜR MOBILE/ALLE GRÖSSEN */
 .btn-sort.active {
-    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum)) !important; /* <--- !important hinzugefügt */
     color: var(--dark-primary);
     border-color: var(--gold-primary);
     box-shadow: 0 5px 15px var(--turquoise-shadow);
@@ -189,15 +190,42 @@
     border-color: var(--gold-primary);
 }
 
-.player-card.captain::before {
-    content: '⭐';
+/* NEU: Goldene Umrandung für Kapitän */
+.player-card.captain {
+    border: 2px solid var(--gold-primary); 
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+/* ALTES CSS (::before Stern) ENTFERNT */
+
+/* NEU: Captain Badge Style */
+.captain-badge {
     position: absolute;
     top: 8px;
     right: 8px;
-    font-size: 20px;
+    background: var(--gold-primary); /* Goldener Hintergrund */
+    color: var(--dark-primary); /* Dunkle Schrift */
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
     z-index: 10;
-    filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.6));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
+
+/* NEU: Starter Badge Style (Position angepasst) */
+.starter-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px; /* Links positioniert */
+    background: rgba(0, 199, 139, 0.9);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 10;
+}
+
 
 .player-header {
     display: flex;
@@ -798,10 +826,6 @@
     .player-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px;
-    }
-
-    .player-card {
-        padding: 20px;
     }
 
     .player-stats {

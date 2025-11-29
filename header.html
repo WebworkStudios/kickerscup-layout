@@ -22,21 +22,19 @@
     <link href="css/layout.css" rel="stylesheet">
 
     <!--
-        ⚡ PERFORMANCE: Scripts mit defer im <head>
+        ⚡ PERFORMANCE: ES Modules mit defer/type="module"
         - Laden parallel zu HTML (schneller als <body>-Ende)
         - Ausführung garantiert nach DOM Ready
-        - Reihenfolge garantiert (wichtig für Dependencies)
+        - Reihenfolge garantiert durch import-Statements
+        - type="module" aktiviert ES6 Module Support
     -->
 
-    <!-- Module Manager (MUSS zuerst geladen werden) -->
-    <script defer src="javascript/module-manager.js"></script>
-
-    <!-- Navigation System (benötigt ModuleManager) -->
-    <script defer src="javascript/navigation.js"></script>
+    <!-- Navigation System (importiert ModuleManager automatisch) -->
+    <script defer src="javascript/navigation.js" type="module"></script>
 
     <!--
         HINWEIS: Weitere Scripts (dashboard.js, team.js, etc.)
-        werden dynamisch durch ModuleManager geladen
+        werden dynamisch durch ModuleManager geladen via import()
     -->
 </head>
 <body>

@@ -229,8 +229,13 @@
     gap: 12px;
 }
 
+/* KORREKTUR: Erzwingt Flex-Layout und Zentrierung für perfekte vertikale Symmetrie */
 .match-team {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Zentriert Logo, Name, Stärke horizontal */
+    text-align: center; 
+    justify-content: center; /* Stellt sicher, dass der gesamte Block vertikal zentriert ist */
 }
 
 .match-team.home,
@@ -667,9 +672,16 @@
 
     .match-teams {
         flex-direction: row;
-        justify-content: space-around;
+        /* KORREKTUR: Von space-around auf center, um das zentrierte Layout bei flex: 1 zu unterstützen */
+        justify-content: center;
         align-items: center;
         gap: 20px;
+    }
+    
+    /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
+    .match-team {
+        flex: 1; 
+        min-width: 0;
     }
 
     .match-vs {
@@ -753,8 +765,15 @@
 
     .match-teams {
         flex-direction: row;
-        justify-content: space-between;
+        /* KORREKTUR: Von space-between auf center für symmetrische Aufteilung */
+        justify-content: center;
         align-items: center;
+    }
+    
+    /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
+    .match-team {
+        flex: 1; 
+        min-width: 0;
     }
 
     .vs-divider {
@@ -820,8 +839,15 @@
 
     .match-teams {
         flex-direction: row;
-        justify-content: space-between;
+        /* KORREKTUR: Von space-between auf center für symmetrische Aufteilung */
+        justify-content: center;
         align-items: center;
+    }
+    
+    /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
+    .match-team {
+        flex: 1; 
+        min-width: 0;
     }
 
     .vs-divider {

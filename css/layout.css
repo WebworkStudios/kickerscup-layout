@@ -406,7 +406,8 @@ h1, h2, h3 {
 .content-wrapper {
     position: relative;
     z-index: 10;
-    padding: 90px 15px 100px;
+    /* KORREKTUR: Padding erhöht, um Überlappungen mit fixierten Elementen zu verhindern */
+    padding: 100px 15px 130px;
     min-height: 100vh;
     max-width: 100vw;
     overflow-x: hidden;
@@ -454,7 +455,8 @@ h1, h2, h3 {
     }
 
     .content-wrapper {
-        padding: 90px 20px 100px;
+        /* KORREKTUR: Padding erhöht */
+        padding: 100px 20px 130px;
     }
 }
 
@@ -518,7 +520,8 @@ h1, h2, h3 {
     }
 
     .content-wrapper {
-        padding: 90px 25px 110px;
+        /* KORREKTUR: Padding erhöht */
+        padding: 100px 25px 130px;
     }
 }
 

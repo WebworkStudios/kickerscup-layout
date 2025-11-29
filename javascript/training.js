@@ -1,293 +1,333 @@
 // =====================================================
-// KICKERSCUP - TRAINING SYSTEM
-// Training Planning & Day Schedule System
+// KICKERSCUP - TRAINING SYSTEM (ESM)
+// Modernisiert: ES Modules, const, export/import
 // =====================================================
 
-(function () {
-    'use strict';
+// State Management
+let selectedTrainings = [null, null, null, null];
+const eventListeners = [];
 
-    // Training Types Data
-    const trainingTypes = [
-        { id: 'waldlauf', title: 'Waldlauf', subtitle: 'Ausdauer im Gelände', icon: '🏃', color: '#48bb78' },
-        { id: 'zweikampf', title: 'Zweikampf', subtitle: 'Defensive & Robustheit', icon: '🥊', color: '#e53e3e' },
-        { id: 'zirkeltraining', title: 'Zirkeltraining', subtitle: 'Kraft & Ausdauer', icon: '🔄', color: '#dd6b20' },
-        { id: 'viererkette', title: 'Viererkette', subtitle: 'Defensive Taktik', icon: '🛡️', color: '#2b6cb0' },
-        { id: 'trainingsspiel', title: 'Trainingsspiel', subtitle: 'Spielpraxis 11 vs 11', icon: '⚽', color: '#38a169' },
-        { id: 'torschuss', title: 'Torschuss', subtitle: 'Finishing Training', icon: '🎯', color: '#c53030' },
-        { id: 'standardsituationen', title: 'Standardsituationen', subtitle: 'Ecken & Freistöße', icon: '📐', color: '#5a67d8' },
-        { id: 'spritzigkeit', title: 'Spritzigkeit', subtitle: 'Schnelligkeit & Agilität', icon: '⚡', color: '#ecc94b' },
-        { id: 'regeneration', title: 'Regeneration', subtitle: 'Erholung & Recovery', icon: '🛀', color: '#319795' },
-        { id: 'leichte_kondition', title: 'Leichte Kondition', subtitle: 'Basis Ausdauer', icon: '🚶', color: '#68d391' },
-        { id: 'harte_kondition', title: 'Harte Kondition', subtitle: 'Intensive Ausdauer', icon: '🏃‍♂️', color: '#38a169' },
-        { id: 'brutale_kondition', title: 'Brutale Kondition', subtitle: 'Maximale Belastung', icon: '💥', color: '#2f855a' },
-        { id: 'freizeit', title: 'Freizeit', subtitle: 'Teambuilding & Spaß', icon: '🎮', color: '#805ad5' },
-        { id: 'balltechnik', title: 'Balltechnik', subtitle: 'Feinmotorik & Kontrolle', icon: '🎨', color: '#ed8936' }
-    ];
-
-    // Time Slots
-    const timeSlots = [
-        { time: '09:00' },
-        { time: '11:00' },
-        { time: '14:00' },
-        { time: '16:00' }
-    ];
-
-    // Selected Trainings State
-    let selectedTrainings = [null, null, null, null];
-    let eventListeners = [];
-
-    /**
-     * Helper: Event Listener registrieren (für Cleanup)
-     */
-    function addEventListener(element, event, handler, options) {
-        if (!element) return;
-        element.addEventListener(event, handler, options);
-        eventListeners.push({element, event, handler, options});
+// Training Categories (NEU: Mit 14 Trainingseinheiten und numerischen Impacts)
+const trainingCategories = {
+    kondition: {
+        name: 'Kondition',
+        icon: '🏃',
+        color: '#48bb78', // --color-kondition
+        options: [
+            { id: 'brutale_kondition', name: 'Brutale Kondition', effect: '+4 Kondition, -3 Frische', impacts: { kondition: 4, form: -1, frische: -3, motivation: 0 } },
+            { id: 'harte_kondition', name: 'harte Kondition', effect: '+3 Kondition, -2 Frische', impacts: { kondition: 3, form: -1, frische: -2, motivation: 0 } },
+            { id: 'zirkeltraining', name: 'Zirkeltraining', effect: '+3 Kondition, -2 Frische', impacts: { kondition: 3, form: 0, frische: -2, motivation: 0 } },
+            { id: 'waldlauf', name: 'Waldlauf', effect: '+2 Kondition, -1 Frische, +1 Motivation', impacts: { kondition: 2, form: 0, frische: -1, motivation: 1 } },
+            { id: 'zweikampf', name: 'Zweikampf', effect: '+2 Kondition, +1 Form, -2 Frische', impacts: { kondition: 2, form: 1, frische: -2, motivation: 0 } },
+            { id: 'leichte_kondition', name: 'leichte Kondition', effect: '+1 Kondition', impacts: { kondition: 1, form: 0, frische: 0, motivation: 0 } },
+        ]
+    },
+    technik: {
+        name: 'Technik',
+        icon: '⚽',
+        color: '#ed8936', // --color-technik
+        options: [
+            { id: 'balltechnik', name: 'Balltechnik', effect: '+2 Form, +3 Frische, -3 Kondition', impacts: { kondition: -3, form: 2, frische: 3, motivation: 0 } },
+            { id: 'torschuss', name: 'Torschuss', effect: '+1 Frische, -1 Kondition', impacts: { kondition: -1, form: 0, frische: 1, motivation: 0 } },
+            { id: 'standardsituationen', name: 'Standardsituationen', effect: '+1 Form', impacts: { kondition: 0, form: 1, frische: 0, motivation: 0 } },
+        ]
+    },
+    taktik: {
+        name: 'Taktik',
+        icon: '🧠',
+        color: '#4299e1', // --color-taktik
+        options: [
+            { id: 'trainingsspiel', name: 'Trainingsspiel', effect: '+1 Kondition, +1 Form, -1 Frische', impacts: { kondition: 1, form: 1, frische: -1, motivation: 0 } },
+            { id: 'viererkette', name: 'Viererkette', effect: '+1 Form, +1 Frische, -1 Kondition', impacts: { kondition: -1, form: 1, frische: 1, motivation: 0 } },
+        ]
+    },
+    regeneration: {
+        name: 'Erholung',
+        icon: '😴',
+        color: '#38b2ac', // --color-regeneration
+        options: [
+            { id: 'regeneration', name: 'Regeneration', effect: '+4 Frische, -2 Kondition', impacts: { kondition: -2, form: 0, frische: 4, motivation: 0 } },
+            { id: 'spritzigkeit', name: 'Spritzigkeit', effect: '+3 Frische, +1 Kondition', impacts: { kondition: 1, form: 0, frische: 3, motivation: 0 } },
+            { id: 'freizeit', name: 'Freizeit', effect: '+1 Frische, +1 Motivation, -2 Kondition', impacts: { kondition: -2, form: 0, frische: 1, motivation: 1 } },
+        ]
     }
+};
 
-    /**
-     * Render Training Cards
-     */
-    function renderTrainingCards() {
-        const container = document.getElementById('trainingCards');
-        if (!container) return;
+/**
+ * Helper: Event Listener registrieren
+ */
+const addEventListener = (element, event, handler, options = false) => {
+    if (!element) return;
+    element.addEventListener(event, handler, options);
+    eventListeners.push({ element, event, handler, options });
+};
 
-        container.innerHTML = trainingTypes.map(training => `
-            <div class="training-card" 
-                 data-training-id="${training.id}"
-                 style="--card-color: ${training.color}; --card-glow: ${training.color}40;">
-                <div class="card-icon">${training.icon}</div>
-                <h3 class="card-title">${training.title}</h3>
-                <p class="card-subtitle">${training.subtitle}</p>
+/**
+ * Helper: Training anhand ID finden (UPDATED)
+ */
+const findTrainingById = (trainingId) => {
+    for (const category of Object.values(trainingCategories)) {
+        const found = category.options.find(opt => opt.id === trainingId);
+        if (found) {
+            return {
+                ...found,
+                icon: category.icon,
+                color: category.color
+            };
+        }
+    }
+    return null;
+};
+
+/**
+ * Helper: Impact Wert formatieren (+/- Zeichen)
+ */
+const formatImpact = (value) => {
+    if (value > 0) return `+${value}`;
+    if (value < 0) return `${value}`;
+    return '0';
+};
+
+/**
+ * Helper: Gesamtauswirkungen berechnen
+ */
+const calculateTotalImpact = () => {
+    const total = { kondition: 0, form: 0, frische: 0, motivation: 0 };
+    selectedTrainings.forEach(training => {
+        if (training && training.impacts) {
+            total.kondition += training.impacts.kondition;
+            total.form += training.impacts.form;
+            total.frische += training.impacts.frische;
+            total.motivation += training.impacts.motivation;
+        }
+    });
+    return total;
+};
+
+/**
+ * Render Total Impact Summary (NEU)
+ */
+const renderTotalImpact = () => {
+    const container = document.getElementById('totalImpactSummary');
+    if (!container) return;
+
+    const total = calculateTotalImpact();
+
+    container.innerHTML = `
+        <h3 class="total-impact-title">Gesamtbilanz</h3>
+        <div class="impact-grid">
+            <div class="impact-item">
+                <span class="impact-label">Kondition</span>
+                <span class="impact-value impact-${total.kondition > 0 ? 'pos' : total.kondition < 0 ? 'neg' : 'zero'}">${formatImpact(total.kondition)}</span>
+            </div>
+            <div class="impact-item">
+                <span class="impact-label">Form</span>
+                <span class="impact-value impact-${total.form > 0 ? 'pos' : total.form < 0 ? 'neg' : 'zero'}">${formatImpact(total.form)}</span>
+            </div>
+            <div class="impact-item">
+                <span class="impact-label">Frische</span>
+                <span class="impact-value impact-${total.frische > 0 ? 'pos' : total.frische < 0 ? 'neg' : 'zero'}">${formatImpact(total.frische)}</span>
+            </div>
+            <div class="impact-item">
+                <span class="impact-label">Motivation</span>
+                <span class="impact-value impact-${total.motivation > 0 ? 'pos' : total.motivation < 0 ? 'neg' : 'zero'}">${formatImpact(total.motivation)}</span>
+            </div>
+        </div>
+    `;
+};
+
+
+/**
+ * Render Training Cards (UPDATED: Nutzt korrekte Klassen und Farben)
+ */
+const renderTrainingCards = () => {
+    const container = document.getElementById('trainingCardsGrid'); 
+    if (!container) return;
+
+    let html = '';
+    
+    // Iteriere über die Kategorien, um das Grid mit Überschriften zu strukturieren
+    Object.entries(trainingCategories).forEach(([key, category]) => {
+        
+        // Optionale Kategorie-Überschrift zur besseren Strukturierung
+        html += `<h3 class="category-divider">${category.icon} ${category.name}</h3>`;
+
+        // Erzeugen der HTML-Kartenstruktur mit den korrekten CSS-Klassen
+        html += category.options.map(option => `
+            <div 
+                class="training-card" 
+                data-training-id="${option.id}"
+                style="--card-color: ${category.color}; --slot-color: ${category.color}; --card-glow: ${category.color}40;"
+            >
+                <div class="card-icon">${category.icon}</div>
+                <h4 class="card-title">${option.name}</h4>
+                <p class="card-subtitle">${option.effect}</p>
+                <p class="card-subtitle category-name">${category.name}</p>
             </div>
         `).join('');
-    }
+    });
 
-    /**
-     * Render Timeline
-     */
-    function renderTimeline() {
-        const container = document.getElementById('timelineSlots');
-        if (!container) return;
+    container.innerHTML = html;
+};
 
-        container.innerHTML = timeSlots.map((slot, index) => `
-            <div class="timeline-slot">
-                <div class="slot-time">${slot.time}</div>
-                <div class="slot-connector ${selectedTrainings[index] ? 'filled' : ''}">${index + 1}</div>
-                <div class="slot-card-container ${selectedTrainings[index] ? 'filled' : ''}" id="slot-${index}">
-                    ${selectedTrainings[index] ? renderFilledSlot(selectedTrainings[index], index) : `
-                        <div class="slot-placeholder">
-                            Wähle eine Trainingseinheit
+/**
+ * Render Timeline (UPDATED: Nutzt 1. Einheit, 2. Einheit, ...)
+ */
+const renderTimeline = () => {
+    const container = document.getElementById('timelineSlots');
+    if (!container) return;
+
+    // Slots sind nun nummerierte Einheiten
+    const slots = [
+        { day: '1. Einheit', index: 0 },
+        { day: '2. Einheit', index: 1 },
+        { day: '3. Einheit', index: 2 },
+        { day: '4. Einheit', index: 3 }
+    ];
+
+    container.innerHTML = slots.map((slot) => {
+        // Training findet den vollen Datensatz inkl. Icon/Farbe
+        const training = selectedTrainings[slot.index] ? findTrainingById(selectedTrainings[slot.index].id) : null;
+        const colorStyle = training ? `style="--slot-color: ${training.color};"` : '';
+        const filledClass = training ? 'filled' : '';
+        
+        return `
+            <div class="timeline-slot" data-day="${slot.index}">
+                <div class="slot-time">${slot.day}</div>
+                <div class="slot-connector ${filledClass}" ${colorStyle}></div>
+                <div class="slot-card-container ${filledClass}" data-day="${slot.index}">
+                    ${training ? `
+                        <div class="slot-filled-card" ${colorStyle}>
+                            <div class="slot-card-icon">${training.icon}</div>
+                            <div class="slot-card-info">
+                                <div class="slot-card-title">${training.name}</div>
+                                <div class="slot-card-subtitle">${training.effect}</div>
+                            </div>
+                            <button class="slot-card-remove" data-day="${slot.index}">✕</button>
                         </div>
+                    ` : `
+                        <div class="slot-placeholder">Klicken, um Training zuzuweisen</div>
                     `}
                 </div>
             </div>
-        `).join('');
-    }
-
-    /**
-     * Render Filled Slot (ohne onclick)
-     */
-    function renderFilledSlot(trainingId, slotIndex) {
-        const training = trainingTypes.find(t => t.id === trainingId);
-        return `
-            <div class="slot-filled-card" style="--slot-color: ${training.color};">
-                <div class="slot-card-icon">${training.icon}</div>
-                <div class="slot-card-info">
-                    <div class="slot-card-title">${training.title}</div>
-                    <div class="slot-card-subtitle">${training.subtitle}</div>
-                </div>
-                <div class="slot-card-remove" data-slot-index="${slotIndex}">×</div>
-            </div>
         `;
+    }).join('');
+
+    // Save Button Status
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        // Deaktivieren, wenn alle null sind
+        const hasTraining = selectedTrainings.some(t => t !== null);
+        saveBtn.disabled = !hasTraining;
     }
+};
 
-    /**
-     * Select Training
-     */
-    function selectTraining(trainingId) {
-        // Find next empty slot
-        const emptySlotIndex = selectedTrainings.findIndex(t => t === null);
+/**
+ * Select Training for Day
+ */
+const selectTrainingForDay = (trainingId, dayIndex) => {
+    const selectedTraining = findTrainingById(trainingId);
 
-        if (emptySlotIndex === -1) {
-            alert('Alle 4 Slots sind bereits belegt!');
-            return;
-        }
-
-        const training = trainingTypes.find(t => t.id === trainingId);
-
-        // Add selecting animation to card
-        const card = document.querySelector(`[data-training-id="${trainingId}"]`);
-        if (card) {
-            card.classList.add('selecting');
-            setTimeout(() => card.classList.remove('selecting'), 600);
-        }
-
-        // Show effect overlay
-        showEffect(training);
-
-        // Add to timeline after effect
-        setTimeout(() => {
-            selectedTrainings[emptySlotIndex] = trainingId;
-            renderTimeline();
-            updateSaveButton();
-        }, 2000);
-    }
-
-    /**
-     * Show Effect
-     */
-    function showEffect(training) {
-        const overlay = document.getElementById('effectOverlay');
-        const icon = document.getElementById('effectIcon');
-        const title = document.getElementById('effectTitle');
-        const subtitle = document.getElementById('effectSubtitle');
-
-        if (!overlay || !icon || !title || !subtitle) return;
-
-        overlay.style.setProperty('--effect-color', training.color);
-        overlay.style.setProperty('--effect-glow', training.color + '80');
-
-        icon.textContent = training.icon;
-        title.textContent = training.title;
-        subtitle.textContent = '✓ Training hinzugefügt!';
-
-        overlay.classList.add('active');
-
-        // Create particles
-        createParticles(training.color);
-
-        // Hide after 2 seconds
-        setTimeout(() => {
-            overlay.classList.remove('active');
-        }, 2000);
-    }
-
-    /**
-     * Create Particles
-     */
-    function createParticles(color) {
-        const container = document.getElementById('particlesContainer');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        // Reduziere Bewegungsbereich auf Mobile
-        const isMobile = window.innerWidth <= 768;
-        const maxDistance = isMobile ? 150 : 400;
-        const particleCount = isMobile ? 15 : 20;
-
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.setProperty('--effect-color', color);
-            particle.style.left = '50%';
-            particle.style.top = '50%';
-            particle.style.setProperty('--tx', `${(Math.random() - 0.5) * maxDistance}px`);
-            particle.style.setProperty('--ty', `${(Math.random() - 0.5) * maxDistance}px`);
-            particle.style.animationDelay = `${Math.random() * 0.5}s`;
-            container.appendChild(particle);
-        }
-    }
-
-    /**
-     * Remove Training
-     */
-    function removeTraining(slotIndex) {
-        selectedTrainings[slotIndex] = null;
+    if (selectedTraining) {
+        selectedTrainings[dayIndex] = selectedTraining;
         renderTimeline();
-        updateSaveButton();
+        renderTotalImpact(); // Neu: Bilanz aktualisieren
     }
+};
 
-    /**
-     * Update Save Button
-     */
-    function updateSaveButton() {
-        const btn = document.getElementById('saveBtn');
-        if (!btn) return;
+/**
+ * Remove Training from Day
+ */
+const removeTraining = (dayIndex) => {
+    selectedTrainings[dayIndex] = null;
+    renderTimeline();
+    renderTotalImpact(); // Neu: Bilanz aktualisieren
+};
 
-        const allFilled = selectedTrainings.every(t => t !== null);
-        btn.disabled = !allFilled;
-    }
-
-    /**
-     * Save Training Plan
-     */
-    function saveTrainingPlan() {
-        alert('✅ Trainingstag erfolgreich gespeichert!\n\n' +
-            selectedTrainings.map((id, i) => {
-                const training = trainingTypes.find(t => t.id === id);
-                return `${timeSlots[i].time} - ${training.title}`;
-            }).join('\n'));
-    }
-
-    /**
-     * Event Delegation Handler für alle Klicks
-     */
-    function handleDocumentClick(e) {
-        // Training Card Click
-        const trainingCard = e.target.closest('.training-card');
-        if (trainingCard) {
-            const trainingId = trainingCard.dataset.trainingId;
-            if (trainingId) {
-                selectTraining(trainingId);
-            }
-            return;
-        }
-
-        // Remove Button Click
-        const removeBtn = e.target.closest('.slot-card-remove');
-        if (removeBtn) {
-            const slotIndex = parseInt(removeBtn.dataset.slotIndex);
-            if (!isNaN(slotIndex)) {
-                removeTraining(slotIndex);
-            }
-
-        }
-    }
-
-    /**
-     * Initialize Training Page
-     */
-    function init() {
-        // Render initial content
-        renderTrainingCards();
-        renderTimeline();
-
-        // Event Delegation für alle Klicks
-        addEventListener(document, 'click', handleDocumentClick);
-
-        // Setup save button
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn) {
-            addEventListener(saveBtn, 'click', saveTrainingPlan);
-        }
-
-        console.log('✅ Training System initialisiert');
-    }
-
-    /**
-     * Cleanup beim Verlassen
-     */
-    function cleanup() {
-        // Entferne alle Event Listener
-        eventListeners.forEach(({element, event, handler, options}) => {
-            if (element) {
-                element.removeEventListener(event, handler, options);
-            }
-        });
-        eventListeners = [];
-
-        // Reset state
-        selectedTrainings = [null, null, null, null];
-
-        console.log('🧹 Training Cleanup durchgeführt');
-    }
-
-    // Expose für ModuleManager
-    window.__KICKERSCUP_MODULE__ = {
-        init,
-        cleanup
+/**
+ * Save Training Plan
+ */
+const saveTrainingPlan = () => {
+    // Speichert den vollständigen Plan, einschließlich Impacts für die zukünftige Berechnung
+    const plan = {
+        trainings: selectedTrainings.filter(t => t !== null).map(t => ({
+            id: t.id,
+            name: t.name,
+            effect: t.effect,
+            impacts: t.impacts
+        })),
+        totalImpact: calculateTotalImpact(),
+        savedAt: new Date().toISOString()
     };
 
-})();
+    try {
+        localStorage.setItem('kickerscup_training', JSON.stringify(plan));
+        alert('✅ Trainingsplan gespeichert! Gesamte Auswirkungen: Kondition ' + formatImpact(plan.totalImpact.kondition) + ', Frische ' + formatImpact(plan.totalImpact.frische) + '...');
+    } catch (error) {
+        alert('❌ Fehler beim Speichern');
+    }
+};
+
+/**
+ * Document Click Handler (Event Delegation) (UPDATED: Vereinfachte Zuweisung)
+ */
+const handleDocumentClick = (e) => {
+    const target = e.target;
+
+    // Training card clicked - Zuweisung zum nächsten leeren Slot
+    if (target.closest('.training-card')) {
+        const trainingId = target.closest('.training-card').dataset.trainingId;
+        
+        // Findet den ersten leeren Slot
+        const emptyDayIndex = selectedTrainings.findIndex(t => t === null);
+
+        if (emptyDayIndex !== -1) {
+            selectTrainingForDay(trainingId, emptyDayIndex);
+        } else {
+             alert('Alle Slots sind belegt. Entferne zuerst eine Einheit.');
+        }
+    }
+
+    // Remove training 
+    if (target.closest('.slot-card-remove')) {
+        const dayIndex = parseInt(target.closest('.slot-card-remove').dataset.day);
+        removeTraining(dayIndex);
+    }
+    
+    // Klick auf leeren Slot
+    if (target.closest('.slot-card-container:not(.filled)')) {
+        alert('Wähle eine Trainingseinheit aus der Liste links, um sie diesem Slot zuzuweisen.');
+    }
+};
+
+/**
+ * Initialize Training System
+ * EXPORT für ModuleManager
+ */
+export function init() {
+    renderTrainingCards();
+    renderTimeline();
+    renderTotalImpact(); // Neu: Gesamtbilanz beim Start anzeigen
+
+    addEventListener(document, 'click', handleDocumentClick);
+
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        addEventListener(saveBtn, 'click', saveTrainingPlan);
+    }
+}
+
+/**
+ * Cleanup beim Verlassen
+ * EXPORT für ModuleManager
+ */
+export function cleanup() {
+    eventListeners.forEach(({ element, event, handler, options }) => {
+        if (element) {
+            element.removeEventListener(event, handler, options);
+        }
+    });
+    eventListeners.length = 0;
+
+    selectedTrainings = [null, null, null, null];
+}
