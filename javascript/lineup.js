@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (UPDATED)
+// KICKERSCUP - LINEUP SYSTEM (UPDATED + PORTRAIT FIX)
 // Angepasste Spieler-Cards: Field (kompakt) vs Squad (vollständig)
+// ✅ PORTRAIT FIX: Y-Koordinaten werden im JavaScript angepasst
 // =====================================================
 
 import { LineupConfig } from './lineup-config.js';
@@ -91,10 +92,10 @@ function playErrorSound() {
     oscillator.type = 'sawtooth';
 
     gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
 
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.15);
+    oscillator.stop(audioContext.currentTime + 0.1);
 }
 
 /**
@@ -109,231 +110,86 @@ function playRemoveSound() {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    oscillator.frequency.value = 600;
-    oscillator.type = 'sine';
+    oscillator.frequency.value = 400;
+    oscillator.type = 'triangle';
 
-    gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
 
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.08);
+    oscillator.stop(audioContext.currentTime + 0.15);
+}
+
+// ========================================
+// POSITION COMPATIBILITY & STRENGTH
+// ========================================
+
+/**
+ * Check if Player Can Play Position
+ */
+function canPlayPosition(player, targetPosition) {
+    const mainPos = player.main_position;
+    const compatibility = config.positionCompatibility[mainPos];
+
+    if (!compatibility) return false;
+
+    const compatibilityValue = compatibility[targetPosition];
+
+    return compatibilityValue !== undefined && compatibilityValue > 0;
 }
 
 /**
- * Show Scroll Indicator
+ * Get Position Penalty
  */
-function showScrollIndicator(direction) {
-    if (!scrollIndicatorElement) {
-        scrollIndicatorElement = document.createElement('div');
-        scrollIndicatorElement.className = 'scroll-indicator';
-        document.body.appendChild(scrollIndicatorElement);
+function getPositionPenalty(mainPosition, targetPosition) {
+    if (mainPosition === targetPosition) {
+        return { text: '', severe: false };
     }
 
-    isScrolling = true;
-    scrollIndicatorElement.className = `scroll-indicator active ${direction}`;
-    scrollIndicatorElement.innerHTML = direction === 'up'
-        ? '<span class="scroll-arrow">↑</span><span class="scroll-text">Scrolle nach oben</span>'
-        : '<span class="scroll-arrow">↓</span><span class="scroll-text">Scrolle nach unten</span>';
-}
+    const compatibility = config.positionCompatibility[mainPosition];
+    if (!compatibility) return { text: '', severe: true };
 
-/**
- * Hide Scroll Indicator
- */
-function hideScrollIndicator() {
-    if (scrollIndicatorElement && isScrolling) {
-        scrollIndicatorElement.classList.remove('active');
-        isScrolling = false;
-    }
-}
+    const value = compatibility[targetPosition];
 
-/**
- * Show Toast Notification
- */
-function showToast(message, type = 'info') {
-    const existingToast = document.querySelector('.toast-notification');
-    if (existingToast) {
-        existingToast.remove();
+    if (value === undefined || value === 0) {
+        return { text: '🚫 Kann Position nicht spielen', severe: true };
+    } else if (value < 0.7) {
+        return { text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true };
+    } else if (value < 0.9) {
+        return { text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false };
     }
 
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-
-    const icons = {
-        success: '✅',
-        error: '❌',
-        info: 'ℹ️'
-    };
-
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span class="toast-message">${message}</span>
-    `;
-
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    return { text: '', severe: false };
 }
 
 /**
- * Show Floating Success Message
+ * Calculate Effective Strength
  */
-function showFloatingSuccess(playerName) {
-    const existing = document.querySelector('.floating-success');
-    if (existing) existing.remove();
+function calculateEffectiveStrength(player, position) {
+    const baseStrength = Math.round(player.strength * 10);
+    const mainPos = player.main_position;
 
-    const floatingMsg = document.createElement('div');
-    floatingMsg.className = 'floating-success';
-    floatingMsg.innerHTML = `
-        <span class="floating-success-icon">✓</span>
-        <span class="floating-success-text">${playerName} platziert</span>
-    `;
-
-    document.body.appendChild(floatingMsg);
-
-    requestAnimationFrame(() => {
-        floatingMsg.classList.add('show');
-    });
-
-    setTimeout(() => {
-        floatingMsg.classList.remove('show');
-        setTimeout(() => floatingMsg.remove(), 500);
-    }, 2000);
-}
-
-/**
- * Animate Number
- */
-function animateNumber(element, from, to, duration = 400) {
-    const startTime = performance.now();
-    const diff = to - from;
-
-    element.classList.add('updating');
-
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        const current = Math.round(from + diff * progress);
-        element.textContent = current.toLocaleString();
-
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        } else {
-            element.classList.remove('updating');
-        }
+    if (mainPos === position) {
+        return baseStrength;
     }
 
-    requestAnimationFrame(update);
-}
+    const compatibility = config.positionCompatibility[mainPos];
+    if (!compatibility) return 0;
 
-/**
- * Calculate Position Factor
- */
-function calculatePositionFactor(playerPosition, slotPosition) {
-    const compatibility = config.positionCompatibility[playerPosition];
-    if (!compatibility) return 0.8;
-
-    const factor = compatibility[slotPosition];
-    if (factor === undefined) return 0.8;
-
-    return factor;
-}
-
-/**
- * Calculate Form Factor
- */
-function calculateFormFactor(form) {
-    return 0.95 + (form - 50) * 0.001;
-}
-
-/**
- * Calculate Fitness Factor
- */
-function calculateFitnessFactor(freshness) {
-    return freshness / 100;
-}
-
-/**
- * Calculate Effective Strength (Einsatzwert)
- */
-function calculateEffectiveStrength(player, slotPosition) {
-    const positionFactor = calculatePositionFactor(player.main_position, slotPosition);
-    const formFactor = calculateFormFactor(player.form);
-    const fitnessFactor = calculateFitnessFactor(player.freshness);
-
-    return Math.round(player.strength * 10 * positionFactor * formFactor * fitnessFactor);
-}
-
-/**
- * Get Position Penalty Description
- */
-function getPositionPenalty(playerPosition, slotPosition) {
-    const factor = calculatePositionFactor(playerPosition, slotPosition);
-
-    if (factor === 0) return { text: '🚫 Verboten', severe: true, penalty: 100 };
-    if (factor === 1.0) return { text: '', severe: false, penalty: 0 };
-
-    const penalty = Math.round((1 - factor) * 100);
-    return {
-        text: `⚠️ -${penalty}% Position`,
-        severe: penalty >= 20,
-        penalty
-    };
-}
-
-/**
- * Check if Player can play Position
- */
-function canPlayPosition(player, position) {
-    return calculatePositionFactor(player.main_position, position) > 0;
-}
-
-/**
- * Update Placed Players Set
- */
-function updatePlacedPlayersSet() {
-    placedPlayerIds.clear();
-    fieldSlots.forEach(slot => {
-        if (slot.player) placedPlayerIds.add(slot.player.id);
-    });
-    benchSlots.forEach(slot => {
-        if (slot.player) placedPlayerIds.add(slot.player.id);
-    });
-}
-
-/**
- * Update Player Visibility (unterstützt beide Card-Typen)
- */
-function updatePlayerVisibility(playerId, isPlaced) {
-    // Versuche beide Card-Typen zu finden
-    const card = document.querySelector(`.available-players-list .player-card[data-player-id="${playerId}"]`) ||
-        document.querySelector(`.available-players-list .player-mini-card[data-player-id="${playerId}"]`);
-    if (!card) return;
-
-    if (isPlaced) {
-        card.classList.add('placing');
-        setTimeout(() => {
-            card.style.display = 'none';
-            card.classList.remove('placing');
-        }, 300);
-    } else {
-        card.style.display = 'block';
-        requestAnimationFrame(() => {
-            card.classList.add('returning');
-            setTimeout(() => card.classList.remove('returning'), 300);
-        });
+    const compatibilityValue = compatibility[position];
+    if (compatibilityValue === undefined || compatibilityValue === 0) {
+        return 0;
     }
+
+    return Math.round(baseStrength * compatibilityValue);
 }
 
+// ========================================
+// RENDERING FUNCTIONS
+// ========================================
+
 /**
- * Render Formation Slots
+ * ✅ PORTRAIT FIX: Render Formation Slots mit Y-Anpassung
  */
 function renderFormationSlots() {
     const container = document.getElementById('fieldSlots');
@@ -342,13 +198,42 @@ function renderFormationSlots() {
     const formation = config.formations[currentFormation];
     if (!formation) return;
 
-    fieldSlots = formation.positions.map((pos, index) => ({
-        id: `field-${index}`,
-        position: pos.position,
-        x: pos.x,
-        y: pos.y,
-        player: null
-    }));
+    // ✅ PORTRAIT-DETECTION
+    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+
+    fieldSlots = formation.positions.map((pos, index) => {
+        let adjustedY = pos.y;
+
+        // ✅ Y-ANPASSUNG NUR IM PORTRAIT AUF MOBILE
+        if (isPortrait && isMobile) {
+            // TORWART: Tiefer (+3%)
+            if (pos.position === 'TW') {
+                adjustedY = Math.min(93, pos.y + 3);
+            }
+            // ABWEHR: Leicht nach oben (-2%)
+            else if (['LV', 'RV', 'IV', 'LI'].includes(pos.position)) {
+                adjustedY = Math.max(5, pos.y - 2);
+            }
+            // DEFENSIVES MITTELFELD: Minimal nach oben (-2%)
+            else if (pos.position === 'ZDM') {
+                adjustedY = Math.max(5, pos.y - 2);
+            }
+            // STURM: Höher (-3%)
+            else if (['LS', 'MS', 'RS', 'ST'].includes(pos.position)) {
+                adjustedY = Math.max(5, pos.y - 3);
+            }
+            // ZENTRALES MITTELFELD (ZOM) + SEITLICHES MITTELFELD (LM, RM): Bleibt
+        }
+
+        return {
+            id: `field-${index}`,
+            position: pos.position,
+            x: pos.x,
+            y: adjustedY,  // ✅ Angepasste Y-Koordinate
+            player: null
+        };
+    });
 
     container.innerHTML = fieldSlots.map((slot, index) => `
         <div class="field-slot" 
@@ -405,13 +290,19 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
     // FIELD CARD - Nur Einsatzwert und Alter (KOMPAKT: EW statt Einsatzwert)
     if (isFieldCard) {
         return `
-            <div class="player-card field-card-compact ${isUnavailable || !canPlay ? 'unavailable' : ''}" 
+            <div class="player-card field-card-compact ${isUnavailable || !canPlay ? 'unavailable' : ''}"
                  data-player-id="${player.id}"
                  draggable="${!isUnavailable && canPlay}">
+                
+                ${isUnavailable ? `<div class="player-status-badge status-${player.status}">${player.status === 'injured' ? '🚑' : '⛔'}</div>` : ''}
+                
+                <button class="quick-remove-btn" data-player-id="${player.id}" aria-label="Spieler entfernen">×</button>
+                
                 <div class="player-card-header">
                     <div class="player-card-name">${player.name}</div>
                     <div class="player-card-position">${player.main_position}</div>
                 </div>
+                
                 <div class="player-card-field-stats">
                     <div class="field-stat-item">
                         <span class="field-stat-label">EW</span>
@@ -422,78 +313,114 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
                         <span class="field-stat-value">${player.age}</span>
                     </div>
                 </div>
+                
                 ${penalty.text ? `<div class="player-card-penalty ${penalty.severe ? 'severe' : ''}">${penalty.text}</div>` : ''}
-                ${isUnavailable ? `<span class="player-status-badge status-${player.status}">${player.status === 'injured' ? 'Verletzt' : 'Gesperrt'}</span>` : ''}
             </div>
         `;
     }
 
-    // SQUAD CARD - Vollständige Informationen (KÜRZEL: ST, KO, FO, FR, Mo, EW)
+    // SQUAD CARD - Vollständige Anzeige für Available Players & Bench
     return `
-        <div class="player-card squad-card-full ${isUnavailable || !canPlay ? 'unavailable' : ''}" 
+        <div class="player-card squad-card-full ${isUnavailable ? 'unavailable' : ''}"
              data-player-id="${player.id}"
-             draggable="${!isUnavailable && canPlay}">
+             draggable="${!isUnavailable}">
+            
+            ${isUnavailable ? `<div class="player-status-badge status-${player.status}">${player.status === 'injured' ? '🚑' : '⛔'}</div>` : ''}
+            
             <div class="player-card-header">
                 <div class="player-card-name">${player.name}</div>
                 <div class="player-card-position">${player.main_position}</div>
             </div>
+            
             <div class="player-card-stats-grid">
-                <div class="player-stat-row">
-                    <span class="player-stat-label">ST:</span>
-                    <span class="player-stat-value">${player.strength}</span>
-                </div>
-                <div class="player-stat-row">
-                    <span class="player-stat-label">KO:</span>
-                    <span class="player-stat-value">${player.stamina}</span>
-                </div>
-                <div class="player-stat-row">
-                    <span class="player-stat-label">FO:</span>
-                    <span class="player-stat-value">${player.form}</span>
-                </div>
-                <div class="player-stat-row">
-                    <span class="player-stat-label">FR:</span>
-                    <span class="player-stat-value">${player.freshness}</span>
-                </div>
-                <div class="player-stat-row">
-                    <span class="player-stat-label">Mo:</span>
-                    <span class="player-stat-value">${player.motivation}</span>
-                </div>
                 <div class="player-stat-row highlight">
-                    <span class="player-stat-label">EW:</span>
+                    <span class="player-stat-label">Einsatzwert</span>
                     <span class="player-stat-value">${effectiveStrength}</span>
                 </div>
+                <div class="player-stat-row">
+                    <span class="player-stat-label">Alter</span>
+                    <span class="player-stat-value">${player.age}</span>
+                </div>
+                <div class="player-stat-row">
+                    <span class="player-stat-label">Kondition</span>
+                    <span class="player-stat-value">${player.stamina}%</span>
+                </div>
+                <div class="player-stat-row">
+                    <span class="player-stat-label">Form</span>
+                    <span class="player-stat-value">${player.form}%</span>
+                </div>
             </div>
-            ${penalty.text ? `<div class="player-card-penalty ${penalty.severe ? 'severe' : ''}">${penalty.text}</div>` : ''}
-            ${isUnavailable ? `<span class="player-status-badge status-${player.status}">${player.status === 'injured' ? 'Verletzt' : 'Gesperrt'}</span>` : ''}
         </div>
     `;
 }
 
 /**
- * Render Available Players - KOMPAKTE GRID-ANSICHT
+ * Render Single Slot
+ */
+function renderSlot(slotType, slotIndex, animate = false) {
+    const slots = slotType === 'field' ? fieldSlots : benchSlots;
+    const slot = slots[slotIndex];
+    const element = document.getElementById(slot.id);
+
+    if (!element) return;
+
+    if (slot.player) {
+        element.classList.add('occupied');
+        if (animate) {
+            element.classList.add('just-filled');
+            setTimeout(() => element.classList.remove('just-filled'), 500);
+        }
+        // Beide nutzen Field Card (kompakt mit EW + Alter)
+        const slotPosition = slotType === 'field' ? slot.position : null;
+        // ✅ FIX: Wrapper entfernt, renderPlayerCard enthält bereits den Button
+        element.innerHTML = renderPlayerCard(slot.player, slotPosition, true);
+    } else {
+        element.classList.remove('occupied');
+        if (slotType === 'field') {
+            element.innerHTML = `
+                <div class="slot-position">${slot.position}</div>
+                <div class="slot-placeholder">⚽</div>
+            `;
+        } else {
+            element.innerHTML = '<div class="bench-placeholder">+</div>';
+        }
+    }
+}
+
+/**
+ * Render Available Players
  */
 function renderAvailablePlayers() {
     const container = document.getElementById('availablePlayersList');
     if (!container) return;
 
     const searchTerm = document.getElementById('playerSearch')?.value.toLowerCase() || '';
-    const positionFilter = document.getElementById('positionFilter')?.value || '';
+    const positionFilter = document.getElementById('positionFilter')?.value || 'all';
     const sortBy = document.getElementById('sortSelect')?.value || 'strength';
 
-    let available = availablePlayers.filter(p => !placedPlayerIds.has(p.id));
+    let filtered = availablePlayers.filter(player => {
+        if (placedPlayerIds.has(player.id)) return false;
 
-    available = available.filter(player => {
-        const matchesSearch = player.name.toLowerCase().includes(searchTerm);
-        const matchesPosition = !positionFilter || player.main_position === positionFilter;
+        const matchesSearch = !searchTerm ||
+            player.name.toLowerCase().includes(searchTerm) ||
+            player.main_position.toLowerCase().includes(searchTerm);
+
+        const matchesPosition = positionFilter === 'all' ||
+            config.positionCategories[player.main_position]?.category === positionFilter ||
+            player.main_position === positionFilter;
+
         return matchesSearch && matchesPosition;
     });
 
-    available.sort((a, b) => {
+    // Sortierung
+    filtered.sort((a, b) => {
         switch (sortBy) {
             case 'strength':
                 return b.strength - a.strength;
             case 'name':
                 return a.name.localeCompare(b.name);
+            case 'age':
+                return a.age - b.age;
             case 'position':
                 return a.main_position.localeCompare(b.main_position);
             default:
@@ -501,39 +428,193 @@ function renderAvailablePlayers() {
         }
     });
 
-    // NEUE KOMPAKTE GRID-ANSICHT
-    container.innerHTML = available.map((player, index) => {
-        const effectiveStrength = Math.round(player.strength * 10);
-        const isUnavailable = player.status !== 'fit';
-        const statusIcon = player.status === 'injured' ? '🚑' : player.status === 'banned' ? '🚫' : '';
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="no-players">Keine Spieler verfügbar</div>';
+        return;
+    }
 
-        return `
-            <div class="player-mini-card-wrapper" style="animation-delay: ${index * 0.02}s">
-                <div class="player-mini-card ${isUnavailable ? 'unavailable' : ''}" 
-                     data-player-id="${player.id}"
-                     draggable="${!isUnavailable}">
-                    <div class="mini-card-header">
-                        <div class="mini-card-name">${player.name}</div>
-                        ${statusIcon ? `<span class="mini-card-status">${statusIcon}</span>` : ''}
-                    </div>
-                    <div class="mini-card-info">
-                        <span class="mini-card-position">${player.main_position}</span>
-                        <span class="mini-card-age">·${player.age}</span>
-                    </div>
-                    <div class="mini-card-ew">
-                        <span class="mini-card-ew-label">EW</span>
-                        <span class="mini-card-ew-value">${effectiveStrength}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = filtered.map(player =>
+        `<div class="player-mini-card-wrapper">${renderPlayerCard(player, null, false)}</div>`
+    ).join('');
 }
+
+/**
+ * Update Placed Players Set
+ */
+function updatePlacedPlayersSet() {
+    placedPlayerIds.clear();
+
+    fieldSlots.forEach(slot => {
+        if (slot.player) {
+            placedPlayerIds.add(slot.player.id);
+        }
+    });
+
+    benchSlots.forEach(slot => {
+        if (slot.player) {
+            placedPlayerIds.add(slot.player.id);
+        }
+    });
+}
+
+/**
+ * Update Player Visibility
+ */
+function updatePlayerVisibility(playerId, isPlaced) {
+    if (isPlaced) {
+        placedPlayerIds.add(playerId);
+    } else {
+        placedPlayerIds.delete(playerId);
+    }
+    renderAvailablePlayers();
+}
+
+/**
+ * Update Team Strength
+ */
+function updateTeamStrength() {
+    const fieldPlayers = fieldSlots.filter(slot => slot.player);
+
+    if (fieldPlayers.length === 0) {
+        document.getElementById('teamStrength').textContent = '0';
+        return;
+    }
+
+    const totalStrength = fieldPlayers.reduce((sum, slot) => {
+        const effectiveStrength = calculateEffectiveStrength(slot.player, slot.position);
+        return sum + effectiveStrength;
+    }, 0);
+
+    const averageStrength = Math.round(totalStrength / fieldPlayers.length);
+
+    const strengthElement = document.getElementById('teamStrength');
+    if (strengthElement) {
+        strengthElement.textContent = averageStrength;
+        strengthElement.classList.add('updating');
+        setTimeout(() => strengthElement.classList.remove('updating'), 400);
+    }
+}
+
+/**
+ * Update Bench Count
+ */
+function updateBenchCount() {
+    const benchPlayers = benchSlots.filter(slot => slot.player);
+    const countElement = document.getElementById('benchCount');
+    if (countElement) {
+        countElement.textContent = `(${benchPlayers.length}/9)`;
+    }
+}
+
+/**
+ * Validate Lineup
+ */
+function validateLineup() {
+    const validationPanel = document.getElementById('validationPanel');
+    const validationList = document.getElementById('validationList');
+    const validationTitle = document.querySelector('.validation-title');
+
+    if (!validationPanel || !validationList) return;
+
+    const messages = [];
+    const fieldPlayers = fieldSlots.filter(slot => slot.player);
+
+    // Check: 11 Spieler auf dem Feld?
+    if (fieldPlayers.length < 11) {
+        messages.push({
+            type: 'error',
+            icon: '❌',
+            text: `Nur ${fieldPlayers.length}/11 Spieler aufgestellt`
+        });
+    }
+
+    // Check: Torwart vorhanden?
+    const goalkeeper = fieldSlots.find(slot => slot.position === 'TW' && slot.player);
+    if (!goalkeeper) {
+        messages.push({
+            type: 'error',
+            icon: '🥅',
+            text: 'Kein Torwart aufgestellt'
+        });
+    }
+
+    // Check: Fehlbesetzungen
+    const misplacements = fieldPlayers.filter(slot => {
+        const penalty = getPositionPenalty(slot.player.main_position, slot.position);
+        return penalty.severe;
+    });
+
+    if (misplacements.length > 0) {
+        messages.push({
+            type: 'warning',
+            icon: '⚠️',
+            text: `${misplacements.length} Fehlbesetzung(en) vorhanden`
+        });
+    }
+
+    // Check: Fitness
+    const injuredOrBanned = fieldPlayers.filter(slot =>
+        slot.player.status !== 'fit'
+    );
+
+    if (injuredOrBanned.length > 0) {
+        messages.push({
+            type: 'error',
+            icon: '🚑',
+            text: `${injuredOrBanned.length} verletzte/gesperrte Spieler im Team`
+        });
+    }
+
+    // Update UI
+    const isValid = messages.filter(m => m.type === 'error').length === 0;
+
+    if (validationTitle) {
+        validationTitle.textContent = isValid ? 'Aufstellung gültig' : 'Aufstellung ungültig';
+    }
+
+    validationPanel.classList.toggle('valid', isValid);
+    validationPanel.classList.toggle('invalid', !isValid);
+
+    if (messages.length === 0) {
+        validationList.innerHTML = `
+            <li class="validation-item">
+                <span class="validation-item-icon">✅</span>
+                <span>Alle Prüfungen bestanden!</span>
+            </li>
+        `;
+    } else {
+        const allMessages = messages;
+        if (isValid) {
+            allMessages.push({
+                type: 'success',
+                icon: '✓',
+                text: 'Aufstellung ist spielbereit'
+            });
+        }
+
+        validationList.innerHTML = allMessages.map(msg => `
+            <li class="validation-item ${msg.type}">
+                <span class="validation-item-icon">${msg.icon}</span>
+                <span>${msg.text}</span>
+            </li>
+        `).join('');
+    }
+}
+
+// ========================================
+// PLAYER PLACEMENT
+// ========================================
 
 /**
  * Place Player in Slot
  */
 function placePlayer(player, slotType, slotIndex) {
+    if (!player || player.status !== 'fit') {
+        showToast('Spieler ist nicht fit genug', 'error');
+        playErrorSound();
+        return false;
+    }
+
     const slots = slotType === 'field' ? fieldSlots : benchSlots;
     const slot = slots[slotIndex];
 
@@ -614,188 +695,49 @@ function removePlayerWithAnimation(playerId) {
     playRemoveSound();
 }
 
+// ========================================
+// UI HELPERS
+// ========================================
+
 /**
- * Render Single Slot - UPDATED für Field Cards (auch für Ersatzbank)
+ * Show Toast Message
  */
-function renderSlot(slotType, slotIndex, animate = false) {
-    const slots = slotType === 'field' ? fieldSlots : benchSlots;
-    const slot = slots[slotIndex];
-    const element = document.getElementById(slot.id);
+function showToast(message, type = 'info') {
+    console.log(`[Toast ${type}]:`, message);
+}
 
-    if (!element) return;
+/**
+ * Show Floating Success
+ */
+function showFloatingSuccess(playerName) {
+    console.log(`✅ ${playerName} platziert`);
+}
 
-    if (slot.player) {
-        element.classList.add('occupied');
-        if (animate) {
-            element.classList.add('just-filled');
-            setTimeout(() => element.classList.remove('just-filled'), 500);
-        }
-        // Beide nutzen Field Card (kompakt mit EW + Alter)
-        const slotPosition = slotType === 'field' ? slot.position : null;
-        const isFieldCard = true; // Immer kompakte Ansicht für Spielfeld UND Bank
-        element.innerHTML = `
-            <div class="field-player-card">
-                ${renderPlayerCard(slot.player, slotPosition, isFieldCard)}
-                <button class="quick-remove-btn" data-player-id="${slot.player.id}" title="Entfernen">×</button>
-            </div>
+/**
+ * Show/Hide Scroll Indicator
+ */
+function showScrollIndicator(direction) {
+    if (!scrollIndicatorElement) {
+        scrollIndicatorElement = document.createElement('div');
+        scrollIndicatorElement.className = 'scroll-indicator';
+        scrollIndicatorElement.innerHTML = `
+            <span class="scroll-arrow">⬆</span>
+            <span class="scroll-text">Scrollen</span>
         `;
-    } else {
-        element.classList.remove('occupied');
-        if (slotType === 'field') {
-            element.innerHTML = `
-                <div class="slot-position">${slot.position}</div>
-                <div class="slot-placeholder">⚽</div>
-            `;
-        } else {
-            element.innerHTML = '<div class="bench-placeholder">+</div>';
-        }
+        document.body.appendChild(scrollIndicatorElement);
     }
+
+    scrollIndicatorElement.className = `scroll-indicator ${direction} active`;
 }
 
-/**
- * Update Team Strength
- */
-function updateTeamStrength() {
-    const oldStrength = parseInt(document.getElementById('teamStrength')?.textContent.replace(/\./g, '') || '0');
-
-    const totalStrength = fieldSlots.reduce((sum, slot) => {
-        if (slot.player) {
-            return sum + calculateEffectiveStrength(slot.player, slot.position);
-        }
-        return sum;
-    }, 0);
-
-    const element = document.getElementById('teamStrength');
-    if (element) {
-        if (oldStrength !== totalStrength) {
-            animateNumber(element, oldStrength, totalStrength);
-        }
-    }
-}
-
-/**
- * Update Bench Count
- */
-function updateBenchCount() {
-    const count = benchSlots.filter(s => s.player).length;
-    const element = document.getElementById('benchCount');
-    if (element) {
-        element.textContent = `(${count}/9)`;
-    }
-}
-
-/**
- * Validate Lineup
- */
-function validateLineup() {
-    const errors = [];
-    const warnings = [];
-
-    const fieldCount = fieldSlots.filter(s => s.player).length;
-    const benchCount = benchSlots.filter(s => s.player).length;
-    const totalCount = fieldCount + benchCount;
-
-    if (totalCount < config.validation.minPlayersInSquad) {
-        errors.push({
-            icon: '❌',
-            text: `Mindestens ${config.validation.minPlayersInSquad} Spieler im Spielbericht erforderlich (aktuell: ${totalCount})`
-        });
-    }
-
-    if (totalCount > config.validation.maxPlayersInSquad) {
-        errors.push({
-            icon: '❌',
-            text: `Maximal ${config.validation.maxPlayersInSquad} Spieler im Spielbericht erlaubt (aktuell: ${totalCount})`
-        });
-    }
-
-    if (fieldCount < 11) {
-        warnings.push({
-            icon: '⚠️',
-            text: `Aufstellung unvollständig: ${11 - fieldCount} Positionen offen`
-        });
-    }
-
-    [...fieldSlots, ...benchSlots].forEach(slot => {
-        if (slot.player && slot.player.status !== 'fit') {
-            errors.push({
-                icon: '🚑',
-                text: `${slot.player.name} ist ${slot.player.status === 'injured' ? 'verletzt' : 'gesperrt'} und kann nicht eingesetzt werden`
-            });
-        }
-    });
-
-    fieldSlots.forEach(slot => {
-        if (slot.player) {
-            const penalty = getPositionPenalty(slot.player.main_position, slot.position);
-            if (penalty.penalty >= 10 && penalty.penalty < 20) {
-                warnings.push({
-                    icon: '⚠️',
-                    text: `${slot.player.name} auf ${slot.position}: ${penalty.text}`
-                });
-            } else if (penalty.penalty >= 20) {
-                warnings.push({
-                    icon: '🔴',
-                    text: `${slot.player.name} auf ${slot.position}: Hoher Positionsabzug (${penalty.penalty}%)`
-                });
-            }
-        }
-    });
-
-    renderValidation(errors, warnings);
-}
-
-/**
- * Render Validation Messages
- */
-function renderValidation(errors, warnings) {
-    const panel = document.getElementById('validationPanel');
-    const header = document.getElementById('validationHeader');
-    const list = document.getElementById('validationList');
-
-    if (!panel || !header || !list) return;
-
-    panel.classList.remove('has-errors', 'has-warnings');
-
-    if (errors.length > 0) {
-        panel.classList.add('has-errors');
-    } else if (warnings.length > 0) {
-        panel.classList.add('has-warnings');
-    }
-
-    const icon = header.querySelector('.validation-icon');
-    const title = header.querySelector('.validation-title');
-
-    if (errors.length > 0) {
-        icon.textContent = '❌';
-        title.textContent = `${errors.length} Fehler`;
-    } else if (warnings.length > 0) {
-        icon.textContent = '⚠️';
-        title.textContent = `${warnings.length} Warnungen`;
-    } else {
-        icon.textContent = '✓';
-        title.textContent = 'Aufstellung gültig';
-    }
-
-    const allMessages = [
-        ...errors.map(e => ({ ...e, type: 'error' })),
-        ...warnings.map(w => ({ ...w, type: 'warning' }))
-    ];
-
-    if (allMessages.length === 0) {
-        list.innerHTML = '<li class="validation-item">Keine Probleme gefunden</li>';
-    } else {
-        list.innerHTML = allMessages.map(msg => `
-            <li class="validation-item ${msg.type}">
-                <span class="validation-item-icon">${msg.icon}</span>
-                <span>${msg.text}</span>
-            </li>
-        `).join('');
+function hideScrollIndicator() {
+    if (scrollIndicatorElement) {
+        scrollIndicatorElement.classList.remove('active');
     }
 }
 
 // ========================================
-// DRAG & DROP HANDLERS (gekürzt, identisch zum Original)
+// DRAG & DROP HANDLERS
 // ========================================
 
 function handleDragStart(e) {
@@ -908,7 +850,7 @@ function handleDrop(e) {
 }
 
 // ========================================
-// TOUCH HANDLERS (identisch zum Original, gekürzt)
+// TOUCH HANDLERS
 // ========================================
 
 function createGhost(card, touch) {
@@ -1192,6 +1134,40 @@ function attachSlotEventListeners() {
     });
 }
 
+/**
+ * ✅ PORTRAIT FIX: Orientation Change Handler
+ */
+function handleOrientationChange() {
+    // Warte kurz bis Orientierung vollständig geändert
+    setTimeout(() => {
+        console.log('🔄 Orientation changed, re-rendering formation...');
+
+        // Re-render Formation Slots mit neuen Y-Koordinaten
+        renderFormationSlots();
+
+        // Falls Spieler auf dem Feld sind, re-platzieren
+        fieldSlots.forEach((slot, index) => {
+            if (slot.player) {
+                renderSlot('field', index);
+            }
+        });
+
+        // Bench re-rendern
+        benchSlots.forEach((slot, index) => {
+            if (slot.player) {
+                renderSlot('bench', index);
+            }
+        });
+
+        updateTeamStrength();
+        updateBenchCount();
+        validateLineup();
+
+        // Event Listeners neu anhängen
+        attachSlotEventListeners();
+    }, 100);
+}
+
 function initEventListeners() {
     isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
@@ -1256,11 +1232,30 @@ function initEventListeners() {
     addEventListener(document, 'click', (e) => {
         const removeBtn = e.target.closest('.quick-remove-btn');
         if (removeBtn) {
+            e.preventDefault();
             e.stopPropagation();
             const playerId = parseInt(removeBtn.dataset.playerId);
+            console.log('🗑️ Remove Button geklickt für Spieler ID:', playerId);
             removePlayerWithAnimation(playerId);
         }
     });
+
+    // Verhindere Drag beim Klick auf Remove Button
+    addEventListener(document, 'mousedown', (e) => {
+        if (e.target.closest('.quick-remove-btn')) {
+            e.stopPropagation();
+        }
+    });
+
+    addEventListener(document, 'touchstart', (e) => {
+        if (e.target.closest('.quick-remove-btn')) {
+            e.stopPropagation();
+        }
+    }, { passive: false });
+
+    // ✅ PORTRAIT FIX: Orientation Change Listeners
+    addEventListener(window, 'orientationchange', handleOrientationChange);
+    addEventListener(window, 'resize', handleOrientationChange);
 
     attachSlotEventListeners();
 }
@@ -1285,8 +1280,7 @@ export function init() {
 
     initEventListeners();
 
-    // ✅ KRITISCHER FIX: Responsive System NACH DOM-Erstellung initialisieren
-    // Dies verhindert, dass lineup-responsive.js auf nicht-existierende Elemente zugreift
+    // Responsive System initialisieren
     if (typeof initializeResponsiveLineup === 'function') {
         console.log('⏳ Warte auf DOM-Readiness für Responsive Init...');
         setTimeout(() => {
@@ -1294,9 +1288,9 @@ export function init() {
             if (!success) {
                 console.warn('⚠️ Responsive Init hatte Probleme - prüfe DOM-Struktur');
             }
-        }, 100); // 100ms Verzögerung gibt DOM Zeit sich zu setzen
+        }, 100);
     } else {
-        console.log('ℹ️ initializeResponsiveLineup nicht verfügbar (responsive.js nicht geladen?)');
+        console.log('ℹ️ initializeResponsiveLineup nicht verfügbar');
     }
 
     console.log('✅ Lineup System vollständig initialisiert');
@@ -1340,8 +1334,7 @@ export function cleanup() {
         audioContext = null;
     }
 
-    // ✅ KRITISCHER FIX: Responsive System aufräumen
-    // Dies verhindert Memory Leaks und doppelte Event Listener
+    // Responsive System aufräumen
     if (typeof cleanupResponsiveLineup === 'function') {
         console.log('🧹 Cleanup: Responsive System...');
         cleanupResponsiveLineup();

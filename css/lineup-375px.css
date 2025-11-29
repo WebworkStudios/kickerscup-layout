@@ -1,6 +1,8 @@
 /* =====================================================
    KICKERSCUP - LINEUP 375px FIX
    Lösung für überlappende Positionen auf kleinen Bildschirmen
+   ✅ PORTRAIT FIX: Keine !important bei top-Positionen
+   Y-Koordinaten werden jetzt im JavaScript angepasst!
    ===================================================== */
 
 /* Base Mobile (375px - 389px) - VERBESSERT */
@@ -73,37 +75,9 @@
 
     /* ========== FORMATIONS-ANPASSUNGEN ========== */
 
-    /* Optimierte Y-Positionen für 375px Bildschirme */
-    /* Diese Anpassungen helfen, die Positionen besser zu verteilen */
-
-    /* Torwart etwas höher */
-    .field-slot[data-position="TW"] {
-        top: 95% !important;
-    }
-
-    /* Abwehr */
-    .field-slot[data-position="LV"],
-    .field-slot[data-position="RV"],
-    .field-slot[data-position="IV"] {
-        /* Standardposition beibehalten, durch höheres Feld besser verteilt */
-    }
-
-    /* Mittelfeld - etwas nach unten schieben */
-    .field-slot[data-position="LM"],
-    .field-slot[data-position="RM"],
-    .field-slot[data-position="ZM"],
-    .field-slot[data-position="DM"],
-    .field-slot[data-position="OM"] {
-        /* Wird durch das höhere Feld automatisch besser verteilt */
-    }
-
-    /* Sturm - höher positionieren */
-    .field-slot[data-position="LA"],
-    .field-slot[data-position="RA"],
-    .field-slot[data-position="ST"],
-    .field-slot[data-position="MS"] {
-        /* Wird durch das höhere Feld automatisch besser verteilt */
-    }
+    /* ✅ WICHTIG: Keine top-Position Overrides mehr! */
+    /* Die Y-Koordinaten werden jetzt dynamisch im JavaScript angepasst */
+    /* renderFormationSlots() in lineup.js passt die Positionen automatisch an */
 
     /* ========== WEITERE OPTIMIERUNGEN ========== */
 
@@ -235,5 +209,298 @@
     .available-players-list {
         grid-template-columns: repeat(1, 1fr) !important;
         max-height: 300px !important;
+    }
+}
+
+/* ========== PORTRAIT-SPEZIFISCHE OPTIMIERUNGEN ========== */
+@media (min-width: 375px) and (max-width: 389px) and (orientation: portrait) {
+    /* Spielfeld im Portrait-Modus noch höher */
+    .field-background {
+        min-height: 850px !important;
+    }
+
+    /* Mehr vertikaler Abstand zwischen Slots */
+    .field-slots {
+        padding: 60px 10px !important;
+    }
+
+    /* Landscape Hint prominent anzeigen */
+    .landscape-hint {
+        display: flex !important;
+        animation: hintPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes hintPulse {
+        0%, 100% {
+            transform: translateX(-50%) scale(1);
+            box-shadow: 0 8px 35px var(--turquoise-glow);
+        }
+        50% {
+            transform: translateX(-50%) scale(1.02);
+            box-shadow: 0 12px 45px var(--turquoise-glow);
+        }
+    }
+}
+
+/* ========== KOMPATIBILITÄT MIT ÄLTEREN GERÄTEN ========== */
+
+/* iPhone SE 1st Gen & ältere (320px - 374px) */
+/* OPTIONAL: Falls Du doch Geräte unter 375px unterstützen willst */
+@media (max-width: 374px) {
+    /* Warnung anzeigen */
+    .viewport-warning {
+        position: fixed;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10003;
+        background: rgba(245, 101, 101, 0.95);
+        border: 2px solid #f56565;
+        border-radius: 12px;
+        padding: 12px 18px;
+        max-width: 90%;
+        text-align: center;
+        font-size: 12px;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 8px 30px rgba(245, 101, 101, 0.5);
+    }
+
+    /* Minimal-Support für sehr kleine Geräte */
+    .field-background {
+        min-height: 900px !important;
+    }
+
+    .field-slot {
+        width: 60px !important;
+        height: 75px !important;
+    }
+
+    .field-card-compact {
+        padding: 5px !important;
+        min-height: 70px !important;
+    }
+
+    .field-card-compact .player-card-name {
+        font-size: 10px !important;
+    }
+
+    .field-stat-item {
+        padding: 2px 4px !important;
+    }
+
+    .field-stat-label {
+        font-size: 8px !important;
+    }
+
+    .field-stat-value {
+        font-size: 10px !important;
+    }
+
+    .bench-slots,
+    .available-players-list {
+        grid-template-columns: 1fr !important;
+    }
+
+    .formation-controls {
+        padding: 15px 10px !important;
+    }
+
+    .lineup-title {
+        font-size: 24px !important;
+    }
+}
+
+/* ========== PERFORMANCE-OPTIMIERUNGEN ========== */
+
+/* Reduziere Animationen auf langsamen Geräten */
+@media (prefers-reduced-motion: reduce) {
+    .field-slot,
+    .player-card,
+    .ghost-dragging,
+    .landscape-hint {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .scroll-indicator {
+        animation: none !important;
+    }
+
+    .strength-value.updating {
+        animation: none !important;
+    }
+}
+
+/* Dark Mode spezifische Anpassungen */
+@media (prefers-color-scheme: dark) {
+    .field-background {
+        box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .field-slot {
+        background: rgba(0, 199, 139, 0.12);
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .field-slot {
+        border-width: 3px !important;
+    }
+
+    .player-card {
+        border-width: 3px !important;
+    }
+
+    .validation-item {
+        border-left-width: 5px !important;
+    }
+}
+
+/* ========== TOUCH-SPECIFIC OPTIMIERUNGEN ========== */
+
+/* Vergrößere Touch-Targets auf Touch-Geräten */
+@media (pointer: coarse) {
+    .quick-remove-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 20px !important;
+    }
+
+    .formation-dropdown,
+    .player-search,
+    .position-filter,
+    .sort-select {
+        min-height: 48px !important;
+        font-size: 16px !important; /* Verhindert Auto-Zoom auf iOS */
+    }
+
+    .action-buttons .btn {
+        min-height: 48px !important;
+    }
+
+    .validation-header {
+        min-height: 48px !important;
+    }
+}
+
+/* ========== DEBUGGING HILFE ========== */
+
+/* Aktiviere diese Klasse im HTML für visuelles Debugging */
+.debug-mode .field-slot {
+    border: 2px solid red !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.debug-mode .field-slot::before {
+    content: attr(data-position);
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: red;
+    color: white;
+    font-size: 8px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    z-index: 1000;
+}
+
+/* Zeige aktuelle Y-Position für Debugging */
+.debug-mode .field-slot::after {
+    content: attr(style);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: blue;
+    color: white;
+    font-size: 7px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    z-index: 1000;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ========== NOTIZEN FÜR ENTWICKLER ========== */
+
+/*
+ * WICHTIG: Y-POSITION HANDLING
+ * ============================
+ *
+ * Die Y-Positionen der Field-Slots werden NICHT mehr via CSS überschrieben!
+ *
+ * Stattdessen erfolgt die Anpassung im JavaScript:
+ * - Datei: lineup.js
+ * - Funktion: renderFormationSlots()
+ * - Logik: Portrait-Detection + Y-Koordinaten-Anpassung
+ *
+ * Anpassungen:
+ * - TW (Torwart):           +3% nach unten
+ * - Abwehr (LV, RV, IV, LI): -2% nach oben
+ * - ZDM (Defensives MF):     -2% nach oben
+ * - Sturm (LS, MS, RS, ST):  -3% nach oben
+ * - ZOM, LM, RM:            unverändert
+ *
+ * Vorteile dieser Lösung:
+ * 1. Keine CSS-Spezifitätsprobleme mit !important
+ * 2. Dynamische Anpassung bei Orientierungswechsel
+ * 3. Funktioniert automatisch für alle 9 Formationen
+ * 4. Zentrale Kontrolle in einer Funktion
+ * 5. Einfach wartbar und erweiterbar
+ *
+ * Bei Problemen:
+ * - Prüfe ob lineup.js die aktualisierte renderFormationSlots() hat
+ * - Prüfe ob handleOrientationChange() registriert ist
+ * - Teste mit console.log() die adjustedY Werte
+ * - Aktiviere .debug-mode für visuelle Y-Position-Anzeige
+ */
+
+/* ========== FALLBACK FÜR JAVASCRIPT-DISABLED ========== */
+
+/* Falls JavaScript deaktiviert ist, zeige Warnung */
+.no-js .lineup-container::before {
+    content: 'JavaScript ist erforderlich für die Aufstellung';
+    display: block;
+    background: rgba(245, 101, 101, 0.95);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* ========== PRINT-STYLES ========== */
+
+@media print {
+    /* Verstecke interaktive Elemente beim Drucken */
+    .formation-controls,
+    .action-buttons,
+    .available-players-section,
+    .landscape-hint,
+    .scroll-indicator,
+    .quick-remove-btn {
+        display: none !important;
+    }
+
+    /* Optimiere Spielfeld für Druck */
+    .field-background {
+        min-height: auto !important;
+        page-break-inside: avoid;
+    }
+
+    /* Entferne Animationen für Druck */
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    /* Schwarzweiß-Optimierung */
+    .field-slot,
+    .player-card {
+        border-color: #000 !important;
     }
 }
