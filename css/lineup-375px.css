@@ -339,7 +339,7 @@
 }
 
 /* High Contrast Mode */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
     .field-slot {
         border-width: 3px !important;
     }
@@ -466,36 +466,4 @@
     font-weight: 600;
     border-radius: 10px;
     margin-bottom: 20px;
-}
-
-/* ========== PRINT-STYLES ========== */
-
-@media print {
-    /* Verstecke interaktive Elemente beim Drucken */
-    .formation-controls,
-    .action-buttons,
-    .available-players-section,
-    .landscape-hint,
-    .scroll-indicator,
-    .quick-remove-btn {
-        display: none !important;
-    }
-
-    /* Optimiere Spielfeld für Druck */
-    .field-background {
-        min-height: auto !important;
-        page-break-inside: avoid;
-    }
-
-    /* Entferne Animationen für Druck */
-    * {
-        animation: none !important;
-        transition: none !important;
-    }
-
-    /* Schwarzweiß-Optimierung */
-    .field-slot,
-    .player-card {
-        border-color: #000 !important;
-    }
 }
