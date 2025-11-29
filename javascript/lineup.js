@@ -194,9 +194,6 @@ function calculateEffectiveStrength(player, position) {
 // RENDERING FUNCTIONS
 // ========================================
 
-/**
- * ✅ PORTRAIT FIX: Render Formation Slots mit Y-Anpassung
- */
 function renderFormationSlots() {
     const container = document.getElementById('fieldSlots');
     if (!container) return;
