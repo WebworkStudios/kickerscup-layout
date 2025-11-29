@@ -1,0 +1,239 @@
+/* =====================================================
+   KICKERSCUP - LINEUP 375px FIX
+   Lösung für überlappende Positionen auf kleinen Bildschirmen
+   ===================================================== */
+
+/* Base Mobile (375px - 389px) - VERBESSERT */
+@media (min-width: 375px) and (max-width: 389px) {
+
+    /* ========== SPIELFELD OPTIMIERUNG ========== */
+
+    /* Spielfeld höher machen für bessere Verteilung */
+    .field-background {
+        min-height: 750px !important; /* Von 650px auf 750px erhöht */
+    }
+
+    /* Field Slots Container - mehr Padding oben/unten */
+    .field-slots {
+        padding: 50px 10px !important; /* Mehr vertikaler Raum */
+        position: relative;
+    }
+
+    /* Kleinere Slot-Größe für mehr Platz */
+    .field-slot {
+        width: 70px !important;  /* Von 75px reduziert */
+        height: 90px !important; /* Von 95px reduziert */
+    }
+
+    /* Position-Label kleiner */
+    .slot-position {
+        font-size: 10px !important;
+        padding: 3px 6px;
+    }
+
+    /* Placeholder kleiner */
+    .slot-placeholder {
+        font-size: 24px !important;
+    }
+
+    /* ========== SPIELERKARTEN KOMPAKTER ========== */
+
+    /* Field Cards noch kompakter */
+    .field-card-compact {
+        padding: 7px !important;
+        min-height: 84px !important;
+    }
+
+    .field-card-compact .player-card-name {
+        font-size: 11px !important;
+        margin-bottom: 4px;
+    }
+
+    /* Stats kleiner */
+    .field-stat-item {
+        padding: 3px 5px !important;
+    }
+
+    .field-stat-label {
+        font-size: 9px !important;
+    }
+
+    .field-stat-value {
+        font-size: 12px !important;
+    }
+
+    /* Quick Remove Button kleiner */
+    .quick-remove-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 16px !important;
+        top: 2px;
+        right: 2px;
+    }
+
+    /* ========== FORMATIONS-ANPASSUNGEN ========== */
+
+    /* Optimierte Y-Positionen für 375px Bildschirme */
+    /* Diese Anpassungen helfen, die Positionen besser zu verteilen */
+
+    /* Torwart etwas höher */
+    .field-slot[data-position="TW"] {
+        top: 95% !important;
+    }
+
+    /* Abwehr */
+    .field-slot[data-position="LV"],
+    .field-slot[data-position="RV"],
+    .field-slot[data-position="IV"] {
+        /* Standardposition beibehalten, durch höheres Feld besser verteilt */
+    }
+
+    /* Mittelfeld - etwas nach unten schieben */
+    .field-slot[data-position="LM"],
+    .field-slot[data-position="RM"],
+    .field-slot[data-position="ZM"],
+    .field-slot[data-position="DM"],
+    .field-slot[data-position="OM"] {
+        /* Wird durch das höhere Feld automatisch besser verteilt */
+    }
+
+    /* Sturm - höher positionieren */
+    .field-slot[data-position="LA"],
+    .field-slot[data-position="RA"],
+    .field-slot[data-position="ST"],
+    .field-slot[data-position="MS"] {
+        /* Wird durch das höhere Feld automatisch besser verteilt */
+    }
+
+    /* ========== WEITERE OPTIMIERUNGEN ========== */
+
+    /* Formation Controls kompakter */
+    .formation-controls {
+        padding: 18px 12px !important;
+        gap: 12px !important;
+    }
+
+    .formation-dropdown {
+        font-size: 14px !important;
+        padding: 10px 14px !important;
+    }
+
+    .team-strength-display {
+        padding: 10px 16px !important;
+    }
+
+    .strength-value {
+        font-size: 22px !important;
+    }
+
+    /* Buttons kompakter */
+    .action-buttons .btn {
+        font-size: 13px !important;
+        padding: 10px 14px !important;
+    }
+
+    /* Squad Panel Anpassungen */
+    .bench-section,
+    .available-players-section {
+        padding: 15px 12px !important;
+    }
+
+    .section-title {
+        font-size: 14px !important;
+        gap: 6px;
+    }
+
+    /* Bench Slots - 2 Spalten statt 3 für bessere Lesbarkeit */
+    .bench-slots {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .bench-slot {
+        min-height: 120px !important;
+    }
+
+    /* Available Players */
+    .available-players-list {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        max-height: 380px !important;
+    }
+
+    .player-mini-card {
+        min-height: 85px !important;
+        padding: 9px !important;
+    }
+
+    .mini-card-name {
+        font-size: 12px !important;
+    }
+
+    .mini-card-info {
+        font-size: 10px !important;
+    }
+
+    .mini-card-ew-value {
+        font-size: 15px !important;
+    }
+
+    /* Validation Panel */
+    .validation-panel {
+        margin-bottom: 20px !important;
+    }
+
+    .validation-header {
+        padding: 10px 12px !important;
+    }
+
+    .validation-content {
+        padding: 10px 12px !important;
+    }
+
+    /* Landscape Hint */
+    .landscape-hint {
+        padding: 10px 15px !important;
+        bottom: 85px !important;
+    }
+
+    .landscape-hint-text {
+        font-size: 11px !important;
+    }
+}
+
+/* ========== ALTERNATIVE: Querformat-Optimierung ========== */
+/* Falls das Gerät im Landscape-Modus ist, nutzen wir die volle Breite besser */
+
+@media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
+    .field-background {
+        min-height: 500px !important; /* Im Querformat niedriger */
+    }
+
+    .field-slots {
+        padding: 30px 15px !important;
+    }
+
+    .field-slot {
+        width: 65px !important;
+        height: 80px !important;
+    }
+
+    .lineup-main-layout {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 15px;
+    }
+
+    .squad-panel {
+        max-width: 280px;
+    }
+
+    .bench-slots {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .available-players-list {
+        grid-template-columns: repeat(1, 1fr) !important;
+        max-height: 300px !important;
+    }
+}

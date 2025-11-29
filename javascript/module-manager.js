@@ -22,8 +22,8 @@ const moduleRegistry = {
         module: null
     },
     lineup: {
-        scripts: ['./lineup-config.js', './lineup.js'],
-        css: ['css/lineup.css'],
+        scripts: ['./lineup-config.js', './lineup.js', './lineup-responsive.js'],
+        css: ['css/lineup.css', 'css/lineup-375px.css'],
         module: null
     },
     training: {
