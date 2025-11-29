@@ -1266,8 +1266,9 @@ function initEventListeners() {
 }
 
 export function init() {
-    initAudioContext();
+    console.log('🚀 Lineup System wird initialisiert...');
 
+    initAudioContext();
     availablePlayers = [...config.examplePlayers];
 
     renderFormationSlots();
@@ -1284,10 +1285,27 @@ export function init() {
 
     initEventListeners();
 
-    console.log('✅ Lineup System initialisiert (UPDATED)');
+    // ✅ KRITISCHER FIX: Responsive System NACH DOM-Erstellung initialisieren
+    // Dies verhindert, dass lineup-responsive.js auf nicht-existierende Elemente zugreift
+    if (typeof initializeResponsiveLineup === 'function') {
+        console.log('⏳ Warte auf DOM-Readiness für Responsive Init...');
+        setTimeout(() => {
+            const success = initializeResponsiveLineup();
+            if (!success) {
+                console.warn('⚠️ Responsive Init hatte Probleme - prüfe DOM-Struktur');
+            }
+        }, 100); // 100ms Verzögerung gibt DOM Zeit sich zu setzen
+    } else {
+        console.log('ℹ️ initializeResponsiveLineup nicht verfügbar (responsive.js nicht geladen?)');
+    }
+
+    console.log('✅ Lineup System vollständig initialisiert');
 }
 
 export function cleanup() {
+    console.log('🧹 Lineup System Cleanup wird durchgeführt...');
+
+    // Event Listeners entfernen
     eventListeners.forEach(({ element, event, handler, options }) => {
         if (element) {
             element.removeEventListener(event, handler, options);
@@ -1295,6 +1313,7 @@ export function cleanup() {
     });
     eventListeners = [];
 
+    // Ghost-Elemente entfernen
     removeGhost();
     hideScrollIndicator();
 
@@ -1303,6 +1322,7 @@ export function cleanup() {
         scrollIndicatorElement = null;
     }
 
+    // State zurücksetzen
     touchStartPos = null;
     draggedPlayer = null;
     isDragging = false;
@@ -1314,11 +1334,18 @@ export function cleanup() {
     currentDragOverSlot = null;
     placedPlayerIds.clear();
 
+    // Audio Context schließen
     if (audioContext) {
         audioContext.close();
         audioContext = null;
     }
 
-    console.log('🧹 Lineup System Cleanup durchgeführt');
-}
+    // ✅ KRITISCHER FIX: Responsive System aufräumen
+    // Dies verhindert Memory Leaks und doppelte Event Listener
+    if (typeof cleanupResponsiveLineup === 'function') {
+        console.log('🧹 Cleanup: Responsive System...');
+        cleanupResponsiveLineup();
+    }
 
+    console.log('✅ Lineup System Cleanup abgeschlossen');
+}
