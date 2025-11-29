@@ -1524,7 +1524,6 @@
     }
 
     .available-players-list {
-        grid-template-columns: repeat(3, 1fr);
         gap: 12px;
         max-height: 400px;
     }
