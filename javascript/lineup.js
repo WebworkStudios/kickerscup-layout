@@ -6,6 +6,7 @@
 // ✅ TYPE FIX: Assigned expression type number is not assignable to type string behoben
 // ✅ FIX 1: validateLineup erlaubt jetzt 7-10 Spieler mit einer WARNUNG statt einem FEHLER.
 // ✅ FIX 2: saveLineup erzwingt die Mindestanforderung von 7 Spielern (6 Feld + 1 TW).
+// ✅ FIX 3: updateTeamStrength berechnet jetzt die GESAMTSUMME der Stärken.
 // =====================================================
 
 import {LineupConfig} from './lineup-config.js';
@@ -474,6 +475,7 @@ function updatePlayerVisibility(playerId, isPlaced) {
 
 /**
  * Update Team Strength
+ * BUGFIX-KORREKTUR: Es soll die GESAMTSUMME der Stärken (nicht der Durchschnitt) angezeigt werden.
  */
 function updateTeamStrength() {
     const fieldPlayers = fieldSlots.filter(slot => slot.player);
@@ -483,16 +485,16 @@ function updateTeamStrength() {
         return;
     }
 
-    const totalStrength = fieldPlayers.reduce((sum, slot) => {
+    const finalStrengthValue = fieldPlayers.reduce((sum, slot) => {
         const effectiveStrength = calculateEffectiveStrength(slot.player, slot.position);
         return sum + effectiveStrength;
     }, 0);
 
-    const averageStrength = Math.round(totalStrength / fieldPlayers.length);
-
     const strengthElement = document.getElementById('teamStrength');
     if (strengthElement) {
-        strengthElement.textContent = String(averageStrength);
+        // Zeige die Gesamtsumme an (gerundet auf Ganzzahl, da calculateEffectiveStrength dies tut)
+        strengthElement.textContent = Math.round(finalStrengthValue).toString();
+
         strengthElement.classList.add('updating');
         setTimeout(() => strengthElement.classList.remove('updating'), 400);
     }
