@@ -4,7 +4,7 @@
 // UPDATED: Neue Attribute (strength 1-10, stamina, form, freshness, motivation, age)
 // =====================================================
 
-const LineupConfig = {
+export const LineupConfig = {
     // Formation Definitions
     formations: {
         '4-4-2': {
@@ -545,11 +545,3 @@ const LineupConfig = {
         }
     ]
 };
-
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = LineupConfig;
-}
-
-// Make globally available
-window.LineupConfig = LineupConfig;
