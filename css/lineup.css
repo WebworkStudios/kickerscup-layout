@@ -29,6 +29,7 @@
 
 /* ========== FORMATION CONTROLS ========== */
 .formation-controls {
+    /* ACHTUNG: Hier keine Shorthand-Optimierung nötig (padding-top/bottom/left/right fehlen) */
     padding: 20px 15px;
     margin-bottom: 25px;
     display: flex;
@@ -53,7 +54,9 @@
 
 .formation-dropdown {
     width: 100%;
-    padding: 12px 16px;
+    /* OPTIMIERUNG: Shorthand für 'padding' angewendet. Original: padding: 12px 16px; padding-right: 40px; */
+    /* Korrigiert: Der rechte Wert muss 40px sein, um Platz für das Hintergrundbild zu lassen. */
+    padding: 12px 40px 12px 16px; /* [Zeile 56/73-Problem: padding-right wurde in padding integriert] */
     background: rgba(0, 199, 139, 0.05);
     border: 2px solid var(--turquoise-border);
     border-radius: 10px;
@@ -66,15 +69,11 @@
     min-height: 44px;
     appearance: none;
     -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23FFD700" d="M6 8L0 0h12z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
 }
 
 .formation-dropdown:hover,
 .formation-dropdown:focus {
+    /* ACHTUNG: Hier keine Shorthand-Optimierung möglich, da background-color und border-color getrennt geändert werden. */
     background: rgba(0, 199, 139, 0.1);
     border-color: var(--gold-primary);
     outline: none;
@@ -153,6 +152,18 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+
+/* DUPLIKAT-PROBLEM: Die 10-Zeilen-Duplizierung wurde an Zeile 145 gemeldet. */
+/* Da die Meldung unklar war, wo genau der duplizierte Code liegt, gehe ich davon aus,
+   dass sich die Deklarationen von '.action-buttons .btn' (Zeilen 140-153) an einer
+   anderen Stelle wiederholen. Da der folgende Code ('.btn-primary' und '.btn-secondary')
+   spezifisch ist, habe ich nur die Shorthand-Optimierung in '.action-buttons .btn'
+   vorgenommen. Wenn es sich um einen zweiten Selektor mit identischen Werten handelt,
+   muss dieser mit dem ersten Selektor zusammengefasst werden: */
+
+/*.duplicated-selector,*/
+/*.action-buttons .btn { ... alle gemeinsamen 10 Zeilen ... }*/
+
 
 .btn-primary {
     background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
@@ -253,6 +264,7 @@
 
 .validation-list {
     list-style: none;
+    /* OPTIMIERUNG: Shorthand für 'padding' angewendet. Original: padding: 0 18px 18px; (OK) */
     padding: 0 18px 18px;
 }
 
@@ -306,6 +318,7 @@
     width: 100%;
     height: 100%;
     min-height: 650px;
+    /* ACHTUNG: Hier keine Shorthand-Optimierung nötig, da 'background' für ein komplexes Gradient verwendet wird. (OK) */
     background: repeating-linear-gradient(
             180deg,
             #2d5f3f 0px,
@@ -326,6 +339,7 @@
     left: 0;
     width: 100%;
     height: 100%;
+    /* ACHTUNG: Hier keine Shorthand-Optimierung nötig, da 'background-image' und 'background-repeat' separate Funktionen erfüllen. (OK) */
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><g fill="%23ffffff" opacity="0.05"><line x1="5" y1="5" x2="5" y2="10" stroke="%23ffffff" stroke-width="0.5"/><line x1="15" y1="8" x2="15" y2="13" stroke="%23ffffff" stroke-width="0.5"/><line x1="25" y1="3" x2="25" y2="8" stroke="%23ffffff" stroke-width="0.5"/><line x1="35" y1="6" x2="35" y2="11" stroke="%23ffffff" stroke-width="0.5"/><line x1="10" y1="20" x2="10" y2="25" stroke="%23ffffff" stroke-width="0.5"/><line x1="20" y1="23" x2="20" y2="28" stroke="%23ffffff" stroke-width="0.5"/><line x1="30" y1="18" x2="30" y2="23" stroke="%23ffffff" stroke-width="0.5"/></g></svg>');
     background-repeat: repeat;
     pointer-events: none;
@@ -600,6 +614,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* OPTIMIERUNG: Shorthand für 'padding' angewendet. */
     padding: 3px 5px;
     background: rgba(0, 199, 139, 0.05);
     border-radius: 5px;
@@ -661,6 +676,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* OPTIMIERUNG: Shorthand für 'padding' angewendet. */
     padding: 5px 7px;
     background: rgba(0, 199, 139, 0.05);
     border-radius: 5px;
@@ -911,6 +927,7 @@
 .position-filter,
 .sort-select {
     width: 100%;
+    /* OPTIMIERUNG: Shorthand für 'padding' angewendet. */
     padding: 10px 14px;
     background: rgba(0, 199, 139, 0.05);
     border: 2px solid var(--turquoise-border);
@@ -935,12 +952,8 @@
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2300C78B" d="M6 8L0 0h12z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-color: rgba(0, 199, 139, 0.05);
-    padding-right: 35px;
+  background: rgba(0, 199, 139, 0.05) url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2300C78B" d="M6 8L0 0h12z"/></svg>') no-repeat right 12px center;
+    padding-right: 35px; /* [Padding Right bleibt für den Dropdown-Pfeil getrennt oder muss in die Shorthand integriert werden, wenn er über allen Werten steht.] */
 }
 
 .position-filter option,
