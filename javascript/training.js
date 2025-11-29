@@ -14,12 +14,42 @@ const trainingCategories = {
         icon: '🏃',
         color: '#48bb78', // --color-kondition
         options: [
-            { id: 'brutale_kondition', name: 'Brutale Kondition', effect: '+4 Kondition, -3 Frische', impacts: { kondition: 4, form: -1, frische: -3, motivation: 0 } },
-            { id: 'harte_kondition', name: 'harte Kondition', effect: '+3 Kondition, -2 Frische', impacts: { kondition: 3, form: -1, frische: -2, motivation: 0 } },
-            { id: 'zirkeltraining', name: 'Zirkeltraining', effect: '+3 Kondition, -2 Frische', impacts: { kondition: 3, form: 0, frische: -2, motivation: 0 } },
-            { id: 'waldlauf', name: 'Waldlauf', effect: '+2 Kondition, -1 Frische, +1 Motivation', impacts: { kondition: 2, form: 0, frische: -1, motivation: 1 } },
-            { id: 'zweikampf', name: 'Zweikampf', effect: '+2 Kondition, +1 Form, -2 Frische', impacts: { kondition: 2, form: 1, frische: -2, motivation: 0 } },
-            { id: 'leichte_kondition', name: 'leichte Kondition', effect: '+1 Kondition', impacts: { kondition: 1, form: 0, frische: 0, motivation: 0 } },
+            {
+                id: 'brutale_kondition',
+                name: 'Brutale Kondition',
+                effect: '+4 Kondition, -3 Frische',
+                impacts: {kondition: 4, form: -1, frische: -3, motivation: 0}
+            },
+            {
+                id: 'harte_kondition',
+                name: 'harte Kondition',
+                effect: '+3 Kondition, -2 Frische',
+                impacts: {kondition: 3, form: -1, frische: -2, motivation: 0}
+            },
+            {
+                id: 'zirkeltraining',
+                name: 'Zirkeltraining',
+                effect: '+3 Kondition, -2 Frische',
+                impacts: {kondition: 3, form: 0, frische: -2, motivation: 0}
+            },
+            {
+                id: 'waldlauf',
+                name: 'Waldlauf',
+                effect: '+2 Kondition, -1 Frische, +1 Motivation',
+                impacts: {kondition: 2, form: 0, frische: -1, motivation: 1}
+            },
+            {
+                id: 'zweikampf',
+                name: 'Zweikampf',
+                effect: '+2 Kondition, +1 Form, -2 Frische',
+                impacts: {kondition: 2, form: 1, frische: -2, motivation: 0}
+            },
+            {
+                id: 'leichte_kondition',
+                name: 'leichte Kondition',
+                effect: '+1 Kondition',
+                impacts: {kondition: 1, form: 0, frische: 0, motivation: 0}
+            },
         ]
     },
     technik: {
@@ -27,9 +57,24 @@ const trainingCategories = {
         icon: '⚽',
         color: '#ed8936', // --color-technik
         options: [
-            { id: 'balltechnik', name: 'Balltechnik', effect: '+2 Form, +3 Frische, -3 Kondition', impacts: { kondition: -3, form: 2, frische: 3, motivation: 0 } },
-            { id: 'torschuss', name: 'Torschuss', effect: '+1 Frische, -1 Kondition', impacts: { kondition: -1, form: 0, frische: 1, motivation: 0 } },
-            { id: 'standardsituationen', name: 'Standardsituationen', effect: '+1 Form', impacts: { kondition: 0, form: 1, frische: 0, motivation: 0 } },
+            {
+                id: 'balltechnik',
+                name: 'Balltechnik',
+                effect: '+2 Form, +3 Frische, -3 Kondition',
+                impacts: {kondition: -3, form: 2, frische: 3, motivation: 0}
+            },
+            {
+                id: 'torschuss',
+                name: 'Torschuss',
+                effect: '+1 Frische, -1 Kondition',
+                impacts: {kondition: -1, form: 0, frische: 1, motivation: 0}
+            },
+            {
+                id: 'standardsituationen',
+                name: 'Standardsituationen',
+                effect: '+1 Form',
+                impacts: {kondition: 0, form: 1, frische: 0, motivation: 0}
+            },
         ]
     },
     taktik: {
@@ -37,8 +82,18 @@ const trainingCategories = {
         icon: '🧠',
         color: '#4299e1', // --color-taktik
         options: [
-            { id: 'trainingsspiel', name: 'Trainingsspiel', effect: '+1 Kondition, +1 Form, -1 Frische', impacts: { kondition: 1, form: 1, frische: -1, motivation: 0 } },
-            { id: 'viererkette', name: 'Viererkette', effect: '+1 Form, +1 Frische, -1 Kondition', impacts: { kondition: -1, form: 1, frische: 1, motivation: 0 } },
+            {
+                id: 'trainingsspiel',
+                name: 'Trainingsspiel',
+                effect: '+1 Kondition, +1 Form, -1 Frische',
+                impacts: {kondition: 1, form: 1, frische: -1, motivation: 0}
+            },
+            {
+                id: 'viererkette',
+                name: 'Viererkette',
+                effect: '+1 Form, +1 Frische, -1 Kondition',
+                impacts: {kondition: -1, form: 1, frische: 1, motivation: 0}
+            },
         ]
     },
     regeneration: {
@@ -46,9 +101,24 @@ const trainingCategories = {
         icon: '😴',
         color: '#38b2ac', // --color-regeneration
         options: [
-            { id: 'regeneration', name: 'Regeneration', effect: '+4 Frische, -2 Kondition', impacts: { kondition: -2, form: 0, frische: 4, motivation: 0 } },
-            { id: 'spritzigkeit', name: 'Spritzigkeit', effect: '+3 Frische, +1 Kondition', impacts: { kondition: 1, form: 0, frische: 3, motivation: 0 } },
-            { id: 'freizeit', name: 'Freizeit', effect: '+1 Frische, +1 Motivation, -2 Kondition', impacts: { kondition: -2, form: 0, frische: 1, motivation: 1 } },
+            {
+                id: 'regeneration',
+                name: 'Regeneration',
+                effect: '+4 Frische, -2 Kondition',
+                impacts: {kondition: -2, form: 0, frische: 4, motivation: 0}
+            },
+            {
+                id: 'spritzigkeit',
+                name: 'Spritzigkeit',
+                effect: '+3 Frische, +1 Kondition',
+                impacts: {kondition: 1, form: 0, frische: 3, motivation: 0}
+            },
+            {
+                id: 'freizeit',
+                name: 'Freizeit',
+                effect: '+1 Frische, +1 Motivation, -2 Kondition',
+                impacts: {kondition: -2, form: 0, frische: 1, motivation: 1}
+            },
         ]
     }
 };
@@ -59,7 +129,7 @@ const trainingCategories = {
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 /**
@@ -92,7 +162,7 @@ const formatImpact = (value) => {
  * Helper: Gesamtauswirkungen berechnen
  */
 const calculateTotalImpact = () => {
-    const total = { kondition: 0, form: 0, frische: 0, motivation: 0 };
+    const total = {kondition: 0, form: 0, frische: 0, motivation: 0};
     selectedTrainings.forEach(training => {
         if (training && training.impacts) {
             total.kondition += training.impacts.kondition;
@@ -141,14 +211,14 @@ const renderTotalImpact = () => {
  * Render Training Cards (UPDATED: Nutzt korrekte Klassen und Farben)
  */
 const renderTrainingCards = () => {
-    const container = document.getElementById('trainingCardsGrid'); 
+    const container = document.getElementById('trainingCardsGrid');
     if (!container) return;
 
     let html = '';
-    
+
     // Iteriere über die Kategorien, um das Grid mit Überschriften zu strukturieren
     Object.entries(trainingCategories).forEach(([key, category]) => {
-        
+
         // Optionale Kategorie-Überschrift zur besseren Strukturierung
         html += `<h3 class="category-divider">${category.icon} ${category.name}</h3>`;
 
@@ -179,10 +249,10 @@ const renderTimeline = () => {
 
     // Slots sind nun nummerierte Einheiten
     const slots = [
-        { day: '1. Einheit', index: 0 },
-        { day: '2. Einheit', index: 1 },
-        { day: '3. Einheit', index: 2 },
-        { day: '4. Einheit', index: 3 }
+        {day: '1. Einheit', index: 0},
+        {day: '2. Einheit', index: 1},
+        {day: '3. Einheit', index: 2},
+        {day: '4. Einheit', index: 3}
     ];
 
     container.innerHTML = slots.map((slot) => {
@@ -190,7 +260,7 @@ const renderTimeline = () => {
         const training = selectedTrainings[slot.index] ? findTrainingById(selectedTrainings[slot.index].id) : null;
         const colorStyle = training ? `style="--slot-color: ${training.color};"` : '';
         const filledClass = training ? 'filled' : '';
-        
+
         return `
             <div class="timeline-slot" data-day="${slot.index}">
                 <div class="slot-time">${slot.day}</div>
@@ -277,14 +347,14 @@ const handleDocumentClick = (e) => {
     // Training card clicked - Zuweisung zum nächsten leeren Slot
     if (target.closest('.training-card')) {
         const trainingId = target.closest('.training-card').dataset.trainingId;
-        
+
         // Findet den ersten leeren Slot
         const emptyDayIndex = selectedTrainings.findIndex(t => t === null);
 
         if (emptyDayIndex !== -1) {
             selectTrainingForDay(trainingId, emptyDayIndex);
         } else {
-             alert('Alle Slots sind belegt. Entferne zuerst eine Einheit.');
+            alert('Alle Slots sind belegt. Entferne zuerst eine Einheit.');
         }
     }
 
@@ -293,7 +363,7 @@ const handleDocumentClick = (e) => {
         const dayIndex = parseInt(target.closest('.slot-card-remove').dataset.day);
         removeTraining(dayIndex);
     }
-    
+
     // Klick auf leeren Slot
     if (target.closest('.slot-card-container:not(.filled)')) {
         alert('Wähle eine Trainingseinheit aus der Liste links, um sie diesem Slot zuzuweisen.');
@@ -322,7 +392,7 @@ export function init() {
  * EXPORT für ModuleManager
  */
 export function cleanup() {
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

@@ -4,12 +4,7 @@
 // Modernisiert: ES Modules, keine globalen Variablen
 // =====================================================
 
-import {
-    preloadModule,
-    deactivateCurrentModule,
-    getModuleConfig,
-    setActiveModule
-} from './module-manager.js';
+import {deactivateCurrentModule, getModuleConfig, preloadModule, setActiveModule} from './module-manager.js';
 
 // Private State
 let currentPage = 'dashboard';

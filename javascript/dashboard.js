@@ -4,7 +4,7 @@
 // Modernisiert: ES Modules, const, CSS-Klassen
 // =====================================================
 
-import { navigateTo } from './navigation.js';
+import {navigateTo} from './navigation.js';
 
 // State Management (const für nicht neu zugewiesene Werte)
 let currentFilter = 'alle';
@@ -17,7 +17,7 @@ const eventListeners = [];
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 /**
@@ -245,7 +245,7 @@ export function init() {
 
     // Event Listeners initialisieren
     initEventListeners();
-    
+
     // **WICHTIGE KORREKTUR:** Initialen Filter anwenden, um den korrekten Startzustand sicherzustellen.
     filterNews(currentFilter);
 }
@@ -256,7 +256,7 @@ export function init() {
  */
 export function cleanup() {
     // Entferne alle Event Listener
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

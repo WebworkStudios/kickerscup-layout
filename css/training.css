@@ -6,39 +6,39 @@
 
 /* GLOBAL: Nur noch nicht-farbliche Variablen, falls nötig */
 :root {
-    --tx: 0; 
-    --ty: 0; 
+    --tx: 0;
+    --ty: 0;
     /* ACHTUNG: Alle Farben wurden in .training-container verschoben! */
 }
 
 /* ========== TRAINING CONTAINER (ISOLIERT) ========== */
 .training-container {
     /* TRAINING VARIABLES DEFINITION (Überschreiben globale Farben nur hier!) */
-    --color-kondition: #48bb78;  /* Grün */
-    --color-technik: #ed8936;    /* Orange */
-    --color-taktik: #4299e1;     /* Blau */
-    --color-kraft: #9f7aea;      
-    --color-torschuss: #f56565;  /* Rot (Negativ-Indikator) */
+    --color-kondition: #48bb78; /* Grün */
+    --color-technik: #ed8936; /* Orange */
+    --color-taktik: #4299e1; /* Blau */
+    --color-kraft: #9f7aea;
+    --color-torschuss: #f56565; /* Rot (Negativ-Indikator) */
     --color-regeneration: #38b2ac; /* Türkis (Wird als Hauptakzent genutzt) */
 
     /* Neue Akzentfarben (ersetzen Gold) */
-    --accent-teal: #38b2ac; 
+    --accent-teal: #38b2ac;
     --accent-border: rgba(56, 178, 172, 0.3);
 
     /* Default Fallback Colors for Dynamic Properties */
     --card-color: #00c78b;
     --card-glow: rgba(0, 199, 139, 0.4);
     --slot-color: #00c78b;
-    
+
     /* Variable Zuweisungen (wieder auf Teal umgestellt) */
-    --gold-primary: var(--accent-teal); 
+    --gold-primary: var(--accent-teal);
     --platinum: #E5E7EB; /* Main text color */
-    --turquoise-border: rgba(0, 199, 139, 0.2); 
-    --gold-border: var(--accent-border); 
+    --turquoise-border: rgba(0, 199, 139, 0.2);
+    --gold-border: var(--accent-border);
     --dark-rgb: 26, 26, 26;
     --text-light: #f7fafc;
     --text-muted: #a0aec0;
-    
+
     max-width: 1800px;
     margin: 0 auto;
     padding: 0 20px;
@@ -47,9 +47,9 @@
 /* ========== TRAINING HEADER (VISUELLE AUFWERTUNG - MIT TEAL) ========== */
 .training-header {
     text-align: center;
-    margin-bottom: 25px; 
-    padding-bottom: 15px; 
-    position: relative; 
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    position: relative;
 }
 
 /* Leuchtende Trennlinie (Teal) */
@@ -59,30 +59,30 @@
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px; 
+    width: 80px;
     height: 2px;
     background: var(--accent-teal);
-    box-shadow: 0 0 10px var(--accent-teal); 
+    box-shadow: 0 0 10px var(--accent-teal);
     border-radius: 1px;
 }
 
 .training-header-title {
-    font-size: 36px; 
+    font-size: 36px;
     /* Gradient von Platin zu Weiß/Licht */
-    background: linear-gradient(135deg, var(--platinum), var(--text-light)); 
+    background: linear-gradient(135deg, var(--platinum), var(--text-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 3px; 
+    letter-spacing: 3px;
     margin-bottom: 8px;
-    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), 0 0 5px rgba(255, 255, 255, 0.2); 
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), 0 0 5px rgba(255, 255, 255, 0.2);
 }
 
 .training-header-subtitle {
-    font-size: 14px; 
+    font-size: 14px;
     color: var(--text-muted);
     letter-spacing: 1px;
-    margin-bottom: 15px; 
+    margin-bottom: 15px;
 }
 
 /* Coach's Corner Guide (Teal Akzent) */
@@ -93,12 +93,12 @@
     border: 1px solid var(--accent-border);
     border-left: 6px solid var(--accent-teal); /* Teal Rand */
     border-radius: 12px;
-    padding: 20px 25px; 
+    padding: 20px 25px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .guide-title {
-    font-size: 18px; 
+    font-size: 18px;
     color: var(--accent-teal); /* Teal Titel */
     margin-bottom: 8px;
     font-weight: 700;
@@ -106,13 +106,14 @@
 }
 
 .guide-text {
-    font-size: 14px; 
+    font-size: 14px;
     color: var(--text-light);
     line-height: 1.6;
 }
+
 .guide-text strong {
     color: white;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); 
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 /* ========== MAIN TRAINING LAYOUT ========== */
@@ -150,7 +151,7 @@
 
 /* Visuelle Trennung der Kategorien */
 .category-divider {
-    grid-column: 1 / -1; 
+    grid-column: 1 / -1;
     font-size: 15px;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -168,7 +169,7 @@
 
 .training-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 15px;
 }
 
@@ -185,8 +186,8 @@
     min-height: 180px;
     display: flex;
     flex-direction: column;
-    text-align: center; 
-    border-top: 3px solid var(--card-color, var(--accent-teal)); 
+    text-align: center;
+    border-top: 3px solid var(--card-color, var(--accent-teal));
 }
 
 .training-card::before {
@@ -201,7 +202,7 @@
 
 .training-card:hover {
     transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 20px 50px var(--card-glow, rgba(0, 199, 139, 0.3)); 
+    box-shadow: 0 20px 50px var(--card-glow, rgba(0, 199, 139, 0.3));
     border-color: var(--card-color, var(--accent-teal));
 }
 
@@ -214,7 +215,7 @@
 .card-title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--card-color, var(--accent-teal)); 
+    color: var(--card-color, var(--accent-teal));
     margin-bottom: 4px;
     letter-spacing: 1px;
     line-height: 1.3;
@@ -230,7 +231,7 @@
 .card-subtitle.category-name {
     margin-top: 5px;
     font-style: italic;
-    color: rgba(255, 255, 255, 0.3); 
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* ========== TIMELINE SECTION ========== */
@@ -285,15 +286,15 @@
 }
 
 .tip-item.tip-freshness {
-    color: #f6ad55; 
+    color: #f6ad55;
 }
 
 .tip-item.tip-form {
-    color: var(--color-technik); 
+    color: var(--color-technik);
 }
 
 .tip-item.tip-balance {
-    color: var(--color-taktik); 
+    color: var(--color-taktik);
 }
 
 /* ========== TOTAL IMPACT SUMMARY ========== */
@@ -317,13 +318,13 @@
 
 .impact-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); 
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
 }
 
 .impact-item {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     align-items: center;
     text-align: center;
     padding: 5px 0;
@@ -333,6 +334,7 @@
 .impact-grid .impact-item:nth-child(2n) {
     border-right: none;
 }
+
 .impact-grid .impact-item:nth-child(3),
 .impact-grid .impact-item:nth-child(4) {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -351,11 +353,11 @@
 }
 
 .impact-pos {
-    color: var(--color-kondition); 
+    color: var(--color-kondition);
 }
 
 .impact-neg {
-    color: var(--color-torschuss); 
+    color: var(--color-torschuss);
 }
 
 .impact-zero {
@@ -403,7 +405,7 @@
 
 .slot-card-container.filled {
     border-style: solid;
-    border-color: var(--slot-color, var(--accent-teal)); 
+    border-color: var(--slot-color, var(--accent-teal));
     background: linear-gradient(135deg, var(--slot-color, var(--accent-teal)) 10%, rgba(0, 0, 0, 0.5) 100%);
 }
 
@@ -421,7 +423,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    color: var(--slot-color, var(--accent-teal)); 
+    color: var(--slot-color, var(--accent-teal));
 }
 
 .slot-card-icon {
@@ -526,10 +528,10 @@
 
 @media (min-width: 390px) and (max-width: 767px) {
     .training-cards-grid {
-        grid-template-columns: repeat(2, 1fr); 
+        grid-template-columns: repeat(2, 1fr);
         gap: 16px;
     }
-    
+
     .impact-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -541,6 +543,7 @@
     .impact-grid {
         grid-template-columns: repeat(4, 1fr);
     }
+
     .impact-item {
         flex-direction: row;
         justify-content: space-between;
@@ -549,16 +552,19 @@
         border-top: none !important;
         padding: 5px 8px;
     }
+
     .impact-grid .impact-item:last-child {
         border-right: none;
     }
+
     .impact-grid .impact-item:nth-child(2n) {
-        border-right: 1px solid rgba(255, 255, 255, 0.05); 
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .impact-value {
         font-size: 15px;
     }
+
     .impact-label {
         margin-bottom: 0;
     }
@@ -612,8 +618,9 @@
 
     .timeline-actions {
         flex-direction: row;
-        justify-content: flex-end; 
+        justify-content: flex-end;
     }
+
     .save-btn {
         width: auto;
         min-width: 250px;
@@ -623,9 +630,10 @@
 /* Tablet Portrait (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
     .training-cards-grid {
-        grid-template-columns: repeat(3, 1fr); 
+        grid-template-columns: repeat(3, 1fr);
         gap: 22px;
     }
+
     .slot-card-remove {
         width: 34px;
         height: 34px;
@@ -636,24 +644,29 @@
 /* Desktop (1024px+) */
 @media (min-width: 1024px) {
     .training-main-layout {
-        grid-template-columns: 1fr 500px; 
+        grid-template-columns: 1fr 500px;
         gap: 40px;
     }
+
     .training-cards-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 25px;
     }
+
     .training-card {
-        min-height: 220px; 
+        min-height: 220px;
     }
+
     .card-icon {
         font-size: 50px;
     }
+
     .slot-card-container {
         min-height: 80px;
     }
+
     .coach-corner-guide {
-        margin-left: 20px; 
+        margin-left: 20px;
         margin-right: 20px;
     }
 }

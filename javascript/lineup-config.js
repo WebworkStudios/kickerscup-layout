@@ -10,163 +10,163 @@ export const LineupConfig = {
         '4-4-2': {
             name: '4-4-2',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'LM', x: 15, y: 45 },
-                { position: 'ZDM', x: 35, y: 45 },
-                { position: 'ZDM', x: 65, y: 45 },
-                { position: 'RM', x: 85, y: 45 },
-                { position: 'MS', x: 35, y: 15 },
-                { position: 'MS', x: 65, y: 15 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'LM', x: 15, y: 45},
+                {position: 'ZDM', x: 35, y: 45},
+                {position: 'ZDM', x: 65, y: 45},
+                {position: 'RM', x: 85, y: 45},
+                {position: 'MS', x: 35, y: 15},
+                {position: 'MS', x: 65, y: 15}
             ]
         },
         '4-3-3': {
             name: '4-3-3',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'ZDM', x: 30, y: 50 },
-                { position: 'ZOM', x: 50, y: 45 },
-                { position: 'ZDM', x: 70, y: 50 },
-                { position: 'LS', x: 20, y: 15 },
-                { position: 'MS', x: 50, y: 15 },
-                { position: 'RS', x: 80, y: 15 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'ZDM', x: 30, y: 50},
+                {position: 'ZOM', x: 50, y: 45},
+                {position: 'ZDM', x: 70, y: 50},
+                {position: 'LS', x: 20, y: 15},
+                {position: 'MS', x: 50, y: 15},
+                {position: 'RS', x: 80, y: 15}
             ]
         },
         '4-2-3-1': {
             name: '4-2-3-1',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'ZDM', x: 35, y: 50 },
-                { position: 'ZDM', x: 65, y: 50 },
-                { position: 'LM', x: 15, y: 30 },
-                { position: 'ZOM', x: 50, y: 30 },
-                { position: 'RM', x: 85, y: 30 },
-                { position: 'MS', x: 50, y: 10 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'ZDM', x: 35, y: 50},
+                {position: 'ZDM', x: 65, y: 50},
+                {position: 'LM', x: 15, y: 30},
+                {position: 'ZOM', x: 50, y: 30},
+                {position: 'RM', x: 85, y: 30},
+                {position: 'MS', x: 50, y: 10}
             ]
         },
         '3-4-3': {
             name: '3-4-3',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'IV', x: 25, y: 70 },
-                { position: 'IV', x: 50, y: 70 },
-                { position: 'IV', x: 75, y: 70 },
-                { position: 'LM', x: 15, y: 45 },
-                { position: 'ZDM', x: 38, y: 50 },
-                { position: 'ZDM', x: 62, y: 50 },
-                { position: 'RM', x: 85, y: 45 },
-                { position: 'LS', x: 20, y: 15 },
-                { position: 'MS', x: 50, y: 15 },
-                { position: 'RS', x: 80, y: 15 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'IV', x: 25, y: 70},
+                {position: 'IV', x: 50, y: 70},
+                {position: 'IV', x: 75, y: 70},
+                {position: 'LM', x: 15, y: 45},
+                {position: 'ZDM', x: 38, y: 50},
+                {position: 'ZDM', x: 62, y: 50},
+                {position: 'RM', x: 85, y: 45},
+                {position: 'LS', x: 20, y: 15},
+                {position: 'MS', x: 50, y: 15},
+                {position: 'RS', x: 80, y: 15}
             ]
         },
         '4-5-1': {
             name: '4-5-1',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'LM', x: 15, y: 45 },
-                { position: 'ZDM', x: 35, y: 50 },
-                { position: 'ZOM', x: 50, y: 40 },
-                { position: 'ZDM', x: 65, y: 50 },
-                { position: 'RM', x: 85, y: 45 },
-                { position: 'MS', x: 50, y: 10 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'LM', x: 15, y: 45},
+                {position: 'ZDM', x: 35, y: 50},
+                {position: 'ZOM', x: 50, y: 40},
+                {position: 'ZDM', x: 65, y: 50},
+                {position: 'RM', x: 85, y: 45},
+                {position: 'MS', x: 50, y: 10}
             ]
         },
         '3-5-2': {
             name: '3-5-2',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'IV', x: 25, y: 70 },
-                { position: 'IV', x: 50, y: 70 },
-                { position: 'IV', x: 75, y: 70 },
-                { position: 'LM', x: 10, y: 45 },
-                { position: 'ZDM', x: 30, y: 50 },
-                { position: 'ZOM', x: 50, y: 40 },
-                { position: 'ZDM', x: 70, y: 50 },
-                { position: 'RM', x: 90, y: 45 },
-                { position: 'MS', x: 38, y: 15 },
-                { position: 'MS', x: 62, y: 15 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'IV', x: 25, y: 70},
+                {position: 'IV', x: 50, y: 70},
+                {position: 'IV', x: 75, y: 70},
+                {position: 'LM', x: 10, y: 45},
+                {position: 'ZDM', x: 30, y: 50},
+                {position: 'ZOM', x: 50, y: 40},
+                {position: 'ZDM', x: 70, y: 50},
+                {position: 'RM', x: 90, y: 45},
+                {position: 'MS', x: 38, y: 15},
+                {position: 'MS', x: 62, y: 15}
             ]
         },
         '5-3-2': {
             name: '5-3-2',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LI', x: 10, y: 70 },
-                { position: 'LV', x: 28, y: 70 },
-                { position: 'IV', x: 50, y: 70 },
-                { position: 'RV', x: 72, y: 70 },
-                { position: 'LI', x: 90, y: 70 },
-                { position: 'ZDM', x: 30, y: 45 },
-                { position: 'ZOM', x: 50, y: 40 },
-                { position: 'ZDM', x: 70, y: 45 },
-                { position: 'MS', x: 38, y: 15 },
-                { position: 'MS', x: 62, y: 15 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LI', x: 10, y: 70},
+                {position: 'LV', x: 28, y: 70},
+                {position: 'IV', x: 50, y: 70},
+                {position: 'RV', x: 72, y: 70},
+                {position: 'LI', x: 90, y: 70},
+                {position: 'ZDM', x: 30, y: 45},
+                {position: 'ZOM', x: 50, y: 40},
+                {position: 'ZDM', x: 70, y: 45},
+                {position: 'MS', x: 38, y: 15},
+                {position: 'MS', x: 62, y: 15}
             ]
         },
         '4-1-4-1': {
             name: '4-1-4-1',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'ZDM', x: 50, y: 55 },
-                { position: 'LM', x: 15, y: 35 },
-                { position: 'ZOM', x: 38, y: 35 },
-                { position: 'ZOM', x: 62, y: 35 },
-                { position: 'RM', x: 85, y: 35 },
-                { position: 'MS', x: 50, y: 10 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'ZDM', x: 50, y: 55},
+                {position: 'LM', x: 15, y: 35},
+                {position: 'ZOM', x: 38, y: 35},
+                {position: 'ZOM', x: 62, y: 35},
+                {position: 'RM', x: 85, y: 35},
+                {position: 'MS', x: 50, y: 10}
             ]
         },
         '4-3-1-2': {
             name: '4-3-1-2',
             positions: [
-                { position: 'TW', x: 50, y: 90 },
-                { position: 'LV', x: 15, y: 70 },
-                { position: 'IV', x: 35, y: 70 },
-                { position: 'IV', x: 65, y: 70 },
-                { position: 'RV', x: 85, y: 70 },
-                { position: 'ZDM', x: 30, y: 50 },
-                { position: 'ZDM', x: 50, y: 52 },
-                { position: 'ZDM', x: 70, y: 50 },
-                { position: 'ZOM', x: 50, y: 30 },
-                { position: 'MS', x: 38, y: 10 },
-                { position: 'MS', x: 62, y: 10 }
+                {position: 'TW', x: 50, y: 90},
+                {position: 'LV', x: 15, y: 70},
+                {position: 'IV', x: 35, y: 70},
+                {position: 'IV', x: 65, y: 70},
+                {position: 'RV', x: 85, y: 70},
+                {position: 'ZDM', x: 30, y: 50},
+                {position: 'ZDM', x: 50, y: 52},
+                {position: 'ZDM', x: 70, y: 50},
+                {position: 'ZOM', x: 50, y: 30},
+                {position: 'MS', x: 38, y: 10},
+                {position: 'MS', x: 62, y: 10}
             ]
         }
     },
 
     // Position Categories & Compatibility
     positionCategories: {
-        'TW': { category: 'GK', name: 'Torwart' },
-        'LI': { category: 'DEF', name: 'Linker Innenverteidiger' },
-        'LV': { category: 'DEF', name: 'Linker Verteidiger' },
-        'IV': { category: 'DEF', name: 'Innenverteidiger' },
-        'RV': { category: 'DEF', name: 'Rechter Verteidiger' },
-        'LM': { category: 'MID', name: 'Linkes Mittelfeld' },
-        'RM': { category: 'MID', name: 'Rechtes Mittelfeld' },
-        'ZOM': { category: 'MID', name: 'Zentrales Offensives Mittelfeld' },
-        'ZDM': { category: 'MID', name: 'Zentrales Defensives Mittelfeld' },
-        'MS': { category: 'ATT', name: 'Mittelstürmer' },
-        'LS': { category: 'ATT', name: 'Linksstürmer' },
-        'RS': { category: 'ATT', name: 'Rechtsstürmer' }
+        'TW': {category: 'GK', name: 'Torwart'},
+        'LI': {category: 'DEF', name: 'Linker Innenverteidiger'},
+        'LV': {category: 'DEF', name: 'Linker Verteidiger'},
+        'IV': {category: 'DEF', name: 'Innenverteidiger'},
+        'RV': {category: 'DEF', name: 'Rechter Verteidiger'},
+        'LM': {category: 'MID', name: 'Linkes Mittelfeld'},
+        'RM': {category: 'MID', name: 'Rechtes Mittelfeld'},
+        'ZOM': {category: 'MID', name: 'Zentrales Offensives Mittelfeld'},
+        'ZDM': {category: 'MID', name: 'Zentrales Defensives Mittelfeld'},
+        'MS': {category: 'ATT', name: 'Mittelstürmer'},
+        'LS': {category: 'ATT', name: 'Linksstürmer'},
+        'RS': {category: 'ATT', name: 'Rechtsstürmer'}
     },
 
     // Position Compatibility Rules
@@ -292,7 +292,7 @@ export const LineupConfig = {
             freshness: 95,        // 1-100
             motivation: 10,       // 1-12
             main_position: 'TW',
-            positions: { 'TW': 100 },
+            positions: {'TW': 100},
             status: 'fit'
         },
         {
@@ -305,7 +305,7 @@ export const LineupConfig = {
             freshness: 92,
             motivation: 10,
             main_position: 'IV',
-            positions: { 'IV': 100, 'LV': 85, 'RV': 85, 'ZDM': 75 },
+            positions: {'IV': 100, 'LV': 85, 'RV': 85, 'ZDM': 75},
             status: 'fit'
         },
         {
@@ -318,7 +318,7 @@ export const LineupConfig = {
             freshness: 88,
             motivation: 9,
             main_position: 'IV',
-            positions: { 'IV': 100, 'LI': 90, 'ZDM': 70 },
+            positions: {'IV': 100, 'LI': 90, 'ZDM': 70},
             status: 'fit'
         },
         {
@@ -331,7 +331,7 @@ export const LineupConfig = {
             freshness: 90,
             motivation: 9,
             main_position: 'LV',
-            positions: { 'LV': 100, 'LI': 85, 'LM': 75, 'IV': 80 },
+            positions: {'LV': 100, 'LI': 85, 'LM': 75, 'IV': 80},
             status: 'fit'
         },
         {
@@ -344,7 +344,7 @@ export const LineupConfig = {
             freshness: 87,
             motivation: 8,
             main_position: 'RV',
-            positions: { 'RV': 100, 'RM': 75, 'IV': 80 },
+            positions: {'RV': 100, 'RM': 75, 'IV': 80},
             status: 'fit'
         },
         {
@@ -357,7 +357,7 @@ export const LineupConfig = {
             freshness: 94,
             motivation: 11,
             main_position: 'ZDM',
-            positions: { 'ZDM': 100, 'ZOM': 85, 'IV': 70 },
+            positions: {'ZDM': 100, 'ZOM': 85, 'IV': 70},
             status: 'fit'
         },
         {
@@ -370,7 +370,7 @@ export const LineupConfig = {
             freshness: 96,
             motivation: 12,
             main_position: 'ZOM',
-            positions: { 'ZOM': 100, 'ZDM': 85, 'LM': 80, 'RM': 80, 'MS': 75 },
+            positions: {'ZOM': 100, 'ZDM': 85, 'LM': 80, 'RM': 80, 'MS': 75},
             status: 'fit'
         },
         {
@@ -383,7 +383,7 @@ export const LineupConfig = {
             freshness: 91,
             motivation: 9,
             main_position: 'LM',
-            positions: { 'LM': 100, 'LS': 80, 'LV': 70, 'ZOM': 75 },
+            positions: {'LM': 100, 'LS': 80, 'LV': 70, 'ZOM': 75},
             status: 'fit'
         },
         {
@@ -396,7 +396,7 @@ export const LineupConfig = {
             freshness: 89,
             motivation: 8,
             main_position: 'RM',
-            positions: { 'RM': 100, 'RS': 80, 'RV': 70, 'ZOM': 75 },
+            positions: {'RM': 100, 'RS': 80, 'RV': 70, 'ZOM': 75},
             status: 'fit'
         },
         {
@@ -409,7 +409,7 @@ export const LineupConfig = {
             freshness: 93,
             motivation: 11,
             main_position: 'MS',
-            positions: { 'MS': 100, 'LS': 90, 'RS': 90, 'ZOM': 75 },
+            positions: {'MS': 100, 'LS': 90, 'RS': 90, 'ZOM': 75},
             status: 'fit'
         },
         {
@@ -422,7 +422,7 @@ export const LineupConfig = {
             freshness: 90,
             motivation: 10,
             main_position: 'MS',
-            positions: { 'MS': 100, 'LS': 85, 'RS': 85, 'ZOM': 70 },
+            positions: {'MS': 100, 'LS': 85, 'RS': 85, 'ZOM': 70},
             status: 'fit'
         },
         // Bench players
@@ -436,7 +436,7 @@ export const LineupConfig = {
             freshness: 92,
             motivation: 8,
             main_position: 'TW',
-            positions: { 'TW': 100 },
+            positions: {'TW': 100},
             status: 'fit'
         },
         {
@@ -449,7 +449,7 @@ export const LineupConfig = {
             freshness: 45,
             motivation: 6,
             main_position: 'IV',
-            positions: { 'IV': 100, 'LV': 75, 'RV': 75 },
+            positions: {'IV': 100, 'LV': 75, 'RV': 75},
             status: 'injured'
         },
         {
@@ -462,7 +462,7 @@ export const LineupConfig = {
             freshness: 88,
             motivation: 8,
             main_position: 'ZDM',
-            positions: { 'ZDM': 100, 'ZOM': 80, 'IV': 70 },
+            positions: {'ZDM': 100, 'ZOM': 80, 'IV': 70},
             status: 'fit'
         },
         {
@@ -475,7 +475,7 @@ export const LineupConfig = {
             freshness: 91,
             motivation: 9,
             main_position: 'LM',
-            positions: { 'LM': 100, 'LS': 75, 'LV': 65 },
+            positions: {'LM': 100, 'LS': 75, 'LV': 65},
             status: 'fit'
         },
         {
@@ -488,7 +488,7 @@ export const LineupConfig = {
             freshness: 87,
             motivation: 8,
             main_position: 'RM',
-            positions: { 'RM': 100, 'RS': 75, 'RV': 65 },
+            positions: {'RM': 100, 'RS': 75, 'RV': 65},
             status: 'banned'
         },
         {
@@ -501,7 +501,7 @@ export const LineupConfig = {
             freshness: 89,
             motivation: 9,
             main_position: 'MS',
-            positions: { 'MS': 100, 'LS': 85, 'RS': 85 },
+            positions: {'MS': 100, 'LS': 85, 'RS': 85},
             status: 'fit'
         },
         {
@@ -514,7 +514,7 @@ export const LineupConfig = {
             freshness: 85,
             motivation: 7,
             main_position: 'LV',
-            positions: { 'LV': 100, 'LI': 80, 'LM': 70 },
+            positions: {'LV': 100, 'LI': 80, 'LM': 70},
             status: 'fit'
         },
         {
@@ -527,7 +527,7 @@ export const LineupConfig = {
             freshness: 84,
             motivation: 7,
             main_position: 'RV',
-            positions: { 'RV': 100, 'RM': 70, 'IV': 75 },
+            positions: {'RV': 100, 'RM': 70, 'IV': 75},
             status: 'fit'
         },
         {
@@ -540,7 +540,7 @@ export const LineupConfig = {
             freshness: 86,
             motivation: 8,
             main_position: 'ZOM',
-            positions: { 'ZOM': 100, 'ZDM': 80, 'MS': 65 },
+            positions: {'ZOM': 100, 'ZDM': 80, 'MS': 65},
             status: 'fit'
         }
     ]

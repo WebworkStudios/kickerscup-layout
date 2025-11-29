@@ -97,7 +97,7 @@ const navigateToApp = () => {
  */
 export const init = () => {
     // Attach scroll listener (throttled)
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, {passive: true});
 
     // Navigation buttons
     const navButtons = document.querySelectorAll('.nav-link');

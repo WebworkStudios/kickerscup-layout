@@ -124,8 +124,12 @@
 }
 
 @keyframes strengthPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .action-buttons {
@@ -798,8 +802,12 @@
 }
 
 @keyframes ghostFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
 }
 
 /* ========== SQUAD PANEL ========== */
@@ -957,9 +965,17 @@
 }
 
 /* Legacy class names support (falls woanders verwendet) */
-.player-search-box { composes: player-search; }
-.player-filter-dropdown { composes: position-filter; }
-.player-sort-dropdown { composes: sort-select; }
+.player-search-box {
+    composes: player-search;
+}
+
+.player-filter-dropdown {
+    composes: position-filter;
+}
+
+.player-sort-dropdown {
+    composes: sort-select;
+}
 
 .available-players-list {
     display: grid;
@@ -1125,13 +1141,21 @@
 }
 
 @keyframes scrollBounceUp {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
 }
 
 @keyframes scrollBounceDown {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(4px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(4px);
+    }
 }
 
 .scroll-text {

@@ -2,9 +2,11 @@
 // KICKERSCUP - LINEUP SYSTEM (UPDATED + PORTRAIT FIX)
 // Angepasste Spieler-Cards: Field (kompakt) vs Squad (vollständig)
 // ✅ PORTRAIT FIX: Y-Koordinaten werden im JavaScript angepasst
+// ✅ RESPONSIVE FIX: Aufrufe zu externer responsive-lineup.js entfernt
+// ✅ TYPE FIX: Assigned expression type number is not assignable to type string behoben
 // =====================================================
 
-import { LineupConfig } from './lineup-config.js';
+import {LineupConfig} from './lineup-config.js';
 
 // State
 let currentFormation = '4-4-2';
@@ -42,15 +44,17 @@ const config = LineupConfig;
 function addEventListener(element, event, handler, options) {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 }
 
 /**
  * Initialize Audio Context
  */
 function initAudioContext() {
-    if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextConstructor = window.AudioContext || window['webkitAudioContext'];
+
+    if (!audioContext && AudioContextConstructor) {
+        audioContext = new AudioContextConstructor();
     }
 }
 
@@ -143,23 +147,23 @@ function canPlayPosition(player, targetPosition) {
  */
 function getPositionPenalty(mainPosition, targetPosition) {
     if (mainPosition === targetPosition) {
-        return { text: '', severe: false };
+        return {text: '', severe: false};
     }
 
     const compatibility = config.positionCompatibility[mainPosition];
-    if (!compatibility) return { text: '', severe: true };
+    if (!compatibility) return {text: '', severe: true};
 
     const value = compatibility[targetPosition];
 
     if (value === undefined || value === 0) {
-        return { text: '🚫 Kann Position nicht spielen', severe: true };
+        return {text: '🚫 Kann Position nicht spielen', severe: true};
     } else if (value < 0.7) {
-        return { text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true };
+        return {text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true};
     } else if (value < 0.9) {
-        return { text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false };
+        return {text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false};
     }
 
-    return { text: '', severe: false };
+    return {text: '', severe: false};
 }
 
 /**
@@ -255,7 +259,7 @@ function renderBenchSlots() {
     const container = document.getElementById('benchSlots');
     if (!container) return;
 
-    benchSlots = Array.from({ length: 9 }, (_, i) => ({
+    benchSlots = Array.from({length: 9}, (_, i) => ({
         id: `bench-${i}`,
         player: null
     }));
@@ -282,7 +286,7 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
 
     const penalty = slotPosition
         ? getPositionPenalty(player.main_position, slotPosition)
-        : { text: '', severe: false };
+        : {text: '', severe: false};
 
     const isUnavailable = player.status !== 'fit';
     const canPlay = slotPosition ? canPlayPosition(player, slotPosition) : true;
@@ -489,7 +493,7 @@ function updateTeamStrength() {
 
     const strengthElement = document.getElementById('teamStrength');
     if (strengthElement) {
-        strengthElement.textContent = averageStrength;
+        strengthElement.textContent = String(averageStrength);
         strengthElement.classList.add('updating');
         setTimeout(() => strengthElement.classList.remove('updating'), 400);
     }
@@ -657,7 +661,7 @@ function removePlayerFromLineup(playerId) {
 
     fieldSlots.forEach((slot, index) => {
         if (slot.player && slot.player.id === playerId) {
-            oldPosition = { type: 'field', index };
+            oldPosition = {type: 'field', index};
             slot.player = null;
             renderSlot('field', index);
         }
@@ -665,7 +669,7 @@ function removePlayerFromLineup(playerId) {
 
     benchSlots.forEach((slot, index) => {
         if (slot.player && slot.player.id === playerId) {
-            oldPosition = { type: 'bench', index };
+            oldPosition = {type: 'bench', index};
             slot.player = null;
             renderSlot('bench', index);
         }
@@ -841,7 +845,8 @@ function handleDrop(e) {
     }
 
     const slotType = slot.dataset.slotType;
-    const slotIndex = parseInt(slot.dataset.slotIndex);
+    // ✅ FIX: Konvertiert den String-Wert explizit in eine Zahl
+    const slotIndex = +slot.dataset.slotIndex;
 
     placePlayer(selectedPlayer, slotType, slotIndex);
 
@@ -887,7 +892,7 @@ function handleTouchStart(e) {
     }
 
     const touch = e.touches[0];
-    touchStartPos = { x: touch.clientX, y: touch.clientY };
+    touchStartPos = {x: touch.clientX, y: touch.clientY};
 
     setTimeout(() => {
         if (touchStartPos && !isDragging) {
@@ -919,13 +924,13 @@ function handleTouchMove(e) {
     if (touchY < scrollZoneSize) {
         const intensity = Math.pow(1 - (touchY / scrollZoneSize), 2);
         const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
-        window.scrollBy({ top: -speed, behavior: 'auto' });
+        window.scrollBy({top: -speed, behavior: 'auto'});
         showScrollIndicator('up');
     } else if (touchY > viewportHeight - scrollZoneSize) {
         const distanceFromBottom = viewportHeight - touchY;
         const intensity = Math.pow(1 - (distanceFromBottom / scrollZoneSize), 2);
         const speed = Math.ceil(baseScrollSpeed + (maxScrollSpeed - baseScrollSpeed) * intensity);
-        window.scrollBy({ top: speed, behavior: 'auto' });
+        window.scrollBy({top: speed, behavior: 'auto'});
         showScrollIndicator('down');
     } else {
         hideScrollIndicator();
@@ -988,7 +993,8 @@ function handleTouchEnd(e) {
 
     if (slot && draggedPlayer) {
         const slotType = slot.dataset.slotType;
-        const slotIndex = parseInt(slot.dataset.slotIndex);
+        // ✅ FIX: Konvertiert den String-Wert explizit in eine Zahl
+        const slotIndex = +slot.dataset.slotIndex;
 
         placePlayer(draggedPlayer, slotType, slotIndex);
     }
@@ -1222,9 +1228,9 @@ function initEventListeners() {
             if (e.target.closest('.player-card') || e.target.closest('.player-mini-card')) {
                 handleTouchStart(e);
             }
-        }, { passive: false });
+        }, {passive: false});
 
-        addEventListener(document, 'touchmove', handleTouchMoveThrottled, { passive: false });
+        addEventListener(document, 'touchmove', handleTouchMoveThrottled, {passive: false});
         addEventListener(document, 'touchend', handleTouchEnd);
         addEventListener(document, 'touchcancel', handleTouchCancel);
     }
@@ -1251,7 +1257,7 @@ function initEventListeners() {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
-    }, { passive: false });
+    }, {passive: false});
 
     // ✅ PORTRAIT FIX: Orientation Change Listeners
     addEventListener(window, 'orientationchange', handleOrientationChange);
@@ -1260,6 +1266,8 @@ function initEventListeners() {
     attachSlotEventListeners();
 }
 
+// [LINTER FIX] Unterdrückt die Warnung "Unused function init" (wird extern verwendet)
+/* eslint-disable-next-line no-unused-vars */
 export function init() {
     console.log('🚀 Lineup System wird initialisiert...');
 
@@ -1280,27 +1288,15 @@ export function init() {
 
     initEventListeners();
 
-    // Responsive System initialisieren
-    if (typeof initializeResponsiveLineup === 'function') {
-        console.log('⏳ Warte auf DOM-Readiness für Responsive Init...');
-        setTimeout(() => {
-            const success = initializeResponsiveLineup();
-            if (!success) {
-                console.warn('⚠️ Responsive Init hatte Probleme - prüfe DOM-Struktur');
-            }
-        }, 100);
-    } else {
-        console.log('ℹ️ initializeResponsiveLineup nicht verfügbar');
-    }
-
     console.log('✅ Lineup System vollständig initialisiert');
 }
+
 
 export function cleanup() {
     console.log('🧹 Lineup System Cleanup wird durchgeführt...');
 
     // Event Listeners entfernen
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }
@@ -1332,12 +1328,6 @@ export function cleanup() {
     if (audioContext) {
         audioContext.close();
         audioContext = null;
-    }
-
-    // Responsive System aufräumen
-    if (typeof cleanupResponsiveLineup === 'function') {
-        console.log('🧹 Cleanup: Responsive System...');
-        cleanupResponsiveLineup();
     }
 
     console.log('✅ Lineup System Cleanup abgeschlossen');

@@ -234,7 +234,7 @@
     display: flex;
     flex-direction: column;
     align-items: center; /* Zentriert Logo, Name, Stärke horizontal */
-    text-align: center; 
+    text-align: center;
     justify-content: center; /* Stellt sicher, dass der gesamte Block vertikal zentriert ist */
 }
 
@@ -677,10 +677,10 @@
         align-items: center;
         gap: 20px;
     }
-    
+
     /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
     .match-team {
-        flex: 1; 
+        flex: 1;
         min-width: 0;
     }
 
@@ -769,10 +769,10 @@
         justify-content: center;
         align-items: center;
     }
-    
+
     /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
     .match-team {
-        flex: 1; 
+        flex: 1;
         min-width: 0;
     }
 
@@ -843,10 +843,10 @@
         justify-content: center;
         align-items: center;
     }
-    
+
     /* KORREKTUR: Erzwingt, dass die Team-Container (.match-team) die gleiche Breite einnehmen */
     .match-team {
-        flex: 1; 
+        flex: 1;
         min-width: 0;
     }
 

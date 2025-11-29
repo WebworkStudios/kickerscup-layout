@@ -739,11 +739,10 @@
         grid-column: span 12;
         padding: 25px;
     }
-    
+
     /* Die Regeln für .match-teams und .vs-divider wurden entfernt, 
        um die horizontale Ansicht beizubehalten, auch wenn das 
        Gerät vertikal gehalten wird. */
-
     .team-logo {
         width: 70px;
         height: 70px;

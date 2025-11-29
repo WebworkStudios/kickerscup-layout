@@ -129,7 +129,7 @@ const mockPlayers = [
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 /**
@@ -149,14 +149,14 @@ const calculatePerformance = (player) => {
     let Frische = player.freshness;
     const Motivation = player.motivation;
     const Alter = player.age;
-    
+
     // Status & Aufstellungen (Mock-Werte für die Berechnung)
     const Status = player.isStarter ? 1 : 0;
     const Aufstellungen = player.gamesPlayed > 0 ? 1 : 0;
-    
+
     // WertPO (Positions-Multiplikator) - Default 1
     const WertPO = 1;
-    
+
     // Frische-Berechnung
     if (Frische <= 0) {
         Frische = 0;
@@ -167,7 +167,7 @@ const calculatePerformance = (player) => {
             Frische = 1;
         }
     }
-    
+
     // Alters-Gewichtung
     let WAlter;
     if (Alter < 20) {
@@ -181,14 +181,14 @@ const calculatePerformance = (player) => {
     } else {
         WAlter = 0.9;
     }
-    
+
     // Basis-Einsatzwert Berechnung
-    let SpielerEinsatzWert = ((Spielstaerke - 1) + (Form / 3) + ((Kondition * 10) / 100)) 
-        * WAlter 
-        * Frische 
-        * (((Motivation * 2) + 7) / 27) 
+    let SpielerEinsatzWert = ((Spielstaerke - 1) + (Form / 3) + ((Kondition * 10) / 100))
+        * WAlter
+        * Frische
+        * (((Motivation * 2) + 7) / 27)
         + ((Status + Aufstellungen + 1) / 20);
-    
+
     // Stärke-Multiplikatoren
     if (Spielstaerke > 15) {
         SpielerEinsatzWert = SpielerEinsatzWert * 1.25;
@@ -219,10 +219,10 @@ const calculatePerformance = (player) => {
     } else if (Spielstaerke === 3) {
         SpielerEinsatzWert = SpielerEinsatzWert * 0.6;
     }
-    
+
     // Finaler Einsatzwert
     const EinsatzWert = SpielerEinsatzWert * WertPO;
-    
+
     // Rückgabe mit 2 Dezimalstellen (wie im Original PHP)
     return parseFloat(EinsatzWert.toFixed(2));
 };
@@ -246,9 +246,9 @@ const renderPlayers = () => {
 
         const card = document.createElement('div');
         // Angepasst: captain Klasse bleibt für goldenen Rahmen
-        card.className = `player-card glass ${player.isCaptain ? 'captain' : ''}`; 
+        card.className = `player-card glass ${player.isCaptain ? 'captain' : ''}`;
         card.dataset.playerId = player.id;
-        
+
         card.innerHTML = `
             ${player.isCaptain ? '<div class="captain-badge">Ⓒ</div>' : ''}
             <div class="player-header">
@@ -399,12 +399,12 @@ const showPlayerDetail = (playerId) => {
     if (elements.modalFreshness) elements.modalFreshness.textContent = String(player.freshness);
     if (elements.modalMotivation) elements.modalMotivation.textContent = String(player.motivation);
     if (elements.modalPerformance) elements.modalPerformance.textContent = String(performance);
-    if (elements.modalContract) elements.modalContract.textContent = 
+    if (elements.modalContract) elements.modalContract.textContent =
         `${player.contractYears} ${player.contractYears === 1 ? 'Jahr' : 'Jahre'}`;
     if (elements.modalGames) elements.modalGames.textContent = `${player.gamesPlayed} Spiele`;
-    if (elements.modalStatus) elements.modalStatus.textContent = 
+    if (elements.modalStatus) elements.modalStatus.textContent =
         player.status === 'OK' ? 'Einsatzbereit' :
-        player.status === 'verletzt' ? 'Verletzt' : 'Gesperrt';
+            player.status === 'verletzt' ? 'Verletzt' : 'Gesperrt';
 
     if (elements.progressStrengthLabel) elements.progressStrengthLabel.textContent = String(player.strength);
     if (elements.progressStaminaLabel) elements.progressStaminaLabel.textContent = String(player.stamina);
@@ -591,7 +591,7 @@ export function init() {
  */
 export function cleanup() {
     // Entferne alle Event Listener
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

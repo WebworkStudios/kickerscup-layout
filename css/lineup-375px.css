@@ -9,7 +9,6 @@
 @media (min-width: 375px) and (max-width: 389px) {
 
     /* ========== SPIELFELD OPTIMIERUNG ========== */
-
     /* Spielfeld höher machen für bessere Verteilung */
     .field-background {
         min-height: 750px !important; /* Von 650px auf 750px erhöht */
@@ -23,7 +22,7 @@
 
     /* Kleinere Slot-Größe für mehr Platz */
     .field-slot {
-        width: 70px !important;  /* Von 75px reduziert */
+        width: 70px !important; /* Von 75px reduziert */
         height: 90px !important; /* Von 95px reduziert */
     }
 
@@ -39,7 +38,6 @@
     }
 
     /* ========== SPIELERKARTEN KOMPAKTER ========== */
-
     /* Field Cards noch kompakter */
     .field-card-compact {
         padding: 7px !important;
@@ -74,13 +72,10 @@
     }
 
     /* ========== FORMATIONS-ANPASSUNGEN ========== */
-
     /* ✅ WICHTIG: Keine top-Position Overrides mehr! */
     /* Die Y-Koordinaten werden jetzt dynamisch im JavaScript angepasst */
     /* renderFormationSlots() in lineup.js passt die Positionen automatisch an */
-
     /* ========== WEITERE OPTIMIERUNGEN ========== */
-
     /* Formation Controls kompakter */
     .formation-controls {
         padding: 18px 12px !important;

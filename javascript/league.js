@@ -15,7 +15,7 @@ const eventListeners = [];
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 /**
@@ -23,24 +23,24 @@ const addEventListener = (element, event, handler, options = false) => {
  */
 const generateLeagueTeams = (leagueNumber) => {
     const teams = [
-        { name: 'FC Thunderbolts', emoji: '⚡', strength: 8, isPlayer: true },
-        { name: 'Bayern München', emoji: '🔴', strength: 9 },
-        { name: 'Borussia Dortmund', emoji: '🟡', strength: 8 },
-        { name: 'RB Leipzig', emoji: '⚪', strength: 7 },
-        { name: 'Bayer Leverkusen', emoji: '🔴', strength: 7 },
-        { name: 'Union Berlin', emoji: '🔴', strength: 6 },
-        { name: 'SC Freiburg', emoji: '⚫', strength: 6 },
-        { name: 'Eintracht Frankfurt', emoji: '🦅', strength: 7 },
-        { name: 'VfL Wolfsburg', emoji: '🟢', strength: 6 },
-        { name: 'Borussia M\'gladbach', emoji: '⚫', strength: 6 },
-        { name: 'FSV Mainz 05', emoji: '🔴', strength: 5 },
-        { name: 'VfL Bochum', emoji: '🔵', strength: 5 },
-        { name: 'FC Augsburg', emoji: '🟢', strength: 5 },
-        { name: 'TSG Hoffenheim', emoji: '🔵', strength: 6 },
-        { name: 'VfB Stuttgart', emoji: '🔴', strength: 6 },
-        { name: 'Werder Bremen', emoji: '🟢', strength: 5 },
-        { name: 'FC Köln', emoji: '🔴', strength: 5 },
-        { name: 'Hertha BSC', emoji: '🔵', strength: 4 }
+        {name: 'FC Thunderbolts', emoji: '⚡', strength: 8, isPlayer: true},
+        {name: 'Bayern München', emoji: '🔴', strength: 9},
+        {name: 'Borussia Dortmund', emoji: '🟡', strength: 8},
+        {name: 'RB Leipzig', emoji: '⚪', strength: 7},
+        {name: 'Bayer Leverkusen', emoji: '🔴', strength: 7},
+        {name: 'Union Berlin', emoji: '🔴', strength: 6},
+        {name: 'SC Freiburg', emoji: '⚫', strength: 6},
+        {name: 'Eintracht Frankfurt', emoji: '🦅', strength: 7},
+        {name: 'VfL Wolfsburg', emoji: '🟢', strength: 6},
+        {name: 'Borussia M\'gladbach', emoji: '⚫', strength: 6},
+        {name: 'FSV Mainz 05', emoji: '🔴', strength: 5},
+        {name: 'VfL Bochum', emoji: '🔵', strength: 5},
+        {name: 'FC Augsburg', emoji: '🟢', strength: 5},
+        {name: 'TSG Hoffenheim', emoji: '🔵', strength: 6},
+        {name: 'VfB Stuttgart', emoji: '🔴', strength: 6},
+        {name: 'Werder Bremen', emoji: '🟢', strength: 5},
+        {name: 'FC Köln', emoji: '🔴', strength: 5},
+        {name: 'Hertha BSC', emoji: '🔵', strength: 4}
     ];
 
     // Adjust strength based on league
@@ -152,7 +152,7 @@ const calculateTable = (teams, schedule, tableType) => {
                 }
             }
         }
-        
+
         // --- Away Team Update Logic ---
         if (tableType === 'overall' || tableType === 'away') {
             if (awayTeam) {
@@ -195,7 +195,7 @@ const calculateTable = (teams, schedule, tableType) => {
     if (tableType !== 'overall') {
         return table.filter(team => team.wins + team.draws + team.losses > 0);
     }
-    
+
     return table;
 };
 
@@ -243,9 +243,9 @@ const renderSchedule = (schedule) => {
                     </div>
                     
                     <div class="match-vs">
-                        ${hasResult ? 
-                            `<div class="match-score">${match.homeGoals} : ${match.awayGoals}</div>` : 
-                            '<div class="match-vs-label">vs</div>'}
+                        ${hasResult ?
+            `<div class="match-score">${match.homeGoals} : ${match.awayGoals}</div>` :
+            '<div class="match-vs-label">vs</div>'}
                     </div>
                     
                     <div class="match-team away ${match.away.isPlayer ? 'player-team' : ''}">
@@ -267,7 +267,7 @@ const renderTable = (table) => {
 
     tbody.innerHTML = table.map((entry, index) => {
         const position = index + 1;
-        
+
         // Korrigierte Logik für Positions-Klassen (entsprechend league.css)
         let positionClass = '';
         if (position <= 2) {
@@ -277,7 +277,7 @@ const renderTable = (table) => {
         } else if (position >= 16) {
             positionClass = 'pos-relegation';
         }
-        
+
         // Korrigierte Klasse: 'player-team' statt 'player-row'
         const isPlayerRowClass = entry.isPlayer ? 'player-team' : '';
 
@@ -300,10 +300,10 @@ const renderTable = (table) => {
                 <td>
                     <div class="table-form">
                         ${entry.form.map(result => {
-                            const className = result === 'W' ? 'win' : result === 'D' ? 'draw' : 'loss';
-                            const label = result === 'W' ? 'S' : result === 'D' ? 'U' : 'N';
-                            return `<div class="form-indicator ${className}">${label}</div>`;
-                        }).join('')}
+            const className = result === 'W' ? 'win' : result === 'D' ? 'draw' : 'loss';
+            const label = result === 'W' ? 'S' : result === 'D' ? 'U' : 'N';
+            return `<div class="form-indicator ${className}">${label}</div>`;
+        }).join('')}
                     </div>
                 </td>
             </tr>
@@ -326,7 +326,7 @@ const updateMatchdayDisplay = () => {
 
     // 17 Spieltage in der Hinrunde, insgesamt 34 (hier nur 17 generiert)
     if (prevBtn) prevBtn.disabled = currentMatchday === 1;
-    if (nextBtn) nextBtn.disabled = currentMatchday >= 17; 
+    if (nextBtn) nextBtn.disabled = currentMatchday >= 17;
 };
 
 /**
@@ -357,7 +357,7 @@ const loadLeague = (leagueNumber) => {
 const changeMatchday = (direction) => {
     const newMatchday = currentMatchday + direction;
     // Max. 17 Spieltage für die generierte Hinrunde
-    if (newMatchday < 1 || newMatchday > 17) return; 
+    if (newMatchday < 1 || newMatchday > 17) return;
 
     currentMatchday = newMatchday;
 
@@ -367,7 +367,7 @@ const changeMatchday = (direction) => {
 
     renderSchedule(schedule);
     updateMatchdayDisplay();
-    
+
     // Tabelle ebenfalls neu berechnen, da sich die gespielten Spiele ändern
     const table = calculateTable(teams, schedule, currentTableType);
     renderTable(table);
@@ -425,14 +425,14 @@ const initEventListeners = () => {
  */
 export function init() {
     initEventListeners();
-    
+
     // SIMULATION: currentMatchday auf 2 setzen, 
     // damit Spieltag 1 als 'gespielt' gilt und die Tabelle gefüllt wird.
     if (currentMatchday === 1) {
-        changeMatchday(1); 
+        changeMatchday(1);
     }
-    
-    loadLeague(1); 
+
+    loadLeague(1);
 }
 
 /**
@@ -441,7 +441,7 @@ export function init() {
  */
 export function cleanup() {
     // Remove all event listeners
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }
