@@ -4,6 +4,8 @@
 // ✅ PORTRAIT FIX: Y-Koordinaten werden im JavaScript angepasst
 // ✅ RESPONSIVE FIX: Aufrufe zu externer responsive-lineup.js entfernt
 // ✅ TYPE FIX: Assigned expression type number is not assignable to type string behoben
+// ✅ FIX 1: validateLineup erlaubt jetzt 7-10 Spieler mit einer WARNUNG statt einem FEHLER.
+// ✅ FIX 2: saveLineup erzwingt die Mindestanforderung von 7 Spielern (6 Feld + 1 TW).
 // =====================================================
 
 import {LineupConfig} from './lineup-config.js';
@@ -511,7 +513,7 @@ function updateBenchCount() {
 }
 
 /**
- * Validate Lineup
+ * Validate Lineup - ANGEPASST, um 7-10 Spieler als WARNING zu behandeln
  */
 function validateLineup() {
     const validationPanel = document.getElementById('validationPanel');
@@ -523,12 +525,18 @@ function validateLineup() {
     const messages = [];
     const fieldPlayers = fieldSlots.filter(slot => slot.player);
 
-    // Check: 11 Spieler auf dem Feld?
-    if (fieldPlayers.length < 11) {
+    // NEU: Check Spieleranzahl auf dem Feld (min. 7, ideal 11)
+    if (fieldPlayers.length < 7) {
         messages.push({
             type: 'error',
             icon: '❌',
-            text: `Nur ${fieldPlayers.length}/11 Spieler aufgestellt`
+            text: `Zu wenig Spieler. Mindestens 7 (inkl. TW) benötigt. Aktuell: ${fieldPlayers.length}`
+        });
+    } else if (fieldPlayers.length < 11) {
+        messages.push({
+            type: 'warning',
+            icon: '⚠️',
+            text: `Aufstellung unvollständig. Nur ${fieldPlayers.length}/11 Spieler aufgestellt`
         });
     }
 
@@ -570,6 +578,7 @@ function validateLineup() {
     }
 
     // Update UI
+    // Eine Aufstellung ist jetzt gültig, solange KEIN Fehler vorliegt (d.h. auch mit Warnings)
     const isValid = messages.filter(m => m.type === 'error').length === 0;
 
     if (validationTitle) {
@@ -588,13 +597,20 @@ function validateLineup() {
         `;
     } else {
         const allMessages = messages;
-        if (isValid) {
+        if (isValid && messages.filter(m => m.type === 'warning').length === 0) {
             allMessages.push({
                 type: 'success',
                 icon: '✓',
-                text: 'Aufstellung ist spielbereit'
+                text: 'Aufstellung ist komplett und spielbereit'
+            });
+        } else if (isValid) {
+            allMessages.push({
+                type: 'success',
+                icon: '✓',
+                text: 'Aufstellung ist gültig, aber unvollständig'
             });
         }
+
 
         validationList.innerHTML = allMessages.map(msg => `
             <li class="validation-item ${msg.type}">
@@ -1060,7 +1076,38 @@ function clearLineup() {
     showToast('Aufstellung zurückgesetzt', 'success');
 }
 
+/**
+ * NEU: Checkt die Mindestanforderungen fürs Speichern (7 Spieler, davon 1 TW)
+ */
+function checkSaveReadiness() {
+    // Zählt alle platzierten Spieler (Feld)
+    const fieldPlayersCount = fieldSlots.filter(slot => slot.player).length;
+
+    // 1. Mindestens 7 Spieler auf dem Feld
+    if (fieldPlayersCount < 7) {
+        return {ready: false, message: `Zum Speichern müssen mindestens 7 Spieler auf dem Feld aufgestellt sein. Aktuell: ${fieldPlayersCount}`};
+    }
+
+    // 2. Mindestens ein Torwart aufgestellt (auf der TW-Position)
+    const goalkeeper = fieldSlots.find(slot => slot.position === 'TW' && slot.player);
+    if (!goalkeeper) {
+        return {ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.'};
+    }
+
+    return {ready: true, message: 'Speicherung möglich'};
+}
+
 function saveLineup() {
+
+    // Speicherprüfung durchführen
+    const saveCheck = checkSaveReadiness();
+
+    if (!saveCheck.ready) {
+        showToast(saveCheck.message, 'error');
+        playErrorSound();
+        return; // Speicherung abbrechen
+    }
+
     const lineup = {
         formation: currentFormation,
         date: new Date().toISOString(),
