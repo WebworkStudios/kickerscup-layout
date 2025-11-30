@@ -1,5 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.1)
+// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.2)
+// ✅ CHANGE: Formationswechsel ohne Bestätigungsabfrage
 // ✅ BUGFIX: Portrait-Mode Y-Anpassungen entfernt
 // ✅ Security: XSS-Protection, Input-Validation
 // ✅ Performance: Virtual Scrolling, Memoization, RAF
@@ -1339,6 +1340,10 @@ function navigateSlots(currentSlot, direction) {
 // FORMATION & LINEUP MANAGEMENT
 // =====================================================
 
+/**
+ * Formationswechsel - OHNE Bestätigungsabfrage
+ * Spieler werden automatisch auf kompatible Positionen migriert
+ */
 async function handleFormationChange(e) {
     const newFormation = e.target.value;
 
@@ -1346,50 +1351,42 @@ async function handleFormationChange(e) {
 
     const fieldPlayers = state.fieldSlots.filter(s => s.player);
 
+    // Wenn keine Spieler aufgestellt sind, einfach wechseln
     if (fieldPlayers.length === 0) {
         state.currentFormation = newFormation;
         renderFormationSlots();
         attachSlotEventListeners();
         validateLineup();
-        return;
-    }
-
-    const message = `Formation zu ${newFormation} ändern?
-
-Aktuell aufgestellt: ${fieldPlayers.length} Spieler
-→ Kompatible Positionen werden automatisch übernommen
-→ Inkompatible Spieler wandern auf die Bank
-
-Fortfahren?`;
-
-    if (!confirm(message)) {
-        e.target.value = state.currentFormation;
+        announceToScreenReader(`Formation geändert zu ${newFormation}`);
         return;
     }
 
     // Loading State
     state.isFormationChanging = true;
     setLoadingState(e.target, true);
-    showToast(`Wechsel zu ${newFormation}...`, 'info');
 
     try {
+        // Backup der aktuellen Spieler
         const oldPlayers = state.fieldSlots.map(s => ({
             player: s.player,
             originalPosition: s.position
         })).filter(s => s.player);
 
+        // Formation wechseln
         state.currentFormation = newFormation;
         renderFormationSlots();
 
         let migratedCount = 0;
+        let toBenchCount = 0;
 
+        // Spieler intelligent migrieren
         oldPlayers.forEach(({player, originalPosition}) => {
-            // Try exact position match first
+            // Versuch 1: Exakte Position finden
             let targetSlot = state.fieldSlots.findIndex(s =>
                 !s.player && s.position === originalPosition
             );
 
-            // Try compatible position
+            // Versuch 2: Kompatible Position finden
             if (targetSlot === -1) {
                 targetSlot = state.fieldSlots.findIndex(s =>
                     !s.player && canPlayPosition(player, s.position)
@@ -1401,15 +1398,17 @@ Fortfahren?`;
                 renderSlot('field', targetSlot);
                 migratedCount++;
             } else {
-                // Move to bench
+                // Auf die Bank verschieben
                 const emptyBench = state.benchSlots.findIndex(s => !s.player);
                 if (emptyBench !== -1) {
                     state.benchSlots[emptyBench].player = player;
                     renderSlot('bench', emptyBench);
+                    toBenchCount++;
                 }
             }
         });
 
+        // UI aktualisieren
         updatePlacedPlayersSet();
         renderAvailablePlayers();
         updateTeamStrength();
@@ -1417,8 +1416,13 @@ Fortfahren?`;
         validateLineup();
         attachSlotEventListeners();
 
-        showToast(`${migratedCount}/${oldPlayers.length} Spieler übernommen`, 'success');
-        announceToScreenReader(`Formation geändert zu ${newFormation}. ${migratedCount} Spieler übernommen.`);
+        // Feedback
+        let message = `${newFormation}: ${migratedCount} Spieler übernommen`;
+        if (toBenchCount > 0) {
+            message += `, ${toBenchCount} auf Bank`;
+        }
+        showToast(message, 'success');
+        announceToScreenReader(message);
 
     } finally {
         state.isFormationChanging = false;
