@@ -29,6 +29,9 @@
     --bp-mobile-max: 428px;
     --bp-tablet: 768px;
     --bp-desktop: 1024px;
+
+    /* Page Transition */
+    --page-transition-duration: 150ms;
 }
 
 /* ========== HARD MINIMUM ENFORCEMENT ========== */
@@ -425,6 +428,62 @@ h1, h2, h3 {
     min-height: 100vh;
     max-width: 100vw;
     overflow-x: hidden;
+    /* Page Transition - Flicker-Free Navigation */
+    opacity: 1;
+    transition: opacity var(--page-transition-duration) ease-out;
+    will-change: opacity;
+}
+
+/* ========== PAGE TRANSITION STATES ========== */
+.content-wrapper.page-loading {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.content-wrapper.page-ready {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ========== DELAYED LOADING INDICATOR ========== */
+.page-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    opacity: 0;
+    animation: loaderFadeIn 0.3s ease-out 0.3s forwards;
+}
+
+@keyframes loaderFadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.page-loader .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(0, 199, 139, 0.2);
+    border-top-color: var(--gold-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.page-loader .loading-text {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ========== RESPONSIVE BREAKPOINTS ========== */
@@ -725,5 +784,9 @@ h1, h2, h3 {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+
+    .content-wrapper {
+        transition: none !important;
     }
 }
