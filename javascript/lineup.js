@@ -349,30 +349,24 @@ function renderFormationSlots(preservePlayers = false) {
     const formation = config.formations[state.currentFormation];
     if (!formation) return;
 
-    // ✅ Spieler-Backup erstellen, wenn gewünscht
+    // ✅ FIX: Backup basierend auf dem Index erstellen, nicht auf dem Positionsnamen.
+    // Das verhindert Duplikate, wenn eine Position (z.B. "IV") mehrfach existiert.
     const playerBackup = preservePlayers
-        ? new Map(state.fieldSlots
-            .filter(slot => slot.player)
-            .map(slot => [slot.position, slot.player]))
+        ? new Map(state.fieldSlots.map((slot, index) => [index, slot.player]))
         : new Map();
-
-    // ✅ BUGFIX: Keine Y-Anpassungen mehr
-    // Die Formationen aus lineup-config.js sind bereits korrekt definiert
-    // Y-Werte: 0% = Oben (Angreifer), 100% = Unten (Torwart)
-    // Portrait-Mode wird nur durch CSS (field-background min-height) angepasst
 
     state.fieldSlots = formation.positions.map((pos, index) => {
         return {
             id: `field-${index}`,
             position: pos.position,
             x: pos.x,
-            y: pos.y, // ✅ Original Y-Wert beibehalten
-            // ✅ Spieler wiederherstellen, falls vorhanden
-            player: playerBackup.get(pos.position) || null
+            y: pos.y,
+            // ✅ FIX: Spieler anhand des Index wiederherstellen
+            player: playerBackup.get(index) || null
         };
     });
 
-    // HTML nur für leere Slots rendern
+    // HTML nur für leere Slots rendern (besetzte Slots werden später separat gefüllt)
     container.innerHTML = state.fieldSlots.map((slot, index) => {
         const positionName = POSITION_NAMES[slot.position] || slot.position;
 
