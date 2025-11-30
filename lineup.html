@@ -1,19 +1,19 @@
 <!-- AUFSTELLUNG PAGE (FULLY ACCESSIBLE & OPTIMIZED v2.0) -->
 
 <!-- Skip-Links für Accessibility (NEU) -->
-<a href="#fieldSlots" class="skip-link">Direkt zum Spielfeld</a>
-<a href="#availablePlayersList" class="skip-link">Direkt zur Spielerliste</a>
+<a class="skip-link" href="#fieldSlots">Direkt zum Spielfeld</a>
+<a class="skip-link" href="#availablePlayersList">Direkt zur Spielerliste</a>
 
 <!-- Landscape Hint for Portrait Mode -->
-<div class="landscape-hint" id="landscapeHint" role="status" aria-live="polite">
+<div aria-live="polite" class="landscape-hint" id="landscapeHint" role="status">
     <div class="landscape-hint-content">
-        <span class="landscape-hint-icon" aria-hidden="true">🔄</span>
+        <span aria-hidden="true" class="landscape-hint-icon">🔄</span>
         <p class="landscape-hint-text">Tipp: Drehe dein Gerät für eine bessere Ansicht</p>
     </div>
 </div>
 
 <!-- Screen Reader Live Region -->
-<div id="aria-live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+<div aria-atomic="true" aria-live="polite" class="sr-only" id="aria-live-region" role="status"></div>
 
 <div class="lineup-header">
     <h1 class="lineup-title">AUFSTELLUNG</h1>
@@ -24,10 +24,10 @@
 <div class="formation-controls glass">
     <div class="formation-selector">
         <label class="formation-label" for="formationSelect">Formation:</label>
-        <select class="formation-dropdown"
-                id="formationSelect"
+        <select aria-describedby="formation-help"
                 aria-label="Wähle Formation"
-                aria-describedby="formation-help">
+                class="formation-dropdown"
+                id="formationSelect">
             <option value="4-4-2">4-4-2 (Klassisch)</option>
             <option value="4-3-3">4-3-3 (Offensiv)</option>
             <option value="4-2-3-1">4-2-3-1 (Ausgeglichen)</option>
@@ -38,48 +38,48 @@
             <option value="4-1-4-1">4-1-4-1 (Holding)</option>
             <option value="4-3-1-2">4-3-1-2 (Diamant)</option>
         </select>
-        <span id="formation-help" class="sr-only">
+        <span class="sr-only" id="formation-help">
             Ändern der Formation wird die aktuelle Aufstellung intelligentüber nehmen oder auf die Bank verschieben
         </span>
     </div>
 
     <div class="team-strength-display">
         <span class="strength-label">Gesamtstärke:</span>
-        <span class="strength-value"
-              id="teamStrength"
-              role="status"
+        <span aria-atomic="true"
               aria-live="polite"
-              aria-atomic="true">0</span>
+              class="strength-value"
+              id="teamStrength"
+              role="status">0</span>
         <span class="strength-context" id="strengthContext"></span>
     </div>
 
     <div class="action-buttons">
-        <button class="btn btn-secondary"
-                id="clearLineup"
-                aria-label="Aufstellung zurücksetzen">
+        <button aria-label="Aufstellung zurücksetzen"
+                class="btn btn-secondary"
+                id="clearLineup">
             <span aria-hidden="true">🗑️</span> Zurücksetzen
         </button>
-        <button class="btn btn-primary"
-                id="saveLineup"
-                aria-label="Aufstellung speichern">
+        <button aria-label="Aufstellung speichern"
+                class="btn btn-primary"
+                id="saveLineup">
             <span aria-hidden="true">💾</span> Speichern
         </button>
     </div>
 </div>
 
 <!-- Validation Messages -->
-<div class="validation-panel collapsed" id="validationPanel" role="region" aria-labelledby="validation-title">
-    <div class="validation-header" id="validationHeader" role="button" tabindex="0" aria-expanded="false">
-        <span class="validation-icon" aria-hidden="true">✓</span>
+<div aria-labelledby="validation-title" class="validation-panel collapsed" id="validationPanel" role="region">
+    <div aria-expanded="false" class="validation-header" id="validationHeader" role="button" tabindex="0">
+        <span aria-hidden="true" class="validation-icon">✓</span>
         <span class="validation-title" id="validation-title">Aufstellung gültig</span>
-        <button class="validation-toggle"
-                id="validationToggle"
+        <button aria-controls="validationContent"
                 aria-label="Validierung ein-/ausklappen"
-                aria-controls="validationContent">
+                class="validation-toggle"
+                id="validationToggle">
             <span aria-hidden="true">▼</span>
         </button>
     </div>
-    <div class="validation-content" id="validationContent" aria-hidden="true">
+    <div aria-hidden="true" class="validation-content" id="validationContent">
         <ul class="validation-list" id="validationList" role="list">
             <!-- Validation messages will be inserted here -->
         </ul>
@@ -90,17 +90,17 @@
 <div class="lineup-main-layout">
     <!-- Football Field -->
     <div class="field-container glass">
-        <div class="field-background" role="application" aria-label="Fußballfeld mit Spielerpositionen">
-            <div class="field-lines" aria-hidden="true">
+        <div aria-label="Fußballfeld mit Spielerpositionen" class="field-background" role="application">
+            <div aria-hidden="true" class="field-lines">
                 <div class="field-line center-line"></div>
                 <div class="field-line center-circle"></div>
                 <div class="field-line penalty-area penalty-area-top"></div>
                 <div class="field-line penalty-area penalty-area-bottom"></div>
             </div>
-            <div class="field-slots"
+            <div aria-label="Spielfeld-Positionen"
+                 class="field-slots"
                  id="fieldSlots"
-                 role="group"
-                 aria-label="Spielfeld-Positionen">
+                 role="group">
                 <!-- Formation slots will be rendered here -->
             </div>
         </div>
@@ -113,12 +113,12 @@
             <h3 class="section-title">
                 <span aria-hidden="true">📋</span>
                 <span>Bank</span>
-                <span class="bench-count" id="benchCount" aria-live="polite">(0/9)</span>
+                <span aria-live="polite" class="bench-count" id="benchCount">(0/9)</span>
             </h3>
-            <div class="bench-slots"
+            <div aria-label="Bank-Positionen"
+                 class="bench-slots"
                  id="benchSlots"
-                 role="group"
-                 aria-label="Bank-Positionen">
+                 role="group">
                 <!-- Bench slots will be rendered here -->
             </div>
         </div>
@@ -131,15 +131,15 @@
                     <span>Kader</span>
                 </h3>
                 <div class="players-controls">
-                    <input class="player-search"
+                    <input aria-label="Spieler durchsuchen"
+                           autocomplete="off"
+                           class="player-search"
                            id="playerSearch"
                            placeholder="🔍 Spieler suchen..."
-                           type="search"
-                           aria-label="Spieler durchsuchen"
-                           autocomplete="off">
-                    <select class="position-filter"
-                            id="positionFilter"
-                            aria-label="Nach Position filtern">
+                           type="search">
+                    <select aria-label="Nach Position filtern"
+                            class="position-filter"
+                            id="positionFilter">
                         <option value="">Alle Positionen</option>
                         <option value="TW">🥅 Torwart (TW)</option>
                         <option value="DEF">🛡️ Abwehr</option>
@@ -158,9 +158,9 @@
                         <option value="LS">Linksstürmer (LS)</option>
                         <option value="RS">Rechtsstürmer (RS)</option>
                     </select>
-                    <select class="sort-select"
-                            id="sortSelect"
-                            aria-label="Spieler sortieren">
+                    <select aria-label="Spieler sortieren"
+                            class="sort-select"
+                            id="sortSelect">
                         <option value="strength">⭐ Nach Stärke</option>
                         <option value="name">🔤 Nach Name</option>
                         <option value="position">📍 Nach Position</option>
@@ -168,10 +168,10 @@
                     </select>
                 </div>
             </div>
-            <div class="available-players-list"
+            <div aria-label="Verfügbare Spieler"
+                 class="available-players-list"
                  id="availablePlayersList"
-                 role="list"
-                 aria-label="Verfügbare Spieler">
+                 role="list">
                 <!-- Available players will be rendered here -->
             </div>
         </div>
@@ -181,16 +181,16 @@
 <!-- Touch Mode Instructions (Mobile) -->
 <div class="touch-instructions" id="touchInstructions" role="status">
     <div class="touch-instructions-content">
-        <span class="touch-icon" aria-hidden="true">👆</span>
+        <span aria-hidden="true" class="touch-icon">👆</span>
         <p>Spieler gedrückt halten und auf Position ziehen</p>
     </div>
 </div>
 
 <!-- Undo Toast (Template) -->
 <template id="undoToastTemplate">
-    <div class="toast-undo" role="alert" aria-live="assertive">
+    <div aria-live="assertive" class="toast-undo" role="alert">
         <span class="toast-message"></span>
-        <button class="undo-btn" aria-label="Aktion rückgängig machen">
+        <button aria-label="Aktion rückgängig machen" class="undo-btn">
             <span aria-hidden="true">↶</span> Rückgängig
         </button>
     </div>

@@ -169,6 +169,7 @@ function setsEqual(a, b) {
     }
     return true;
 }
+
 /**
  * Debounce Function
  */
@@ -340,12 +341,20 @@ function getStatusBadgeHTML(player) {
 // RENDERING FUNCTIONS
 // =====================================================
 
-function renderFormationSlots() {
+function renderFormationSlots(preservePlayers = false) {
     const container = document.getElementById('fieldSlots');
     if (!container) return;
 
     const formation = config.formations[state.currentFormation];
     if (!formation) return;
+
+    // ✅ Spieler-Backup erstellen, wenn gewünscht
+    // Map: position -> player (z.B. "TW" -> {id: 1, name: "Max Neuer", ...})
+    const playerBackup = preservePlayers
+        ? new Map(state.fieldSlots
+            .filter(slot => slot.player)
+            .map(slot => [slot.position, slot.player]))
+        : new Map();
 
     const isPortrait = window.matchMedia('(orientation: portrait)').matches;
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
@@ -353,6 +362,7 @@ function renderFormationSlots() {
     state.fieldSlots = formation.positions.map((pos, index) => {
         let adjustedY = pos.y;
 
+        // Portrait-Anpassungen für bessere Darstellung
         if (isPortrait && isMobile) {
             if (pos.position === 'TW') {
                 adjustedY = Math.min(93, pos.y + 3);
@@ -370,10 +380,12 @@ function renderFormationSlots() {
             position: pos.position,
             x: pos.x,
             y: adjustedY,
-            player: null
+            // ✅ Spieler wiederherstellen, falls vorhanden
+            player: playerBackup.get(pos.position) || null
         };
     });
 
+    // HTML nur für leere Slots rendern
     container.innerHTML = state.fieldSlots.map((slot, index) => {
         const positionName = POSITION_NAMES[slot.position] || slot.position;
 
@@ -1322,7 +1334,7 @@ function navigateSlots(currentSlot, direction) {
 
     let nextIndex = currentIndex;
 
-    switch(direction) {
+    switch (direction) {
         case 'ArrowRight':
             nextIndex = (currentIndex + 1) % allSlots.length;
             break;
@@ -1616,26 +1628,34 @@ function handleOrientationChange() {
     orientationTimeout = setTimeout(() => {
         debug('🔄 Orientation changed, re-rendering formation...');
 
-        renderFormationSlots();
+        // ✅ SCHRITT 1: Formation mit Spieler-Erhaltung neu rendern
+        renderFormationSlots(true);
 
+        // ✅ SCHRITT 2: Alle Slots mit Spielern visuell aktualisieren
         state.fieldSlots.forEach((slot, index) => {
             if (slot.player) {
-                renderSlot('field', index);
+                renderSlot('field', index, false); // false = keine Animation
             }
         });
 
+        // ✅ SCHRITT 3: Bank-Slots aktualisieren (nicht betroffen, aber sicherheitshalber)
         state.benchSlots.forEach((slot, index) => {
             if (slot.player) {
-                renderSlot('bench', index);
+                renderSlot('bench', index, false);
             }
         });
 
+        // ✅ SCHRITT 4: UI-State aktualisieren
         updateTeamStrength();
         updateBenchCount();
         validateLineup();
+
+        // ✅ SCHRITT 5: Event Listeners neu anbinden (wichtig für neue DOM-Elemente)
         attachSlotEventListeners();
 
         orientationTimeout = null;
+
+        debug('✅ Orientation change complete');
     }, ANIMATION_DURATIONS.ORIENTATION_CHANGE_DELAY);
 }
 
