@@ -1,4 +1,8 @@
-<!-- AUFSTELLUNG PAGE (FULLY ACCESSIBLE & OPTIMIZED) -->
+<!-- AUFSTELLUNG PAGE (FULLY ACCESSIBLE & OPTIMIZED v2.0) -->
+
+<!-- Skip-Links für Accessibility (NEU) -->
+<a href="#fieldSlots" class="skip-link">Direkt zum Spielfeld</a>
+<a href="#availablePlayersList" class="skip-link">Direkt zur Spielerliste</a>
 
 <!-- Landscape Hint for Portrait Mode -->
 <div class="landscape-hint" id="landscapeHint" role="status" aria-live="polite">
@@ -35,7 +39,7 @@
             <option value="4-3-1-2">4-3-1-2 (Diamant)</option>
         </select>
         <span id="formation-help" class="sr-only">
-            Ändern der Formation wird die aktuelle Aufstellung zurücksetzen
+            Ändern der Formation wird die aktuelle Aufstellung intelligentüber nehmen oder auf die Bank verschieben
         </span>
     </div>
 
@@ -64,8 +68,8 @@
 </div>
 
 <!-- Validation Messages -->
-<div class="validation-panel" id="validationPanel" role="region" aria-labelledby="validation-title">
-    <div class="validation-header" id="validationHeader" role="button" tabindex="0" aria-expanded="true">
+<div class="validation-panel collapsed" id="validationPanel" role="region" aria-labelledby="validation-title">
+    <div class="validation-header" id="validationHeader" role="button" tabindex="0" aria-expanded="false">
         <span class="validation-icon" aria-hidden="true">✓</span>
         <span class="validation-title" id="validation-title">Aufstellung gültig</span>
         <button class="validation-toggle"
@@ -75,7 +79,7 @@
             <span aria-hidden="true">▼</span>
         </button>
     </div>
-    <div class="validation-content" id="validationContent" aria-hidden="false">
+    <div class="validation-content" id="validationContent" aria-hidden="true">
         <ul class="validation-list" id="validationList" role="list">
             <!-- Validation messages will be inserted here -->
         </ul>
@@ -136,7 +140,6 @@
                     <select class="position-filter"
                             id="positionFilter"
                             aria-label="Nach Position filtern">
-                        <option value="">Alle Positionen</option>
                         <option value="">Alle Positionen</option>
                         <option value="TW">🥅 Torwart (TW)</option>
                         <option value="DEF">🛡️ Abwehr</option>

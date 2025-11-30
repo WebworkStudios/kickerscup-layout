@@ -1,9 +1,10 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY)
+// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.0)
 // ✅ Security: XSS-Protection, Input-Validation
 // ✅ Performance: Virtual Scrolling, Memoization, RAF
 // ✅ Accessibility: ARIA, Keyboard-Navigation, Screen-Reader
 // ✅ UX: Undo, Smart-Migration, Haptic-Feedback
+// ✅ FIXED: Memory Leaks, Race Conditions, Error Handling
 // =====================================================
 
 import {LineupConfig} from './lineup-config.js';
@@ -24,7 +25,16 @@ const CONFIG = {
     UNDO_TIMEOUT_MS: 5000,
     MAX_UNDO_STACK: 10,
     VIRTUAL_SCROLL_ITEM_HEIGHT: 95,
-    CACHE_STRENGTH_DURATION_MS: 1000
+    CACHE_STRENGTH_DURATION_MS: 1000,
+    DEBOUNCE_SEARCH_MS: 200,
+    MIN_ANNOUNCEMENT_INTERVAL_MS: 2000
+};
+
+const ANIMATION_DURATIONS = {
+    JUST_FILLED: 500,
+    DRAG_START_PULSE: 150,
+    TOAST_DISPLAY: 5000,
+    ORIENTATION_CHANGE_DELAY: 150
 };
 
 const POSITION_NAMES = {
@@ -41,6 +51,8 @@ const POSITION_NAMES = {
     'LS': 'Linksstürmer',
     'RS': 'Rechtsstürmer'
 };
+
+const DEBUG = false; // In production: false
 
 // =====================================================
 // STATE MANAGEMENT
@@ -73,6 +85,10 @@ class LineupState {
 
         // Audio
         this.audioContext = null;
+
+        // UI State
+        this.isFormationChanging = false;
+        this.isSaving = false;
     }
 
     reset() {
@@ -84,6 +100,8 @@ class LineupState {
         this.undoStack = [];
         this.cachedStrength = null;
         this.lastFieldPlayerIds.clear();
+        this.isFormationChanging = false;
+        this.isSaving = false;
     }
 
     clearTouch() {
@@ -103,10 +121,22 @@ let eventListeners = [];
 let isTouchDevice = false;
 let scrollIndicatorElement = null;
 let rafId = null;
+let orientationTimeout = null;
+let lastAnnouncement = 0;
+
+// Performance: Compatibility Cache
+const compatibilityCache = new Map();
 
 // =====================================================
 // UTILITY FUNCTIONS
 // =====================================================
+
+/**
+ * Debug Logger
+ */
+function debug(...args) {
+    if (DEBUG) console.log(...args);
+}
 
 /**
  * HTML Escaping (XSS-Protection)
@@ -150,14 +180,32 @@ function sleep(ms) {
 }
 
 /**
- * Announce to Screen Reader
+ * Debounce Function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
+/**
+ * Announce to Screen Reader (with throttling)
  */
 function announceToScreenReader(message, priority = 'polite') {
     const liveRegion = document.getElementById('aria-live-region');
     if (!liveRegion) return;
 
+    const now = Date.now();
+    if (priority !== 'assertive' && now - lastAnnouncement < CONFIG.MIN_ANNOUNCEMENT_INTERVAL_MS) {
+        return;
+    }
+
     liveRegion.setAttribute('aria-live', priority);
     liveRegion.textContent = message;
+
+    lastAnnouncement = now;
 
     setTimeout(() => {
         liveRegion.textContent = '';
@@ -224,14 +272,25 @@ function playRemoveSound() {
 // =====================================================
 
 function canPlayPosition(player, targetPosition) {
+    const cacheKey = `${player.main_position}-${targetPosition}`;
+
+    if (compatibilityCache.has(cacheKey)) {
+        return compatibilityCache.get(cacheKey);
+    }
+
     const mainPos = player.main_position;
     const compatibility = config.positionCompatibility[mainPos];
 
-    if (!compatibility) return false;
+    if (!compatibility) {
+        compatibilityCache.set(cacheKey, false);
+        return false;
+    }
 
     const compatibilityValue = compatibility[targetPosition];
+    const result = compatibilityValue !== undefined && compatibilityValue > 0;
 
-    return compatibilityValue !== undefined && compatibilityValue > 0;
+    compatibilityCache.set(cacheKey, result);
+    return result;
 }
 
 function getPositionPenalty(mainPosition, targetPosition) {
@@ -272,6 +331,19 @@ function calculateEffectiveStrength(player, position) {
     }
 
     return Math.round(baseStrength * compatibilityValue);
+}
+
+/**
+ * Helper: Get Status Badge HTML
+ */
+function getStatusBadgeHTML(player) {
+    if (player.status === 'fit') return '';
+
+    const icon = player.status === 'injured' ? '🚑' : '⛔';
+    const label = player.status === 'injured' ? 'Verletzt' : 'Gesperrt';
+
+    return `<div class="player-status-badge status-${player.status}" 
+                 aria-label="${label}">${icon}</div>`;
 }
 
 // =====================================================
@@ -371,10 +443,7 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
     const safeName = escapeHtml(player.name);
     const safePosition = escapeHtml(player.main_position);
 
-    const statusIcon = player.status === 'injured' ? '🚑' : '⛔';
-    const statusBadge = isUnavailable
-        ? `<div class="player-status-badge status-${player.status}" aria-label="${player.status === 'injured' ? 'Verletzt' : 'Gesperrt'}">${statusIcon}</div>`
-        : '';
+    const statusBadge = getStatusBadgeHTML(player);
 
     if (isFieldCard) {
         return `
@@ -461,7 +530,7 @@ function renderSlot(slotType, slotIndex, animate = false) {
         element.classList.add('occupied');
         if (animate) {
             element.classList.add('just-filled');
-            setTimeout(() => element.classList.remove('just-filled'), 500);
+            setTimeout(() => element.classList.remove('just-filled'), ANIMATION_DURATIONS.JUST_FILLED);
         }
 
         const slotPosition = slotType === 'field' ? slot.position : null;
@@ -545,19 +614,20 @@ function renderAvailablePlayers() {
 }
 
 function updatePlacedPlayersSet() {
-    state.placedPlayerIds.clear();
+    const newIds = new Set();
 
     state.fieldSlots.forEach(slot => {
-        if (slot.player) {
-            state.placedPlayerIds.add(slot.player.id);
-        }
+        if (slot.player) newIds.add(slot.player.id);
+    });
+    state.benchSlots.forEach(slot => {
+        if (slot.player) newIds.add(slot.player.id);
     });
 
-    state.benchSlots.forEach(slot => {
-        if (slot.player) {
-            state.placedPlayerIds.add(slot.player.id);
-        }
-    });
+    // Nur bei Änderung re-rendern
+    if (!setsEqual(state.placedPlayerIds, newIds)) {
+        state.placedPlayerIds = newIds;
+        renderAvailablePlayers();
+    }
 }
 
 function updatePlayerVisibility(playerId, isPlaced) {
@@ -605,7 +675,7 @@ function updateTeamStrength() {
         strengthElement.classList.add('updating');
         setTimeout(() => strengthElement.classList.remove('updating'), 400);
 
-        // Screen Reader Announcement
+        // Screen Reader Announcement (throttled)
         if (oldValue !== rounded) {
             const change = rounded > oldValue ? 'gestiegen' : 'gesunken';
             announceToScreenReader(`Teamstärke ${change} auf ${rounded}`);
@@ -882,7 +952,7 @@ function showUndoToast(message, undoCallback) {
 // =====================================================
 
 function showToast(message, type = 'info') {
-    console.log(`[Toast ${type}]:`, message);
+    debug(`[Toast ${type}]:`, message);
     announceToScreenReader(message, type === 'error' ? 'assertive' : 'polite');
 }
 
@@ -905,6 +975,17 @@ function showScrollIndicator(direction) {
 function hideScrollIndicator() {
     if (scrollIndicatorElement) {
         scrollIndicatorElement.classList.remove('active');
+    }
+}
+
+function setLoadingState(element, isLoading) {
+    if (!element) return;
+
+    element.disabled = isLoading;
+    if (isLoading) {
+        element.classList.add('loading');
+    } else {
+        element.classList.remove('loading');
     }
 }
 
@@ -1290,59 +1371,76 @@ async function handleFormationChange(e) {
         return;
     }
 
-    if (!confirm(`Formation zu ${newFormation} ändern?\n\nWir versuchen, Spieler automatisch zu übernehmen.`)) {
+    const message = `Formation zu ${newFormation} ändern?
+
+Aktuell aufgestellt: ${fieldPlayers.length} Spieler
+→ Kompatible Positionen werden automatisch übernommen
+→ Inkompatible Spieler wandern auf die Bank
+
+Fortfahren?`;
+
+    if (!confirm(message)) {
         e.target.value = state.currentFormation;
         return;
     }
 
+    // Loading State
+    state.isFormationChanging = true;
+    setLoadingState(e.target, true);
     showToast(`Wechsel zu ${newFormation}...`, 'info');
 
-    const oldPlayers = state.fieldSlots.map(s => ({
-        player: s.player,
-        originalPosition: s.position
-    })).filter(s => s.player);
+    try {
+        const oldPlayers = state.fieldSlots.map(s => ({
+            player: s.player,
+            originalPosition: s.position
+        })).filter(s => s.player);
 
-    state.currentFormation = newFormation;
-    renderFormationSlots();
+        state.currentFormation = newFormation;
+        renderFormationSlots();
 
-    let migratedCount = 0;
+        let migratedCount = 0;
 
-    oldPlayers.forEach(({player, originalPosition}) => {
-        // Try exact position match first
-        let targetSlot = state.fieldSlots.findIndex(s =>
-            !s.player && s.position === originalPosition
-        );
-
-        // Try compatible position
-        if (targetSlot === -1) {
-            targetSlot = state.fieldSlots.findIndex(s =>
-                !s.player && canPlayPosition(player, s.position)
+        oldPlayers.forEach(({player, originalPosition}) => {
+            // Try exact position match first
+            let targetSlot = state.fieldSlots.findIndex(s =>
+                !s.player && s.position === originalPosition
             );
-        }
 
-        if (targetSlot !== -1) {
-            state.fieldSlots[targetSlot].player = player;
-            renderSlot('field', targetSlot);
-            migratedCount++;
-        } else {
-            // Move to bench
-            const emptyBench = state.benchSlots.findIndex(s => !s.player);
-            if (emptyBench !== -1) {
-                state.benchSlots[emptyBench].player = player;
-                renderSlot('bench', emptyBench);
+            // Try compatible position
+            if (targetSlot === -1) {
+                targetSlot = state.fieldSlots.findIndex(s =>
+                    !s.player && canPlayPosition(player, s.position)
+                );
             }
-        }
-    });
 
-    updatePlacedPlayersSet();
-    renderAvailablePlayers();
-    updateTeamStrength();
-    updateBenchCount();
-    validateLineup();
-    attachSlotEventListeners();
+            if (targetSlot !== -1) {
+                state.fieldSlots[targetSlot].player = player;
+                renderSlot('field', targetSlot);
+                migratedCount++;
+            } else {
+                // Move to bench
+                const emptyBench = state.benchSlots.findIndex(s => !s.player);
+                if (emptyBench !== -1) {
+                    state.benchSlots[emptyBench].player = player;
+                    renderSlot('bench', emptyBench);
+                }
+            }
+        });
 
-    showToast(`${migratedCount}/${oldPlayers.length} Spieler übernommen`, 'success');
-    announceToScreenReader(`Formation geändert zu ${newFormation}. ${migratedCount} Spieler übernommen.`);
+        updatePlacedPlayersSet();
+        renderAvailablePlayers();
+        updateTeamStrength();
+        updateBenchCount();
+        validateLineup();
+        attachSlotEventListeners();
+
+        showToast(`${migratedCount}/${oldPlayers.length} Spieler übernommen`, 'success');
+        announceToScreenReader(`Formation geändert zu ${newFormation}. ${migratedCount} Spieler übernommen.`);
+
+    } finally {
+        state.isFormationChanging = false;
+        setLoadingState(e.target, false);
+    }
 }
 
 function clearLineup() {
@@ -1399,15 +1497,29 @@ function saveLineup() {
         version: 1
     };
 
+    // Loading State
+    state.isSaving = true;
+    const saveBtn = document.getElementById('saveLineup');
+    setLoadingState(saveBtn, true);
+
     try {
-        localStorage.setItem('kickerscup_lineup', JSON.stringify(lineup));
+        const lineupJson = JSON.stringify(lineup);
+        localStorage.setItem('kickerscup_lineup', lineupJson);
+
         showToast('Aufstellung gespeichert', 'success');
         playSuccessSound();
         announceToScreenReader('Aufstellung erfolgreich gespeichert');
     } catch (error) {
-        console.error('Save error:', error);
-        showToast('Fehler beim Speichern', 'error');
+        if (error.name === 'QuotaExceededError') {
+            showToast('Speicher voll. Bitte Browser-Daten löschen.', 'error');
+        } else {
+            showToast('Fehler beim Speichern', 'error');
+        }
+        debug('Save error:', error);
         playErrorSound();
+    } finally {
+        state.isSaving = false;
+        setLoadingState(saveBtn, false);
     }
 }
 
@@ -1431,7 +1543,7 @@ function loadLineup() {
         const lineup = JSON.parse(saved);
 
         if (!validateLineupSchema(lineup)) {
-            console.warn('Invalid lineup schema, resetting');
+            debug('Invalid lineup schema, resetting');
             localStorage.removeItem('kickerscup_lineup');
             return false;
         }
@@ -1471,7 +1583,7 @@ function loadLineup() {
 
         return true;
     } catch (error) {
-        console.error('Load error:', error);
+        debug('Load error:', error);
         localStorage.removeItem('kickerscup_lineup');
         return false;
     }
@@ -1482,23 +1594,37 @@ function loadLineup() {
 // =====================================================
 
 function attachSlotEventListeners() {
+    // Entferne alte Slot-Listener aus Tracking
+    eventListeners = eventListeners.filter(({element}) => {
+        const isSlot = element?.classList?.contains('field-slot') ||
+            element?.classList?.contains('bench-slot');
+        return !isSlot || document.contains(element);
+    });
+
+    // Clone & Replace (entfernt alle Event Listener)
     document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
         const clone = slot.cloneNode(true);
         slot.parentNode.replaceChild(clone, slot);
     });
 
+    // Neue Listener hinzufügen
     document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-        slot.addEventListener('dragenter', handleDragEnter, false);
-        slot.addEventListener('dragover', handleDragOver, false);
-        slot.addEventListener('dragleave', handleDragLeave, false);
-        slot.addEventListener('drop', handleDrop, false);
-        slot.addEventListener('keydown', handleSlotKeyboard, false);
+        addEventListener(slot, 'dragenter', handleDragEnter, false);
+        addEventListener(slot, 'dragover', handleDragOver, false);
+        addEventListener(slot, 'dragleave', handleDragLeave, false);
+        addEventListener(slot, 'drop', handleDrop, false);
+        addEventListener(slot, 'keydown', handleSlotKeyboard, false);
     });
 }
 
 function handleOrientationChange() {
-    setTimeout(() => {
-        console.log('🔄 Orientation changed, re-rendering formation...');
+    // Clear previous timeout
+    if (orientationTimeout) {
+        clearTimeout(orientationTimeout);
+    }
+
+    orientationTimeout = setTimeout(() => {
+        debug('🔄 Orientation changed, re-rendering formation...');
 
         renderFormationSlots();
 
@@ -1518,7 +1644,20 @@ function handleOrientationChange() {
         updateBenchCount();
         validateLineup();
         attachSlotEventListeners();
-    }, 100);
+
+        orientationTimeout = null;
+    }, ANIMATION_DURATIONS.ORIENTATION_CHANGE_DELAY);
+}
+
+function toggleValidationPanel(collapsed) {
+    const content = document.querySelector('.validation-content');
+    const focusableElements = content?.querySelectorAll('button, a, input, [tabindex]');
+
+    if (focusableElements) {
+        focusableElements.forEach(el => {
+            el.setAttribute('tabindex', collapsed ? '-1' : '0');
+        });
+    }
 }
 
 function initEventListeners() {
@@ -1545,6 +1684,7 @@ function initEventListeners() {
             validationToggle.setAttribute('aria-expanded', !isCollapsed);
             validationPanel.querySelector('.validation-content')
                 .setAttribute('aria-hidden', isCollapsed);
+            toggleValidationPanel(isCollapsed);
         });
 
         addEventListener(validationHeader, 'keydown', (e) => {
@@ -1553,6 +1693,15 @@ function initEventListeners() {
                 validationHeader.click();
             }
         });
+
+        // Default: Collapsed on mobile
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            validationPanel.classList.add('collapsed');
+            validationToggle.setAttribute('aria-expanded', 'false');
+            validationPanel.querySelector('.validation-content')
+                .setAttribute('aria-hidden', 'true');
+            toggleValidationPanel(true);
+        }
     }
 
     const searchInput = document.getElementById('playerSearch');
@@ -1560,7 +1709,8 @@ function initEventListeners() {
     const sortSelect = document.getElementById('sortSelect');
 
     if (searchInput) {
-        addEventListener(searchInput, 'input', renderAvailablePlayers);
+        const debouncedSearch = debounce(renderAvailablePlayers, CONFIG.DEBOUNCE_SEARCH_MS);
+        addEventListener(searchInput, 'input', debouncedSearch);
     }
     if (positionFilter) {
         addEventListener(positionFilter, 'change', renderAvailablePlayers);
@@ -1626,7 +1776,7 @@ function initEventListeners() {
 // =====================================================
 
 export function init() {
-    console.log('🚀 Lineup System wird initialisiert...');
+    debug('🚀 Lineup System wird initialisiert...');
 
     initAudioContext();
     state.availablePlayers = [...config.examplePlayers];
@@ -1645,12 +1795,12 @@ export function init() {
 
     initEventListeners();
 
-    console.log('✅ Lineup System vollständig initialisiert');
+    debug('✅ Lineup System vollständig initialisiert');
     announceToScreenReader('Aufstellungs-Seite geladen', 'polite');
 }
 
 export function cleanup() {
-    console.log('🧹 Lineup System Cleanup wird durchgeführt...');
+    debug('🧹 Lineup System Cleanup wird durchgeführt...');
 
     eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
@@ -1672,6 +1822,11 @@ export function cleanup() {
         rafId = null;
     }
 
+    if (orientationTimeout) {
+        clearTimeout(orientationTimeout);
+        orientationTimeout = null;
+    }
+
     state.reset();
     state.clearTouch();
 
@@ -1680,5 +1835,9 @@ export function cleanup() {
         state.audioContext = null;
     }
 
-    console.log('✅ Lineup System Cleanup abgeschlossen');
+    // Clear caches
+    compatibilityCache.clear();
+    lastAnnouncement = 0;
+
+    debug('✅ Lineup System Cleanup abgeschlossen');
 }

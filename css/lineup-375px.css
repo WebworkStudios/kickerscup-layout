@@ -1,95 +1,53 @@
 /* =====================================================
-   KICKERSCUP - LINEUP 375px RESPONSIVE FIX
-   ✅ Portrait-optimierte Y-Koordinaten (via JS)
-   ✅ Konsistente Design-Tokens
-   ✅ Touch-Target-Größen (min 44px)
+   KICKERSCUP - LINEUP CSS FIXES v2.0
+   Patch-Datei für lineup-375px.css
    ===================================================== */
 
-/* Base Mobile (375px - 389px) */
+/* ========== CRITICAL FIX: Touch-Targets ========== */
 @media (min-width: 375px) and (max-width: 389px) {
 
-    /* ========== SPIELFELD OPTIMIERUNG ========== */
-    .field-background {
-        min-height: 750px !important;
-    }
-
-    .field-slots {
-        padding: 50px var(--space-sm) !important;
-        position: relative;
-    }
-
+    /* Touch-Targets müssen mindestens 44×44px sein (WCAG 2.1) */
     .field-slot {
-        width: 70px !important;
-        height: 90px !important;
+        width: 75px !important;
+        height: 95px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
     }
 
-    .slot-position {
-        font-size: var(--text-xs) !important;
-        padding: var(--space-xs) var(--space-xs);
-    }
-
-    .slot-placeholder {
-        font-size: var(--text-xl) !important;
-    }
-
-    /* ========== SPIELERKARTEN KOMPAKTER ========== */
-    .field-card-compact {
-        padding: 7px !important;
-        min-height: 84px !important;
-    }
-
-    .field-card-compact .player-card-name {
-        font-size: var(--text-sm) !important;
-        margin-bottom: var(--space-xs);
-    }
-
-    .field-stat-item {
-        padding: var(--space-xs) var(--space-xs) !important;
-    }
-
-    .field-stat-label {
-        font-size: var(--text-xs) !important;
-    }
-
-    .field-stat-value {
-        font-size: var(--text-sm) !important;
-    }
-
-    /* ========== QUICK REMOVE BUTTON (44px Touch Target) ========== */
     .quick-remove-btn {
         width: 44px !important;
         height: 44px !important;
         font-size: 18px !important;
-        top: 2px;
-        right: 2px;
     }
 
-    /* ========== FORMATION CONTROLS ========== */
+    /* ========== FIX: Konsistente Font-Sizes ========== */
+    .lineup-title {
+        /* Statt 1.375rem (22px) - zu klein */
+        font-size: calc(var(--text-3xl) * 0.65) !important; /* 1.587rem = 25.4px */
+        letter-spacing: 2px;
+    }
+
+    .lineup-subtitle {
+        font-size: var(--text-sm) !important; /* 0.8rem = 12.8px */
+    }
+
+    .field-card-compact .player-card-name {
+        font-size: var(--text-sm) !important; /* Konsistent */
+    }
+
+    .mini-card-name {
+        font-size: var(--text-sm) !important; /* Konsistent */
+    }
+
+    .mini-card-info {
+        font-size: var(--text-xs) !important; /* Konsistent */
+    }
+
+    /* ========== FIX: Design Token Konsistenz ========== */
     .formation-controls {
-        padding: 18px var(--space-sm) !important;
-        gap: var(--space-sm) !important;
+        padding: var(--space-md) var(--space-sm) !important;
     }
 
-    .formation-dropdown {
-        font-size: var(--text-sm) !important;
-        padding: var(--space-sm) 14px !important;
-    }
-
-    .team-strength-display {
-        padding: var(--space-sm) var(--space-md) !important;
-    }
-
-    .strength-value {
-        font-size: 1.375rem !important;
-    }
-
-    /* ========== BUTTONS ========== */
-    .action-buttons .btn {
-        font-size: var(--text-sm) !important;
-        padding: var(--space-sm) 14px !important;
-    }
-
-    /* ========== SQUAD PANEL ========== */
     .bench-section,
     .available-players-section {
         padding: var(--space-md) var(--space-sm) !important;
@@ -100,17 +58,33 @@
         gap: var(--space-xs);
     }
 
-    /* Bench Slots - 2 Spalten */
-    .bench-slots {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: var(--space-sm) !important;
+    /* ========== FIX: Input Min-Height für iOS Auto-Zoom Prevention ========== */
+    .formation-dropdown,
+    .player-search,
+    .position-filter,
+    .sort-select {
+        min-height: 48px !important;
+        font-size: 16px !important; /* Verhindert Auto-Zoom auf iOS */
+        padding: var(--space-sm) 14px !important;
     }
 
-    .bench-slot {
-        min-height: 120px !important;
+    .action-buttons .btn {
+        min-height: 48px !important;
+        font-size: var(--text-sm) !important;
+        padding: var(--space-sm) 14px !important;
     }
 
-    /* Available Players - 2 Spalten */
+    /* ========== OPTIMIERUNG: Spielfeld Höhe ========== */
+    .field-background {
+        /* Erhöht für bessere Portrait-Nutzung */
+        min-height: 800px !important;
+    }
+
+    .field-slots {
+        padding: 55px var(--space-sm) !important;
+    }
+
+    /* ========== OPTIMIERUNG: Available Players Grid ========== */
     .available-players-list {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: var(--space-sm) !important;
@@ -118,174 +92,152 @@
     }
 
     .player-mini-card {
-        min-height: 85px !important;
-        padding: 9px !important;
+        min-height: 90px !important; /* Mehr Raum für Touch */
+        padding: var(--space-sm) !important;
     }
 
-    .mini-card-name {
-        font-size: var(--text-sm) !important;
-    }
-
-    .mini-card-info {
-        font-size: var(--text-xs) !important;
-    }
-
-    .mini-card-ew-value {
-        font-size: var(--text-base) !important;
-    }
-
-    /* ========== VALIDATION PANEL ========== */
-    .validation-panel {
-        margin-bottom: var(--space-lg) !important;
-    }
-
-    .validation-header {
-        padding: var(--space-sm) var(--space-sm) !important;
-    }
-
-    .validation-content {
-        padding: var(--space-sm) var(--space-sm) !important;
-    }
-
-    /* ========== LANDSCAPE HINT ========== */
-    .landscape-hint {
-        padding: var(--space-sm) var(--space-md) !important;
-        bottom: 85px !important;
-    }
-
-    .landscape-hint-text {
-        font-size: var(--text-sm) !important;
-    }
-}
-
-/* ========== LANDSCAPE-MODUS OPTIMIERUNG ========== */
-@media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
-    .field-background {
-        min-height: 500px !important;
-    }
-
-    .field-slots {
-        padding: var(--space-xl) var(--space-md) !important;
-    }
-
-    .field-slot {
-        width: 65px !important;
-        height: 80px !important;
-    }
-
-    .lineup-main-layout {
-        display: grid;
-        grid-template-columns: 1fr 280px;
-        gap: var(--space-md);
-    }
-
-    .squad-panel {
-        max-width: 280px;
-    }
-
+    /* ========== OPTIMIERUNG: Bench Slots ========== */
     .bench-slots {
         grid-template-columns: repeat(2, 1fr) !important;
+        gap: var(--space-sm) !important;
     }
 
-    .available-players-list {
-        grid-template-columns: repeat(1, 1fr) !important;
-        max-height: 300px !important;
+    .bench-slot {
+        min-height: 125px !important; /* Mehr Raum für Touch */
     }
 }
 
-/* ========== PORTRAIT-SPEZIFISCHE OPTIMIERUNGEN ========== */
+/* ========== PORTRAIT-SPEZIFISCH ========== */
 @media (min-width: 375px) and (max-width: 389px) and (orientation: portrait) {
     .field-background {
         min-height: 850px !important;
     }
 
-    .field-slots {
-        padding: 60px var(--space-sm) !important;
-    }
-
     .landscape-hint {
         display: flex !important;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-        .landscape-hint {
-            animation: hintPulse 2s ease-in-out infinite;
-        }
-    }
-
-    @keyframes hintPulse {
-        0%, 100% {
-            transform: translateX(-50%) scale(1);
-            box-shadow: 0 8px 35px var(--turquoise-glow);
-        }
-        50% {
-            transform: translateX(-50%) scale(1.02);
-            box-shadow: 0 12px 45px var(--turquoise-glow);
-        }
+        /* Animation nur 3x statt infinite */
+        animation: hintPulse 2s ease-in-out 3;
     }
 }
 
-/* ========== ÄLTERE GERÄTE (< 375px) ========== */
-@media (max-width: 374px) {
-    .viewport-warning {
-        position: fixed;
-        top: 60px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10003;
-        background: rgba(245, 101, 101, 0.95);
-        border: 2px solid #f56565;
-        border-radius: var(--radius-lg);
-        padding: var(--space-sm) 18px;
-        max-width: 90%;
-        text-align: center;
-        font-size: var(--text-sm);
-        color: white;
-        font-weight: 600;
-        box-shadow: 0 8px 30px rgba(245, 101, 101, 0.5);
-    }
-
+/* ========== LANDSCAPE-MODUS ========== */
+@media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
     .field-background {
-        min-height: 900px !important;
+        min-height: 500px !important;
     }
 
     .field-slot {
-        width: 60px !important;
-        height: 75px !important;
-    }
-
-    .field-card-compact {
-        padding: var(--space-xs) !important;
-        min-height: 70px !important;
-    }
-
-    .bench-slots,
-    .available-players-list {
-        grid-template-columns: 1fr !important;
+        width: 68px !important;
+        height: 85px !important;
+        min-width: 44px;
+        min-height: 44px;
     }
 }
 
-/* ========== TOUCH-OPTIMIERUNGEN ========== */
-@media (pointer: coarse) {
-    .quick-remove-btn {
-        width: 44px !important;
-        height: 44px !important;
-        font-size: 20px !important;
+/* ========== LOADING STATE (NEU) ========== */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--gold-primary);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========== VALIDATION PANEL COLLAPSED DEFAULT (Mobile) ========== */
+@media (max-width: 767px) {
+    .validation-panel.collapsed .validation-content {
+        max-height: 0;
+        overflow: hidden;
+        padding: 0;
     }
 
-    .formation-dropdown,
-    .player-search,
-    .position-filter,
-    .sort-select {
-        min-height: 48px !important;
-        font-size: 16px !important; /* Verhindert Auto-Zoom auf iOS */
+    .validation-panel.collapsed .validation-toggle {
+        transform: rotate(-90deg);
+    }
+}
+
+/* ========== STICKY SEARCH BAR (Mobile) ========== */
+@media (max-width: 767px) {
+    .players-controls {
+        position: sticky;
+        top: 60px; /* Unter Header */
+        z-index: 100;
+        background: rgba(13, 13, 13, 0.98);
+        padding: var(--space-sm);
+        border-bottom: 2px solid var(--turquoise-border);
+        margin-bottom: var(--space-sm);
     }
 
-    .action-buttons .btn {
-        min-height: 48px !important;
+    @supports (backdrop-filter: blur(20px)) {
+        .players-controls {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    }
+}
+
+/* ========== SKIP-LINKS (Accessibility) ========== */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--gold-primary);
+    color: var(--dark-primary);
+    padding: var(--space-sm) var(--space-md);
+    z-index: 10000;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    border-radius: 0 0 var(--radius-sm) 0;
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid white;
+    outline-offset: 2px;
+}
+
+/* ========== HIGH CONTRAST MODE ========== */
+@media (prefers-contrast: more) {
+    .field-slot,
+    .bench-slot,
+    .player-card {
+        border-width: 3px !important;
     }
 
-    .validation-header {
-        min-height: 48px !important;
+    .validation-item {
+        border-left-width: 5px !important;
+    }
+
+    .text-muted,
+    --text-muted {
+        color: #ffffff !important;
+    }
+}
+
+/* ========== REDUCED MOTION (Erweitert) ========== */
+@media (prefers-reduced-motion: reduce) {
+    .landscape-hint,
+    .scroll-indicator,
+    .ghost-dragging,
+    .loading::after {
+        animation: none !important;
     }
 }
