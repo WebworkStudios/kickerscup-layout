@@ -87,8 +87,6 @@ class LineupState {
         this.audioContext = null;
 
         // UI State
-        this.isFormationChanging = false;
-        this.isSaving = false;
     }
 
     reset() {
@@ -171,14 +169,6 @@ function setsEqual(a, b) {
     }
     return true;
 }
-
-/**
- * Sleep Helper
- */
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /**
  * Debounce Function
  */
@@ -829,7 +819,7 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
         }
     }
 
-    const oldPosition = removePlayerFromLineup(player.id, true);
+    const oldPosition = removePlayerFromLineup(player.id);
 
     // Add to Undo Stack
     if (!skipUndo) {
@@ -869,7 +859,7 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
     return true;
 }
 
-function removePlayerFromLineup(playerId, silent = false) {
+function removePlayerFromLineup(playerId) {
     let oldPosition = null;
 
     state.fieldSlots.forEach((slot, index) => {
