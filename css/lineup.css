@@ -1,7 +1,7 @@
 /* =====================================================
-   KICKERSCUP - LINEUP STYLESHEET (PRODUCTION-READY)
+   KICKERSCUP - LINEUP STYLESHEET (PRODUCTION-READY v2.2)
+   ✅ CRITICAL FIX: field-slots height problem für ALLE Breakpoints behoben
    ✅ Design-Token-System implementiert
-   ✅ Fehlende Klassen hinzugefügt
    ✅ WCAG-Kontraste korrigiert
    ✅ Konsistente Abstände
    ===================================================== */
@@ -479,9 +479,14 @@
     top: 20px;
 }
 
-/* ========== FIELD SLOTS ========== */
+/* ========== FIELD SLOTS - CRITICAL FIX ========== */
 .field-slots {
-    position: relative;
+    /* ✅ KRITISCHER FIX: Container muss Parent komplett füllen */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     padding: 35px var(--space-md);

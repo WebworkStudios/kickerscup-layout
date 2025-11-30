@@ -1,5 +1,6 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.0)
+// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.1)
+// ✅ BUGFIX: Portrait-Mode Y-Anpassungen entfernt
 // ✅ Security: XSS-Protection, Input-Validation
 // ✅ Performance: Virtual Scrolling, Memoization, RAF
 // ✅ Accessibility: ARIA, Keyboard-Navigation, Screen-Reader
@@ -349,37 +350,23 @@ function renderFormationSlots(preservePlayers = false) {
     if (!formation) return;
 
     // ✅ Spieler-Backup erstellen, wenn gewünscht
-    // Map: position -> player (z.B. "TW" -> {id: 1, name: "Max Neuer", ...})
     const playerBackup = preservePlayers
         ? new Map(state.fieldSlots
             .filter(slot => slot.player)
             .map(slot => [slot.position, slot.player]))
         : new Map();
 
-    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    // ✅ BUGFIX: Keine Y-Anpassungen mehr
+    // Die Formationen aus lineup-config.js sind bereits korrekt definiert
+    // Y-Werte: 0% = Oben (Angreifer), 100% = Unten (Torwart)
+    // Portrait-Mode wird nur durch CSS (field-background min-height) angepasst
 
     state.fieldSlots = formation.positions.map((pos, index) => {
-        let adjustedY = pos.y;
-
-        // Portrait-Anpassungen für bessere Darstellung
-        if (isPortrait && isMobile) {
-            if (pos.position === 'TW') {
-                adjustedY = Math.min(93, pos.y + 3);
-            } else if (['LV', 'RV', 'IV', 'LI'].includes(pos.position)) {
-                adjustedY = Math.max(5, pos.y - 2);
-            } else if (pos.position === 'ZDM') {
-                adjustedY = Math.max(5, pos.y - 2);
-            } else if (['LS', 'MS', 'RS', 'ST'].includes(pos.position)) {
-                adjustedY = Math.max(5, pos.y - 3);
-            }
-        }
-
         return {
             id: `field-${index}`,
             position: pos.position,
             x: pos.x,
-            y: adjustedY,
+            y: pos.y, // ✅ Original Y-Wert beibehalten
             // ✅ Spieler wiederherstellen, falls vorhanden
             player: playerBackup.get(pos.position) || null
         };

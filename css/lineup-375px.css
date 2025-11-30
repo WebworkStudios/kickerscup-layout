@@ -1,10 +1,31 @@
 /* =====================================================
-   KICKERSCUP - LINEUP CSS FIXES v2.0
-   Patch-Datei für lineup-375px.css
+   KICKERSCUP - LINEUP CSS FIXES v2.2 - FINAL FIX
+   ✅ BUGFIX: field-slots height problem behoben
+   ✅ Das Problem war: field-slots füllte nicht die volle field-background Höhe
    ===================================================== */
 
-/* ========== CRITICAL FIX: Touch-Targets ========== */
+/* ========== CRITICAL FIX: Field Slots Container Höhe ========== */
 @media (min-width: 375px) and (max-width: 389px) {
+
+    /* ========== KRITISCHER FIX: Container-Höhe ========== */
+    .field-background {
+        min-height: 1000px !important;
+        position: relative;
+    }
+
+    /* ✅ DAS IST DER KRITISCHE FIX! */
+    .field-slots {
+        /* Der Container muss die VOLLE Höhe des Parents nutzen */
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100% !important;
+        width: 100% !important;
+        /* Padding für visuellen Abstand vom Rand */
+        padding: 60px var(--space-sm) 60px !important;
+    }
 
     /* Touch-Targets müssen mindestens 44×44px sein (WCAG 2.1) */
     .field-slot {
@@ -22,25 +43,24 @@
 
     /* ========== FIX: Konsistente Font-Sizes ========== */
     .lineup-title {
-        /* Statt 1.375rem (22px) - zu klein */
-        font-size: calc(var(--text-3xl) * 0.65) !important; /* 1.587rem = 25.4px */
+        font-size: calc(var(--text-3xl) * 0.65) !important;
         letter-spacing: 2px;
     }
 
     .lineup-subtitle {
-        font-size: var(--text-sm) !important; /* 0.8rem = 12.8px */
+        font-size: var(--text-sm) !important;
     }
 
     .field-card-compact .player-card-name {
-        font-size: var(--text-sm) !important; /* Konsistent */
+        font-size: var(--text-sm) !important;
     }
 
     .mini-card-name {
-        font-size: var(--text-sm) !important; /* Konsistent */
+        font-size: var(--text-sm) !important;
     }
 
     .mini-card-info {
-        font-size: var(--text-xs) !important; /* Konsistent */
+        font-size: var(--text-xs) !important;
     }
 
     /* ========== FIX: Design Token Konsistenz ========== */
@@ -64,7 +84,7 @@
     .position-filter,
     .sort-select {
         min-height: 48px !important;
-        font-size: 16px !important; /* Verhindert Auto-Zoom auf iOS */
+        font-size: 16px !important;
         padding: var(--space-sm) 14px !important;
     }
 
@@ -72,16 +92,6 @@
         min-height: 48px !important;
         font-size: var(--text-sm) !important;
         padding: var(--space-sm) 14px !important;
-    }
-
-    /* ========== OPTIMIERUNG: Spielfeld Höhe ========== */
-    .field-background {
-        /* Erhöht für bessere Portrait-Nutzung */
-        min-height: 800px !important;
-    }
-
-    .field-slots {
-        padding: 55px var(--space-sm) !important;
     }
 
     /* ========== OPTIMIERUNG: Available Players Grid ========== */
@@ -92,7 +102,7 @@
     }
 
     .player-mini-card {
-        min-height: 90px !important; /* Mehr Raum für Touch */
+        min-height: 90px !important;
         padding: var(--space-sm) !important;
     }
 
@@ -103,27 +113,42 @@
     }
 
     .bench-slot {
-        min-height: 125px !important; /* Mehr Raum für Touch */
+        min-height: 125px !important;
     }
 }
 
 /* ========== PORTRAIT-SPEZIFISCH ========== */
 @media (min-width: 375px) and (max-width: 389px) and (orientation: portrait) {
+    /* ✅ Portrait-Mode: Noch mehr Höhe für vertikale Nutzung */
     .field-background {
-        min-height: 850px !important;
+        min-height: 1100px !important;
     }
+
+    /* field-slots bleibt bei height: 100% - füllt automatisch die 1100px */
 
     .landscape-hint {
         display: flex !important;
-        /* Animation nur 3x statt infinite */
         animation: hintPulse 2s ease-in-out 3;
     }
 }
 
 /* ========== LANDSCAPE-MODUS ========== */
 @media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
+    /* Landscape: Angepasste Höhe */
     .field-background {
-        min-height: 500px !important;
+        min-height: 650px !important;
+    }
+
+    .field-slots {
+        /* ✅ Auch hier: Volle Höhe nutzen */
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100% !important;
+        width: 100% !important;
+        padding: 40px var(--space-sm) 40px !important;
     }
 
     .field-slot {
@@ -134,7 +159,7 @@
     }
 }
 
-/* ========== LOADING STATE (NEU) ========== */
+/* ========== LOADING STATE ========== */
 .loading {
     position: relative;
     pointer-events: none;
@@ -178,7 +203,7 @@
 @media (max-width: 767px) {
     .players-controls {
         position: sticky;
-        top: 60px; /* Unter Header */
+        top: 60px;
         z-index: 100;
         background: rgba(13, 13, 13, 0.98);
         padding: var(--space-sm);
