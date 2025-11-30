@@ -1,12 +1,12 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.2)
-// ✅ CHANGE: Formationswechsel ohne Bestätigungsabfrage
-// ✅ BUGFIX: Portrait-Mode Y-Anpassungen entfernt
-// ✅ Security: XSS-Protection, Input-Validation
-// ✅ Performance: Virtual Scrolling, Memoization, RAF
-// ✅ Accessibility: ARIA, Keyboard-Navigation, Screen-Reader
-// ✅ UX: Undo, Smart-Migration, Haptic-Feedback
-// ✅ FIXED: Memory Leaks, Race Conditions, Error Handling
+// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.3)
+// ✅ FIX: Memory Leak in Event-Listener-Management
+// ✅ FIX: Race Condition bei Formationswechsel
+// ✅ FIX: iOS AudioContext suspended state
+// ✅ FIX: Validation-Panel öffnet bei Fehlern automatisch
+// ✅ FIX: Player-Map für O(1)-Lookups
+// ✅ FIX: Landscape-Hint mit localStorage-Flag
+// ✅ FIX: Konsistente Undo für alle destruktiven Aktionen
 // =====================================================
 
 import {LineupConfig} from './lineup-config.js';
@@ -29,7 +29,8 @@ const CONFIG = {
     VIRTUAL_SCROLL_ITEM_HEIGHT: 95,
     CACHE_STRENGTH_DURATION_MS: 1000,
     DEBOUNCE_SEARCH_MS: 200,
-    MIN_ANNOUNCEMENT_INTERVAL_MS: 2000
+    MIN_ANNOUNCEMENT_INTERVAL_MS: 2000,
+    LANDSCAPE_HINT_STORAGE_KEY: 'kickerscup_landscape_hint_dismissed'
 };
 
 const ANIMATION_DURATIONS = {
@@ -54,7 +55,7 @@ const POSITION_NAMES = {
     'RS': 'Rechtsstürmer'
 };
 
-const DEBUG = false; // In production: false
+const DEBUG = false;
 
 // =====================================================
 // STATE MANAGEMENT
@@ -87,8 +88,14 @@ class LineupState {
 
         // Audio
         this.audioContext = null;
+        this.audioContextResumed = false; // ✅ FIX: Track iOS resume state
 
-        // UI State
+        // UI State - ✅ FIX: Definiere alle State-Properties im Constructor
+        this.isFormationChanging = false;
+        this.isSaving = false;
+
+        // ✅ FIX: Player Map für O(1) Lookups
+        this.playerMap = new Map();
     }
 
     reset() {
@@ -113,11 +120,25 @@ class LineupState {
         this.draggedPlayer = null;
         this.isDragging = false;
     }
+
+    // ✅ FIX: Player Map Methoden
+    buildPlayerMap(players) {
+        this.playerMap.clear();
+        players.forEach(p => this.playerMap.set(p.id, p));
+    }
+
+    getPlayerById(id) {
+        return this.playerMap.get(id);
+    }
 }
 
 const state = new LineupState();
 const config = LineupConfig;
-let eventListeners = [];
+
+// ✅ FIX: Besseres Event-Listener-Management mit WeakMap
+const listenerRegistry = new WeakMap();
+let globalListeners = []; // Nur für document/window Listener
+
 let isTouchDevice = false;
 let scrollIndicatorElement = null;
 let rafId = null;
@@ -131,19 +152,12 @@ const compatibilityCache = new Map();
 // UTILITY FUNCTIONS
 // =====================================================
 
-/**
- * Debug Logger
- */
 function debug(...args) {
     if (DEBUG) console.log(...args);
 }
 
-/**
- * HTML Escaping (XSS-Protection)
- */
 function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return '';
-
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -152,18 +166,46 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-/**
- * Helper: Event Listener registrieren (für Cleanup)
- */
-function addEventListener(element, event, handler, options) {
+// ✅ FIX: Verbessertes Event-Listener-Management
+function addTrackedEventListener(element, event, handler, options) {
     if (!element) return;
+
     element.addEventListener(event, handler, options);
-    eventListeners.push({element, event, handler, options});
+
+    // Für globale Objekte (document, window)
+    if (element === document || element === window) {
+        globalListeners.push({ element, event, handler, options });
+        return;
+    }
+
+    // Für DOM-Elemente: WeakMap verwenden
+    if (!listenerRegistry.has(element)) {
+        listenerRegistry.set(element, []);
+    }
+    listenerRegistry.get(element).push({ event, handler, options });
 }
 
-/**
- * Check if two Sets are equal
- */
+// ✅ FIX: Cleanup für ein spezifisches Element
+function removeElementListeners(element) {
+    if (!element || !listenerRegistry.has(element)) return;
+
+    const listeners = listenerRegistry.get(element);
+    listeners.forEach(({ event, handler, options }) => {
+        element.removeEventListener(event, handler, options);
+    });
+    listenerRegistry.delete(element);
+}
+
+// ✅ FIX: Cleanup aller globalen Listener
+function removeAllGlobalListeners() {
+    globalListeners.forEach(({ element, event, handler, options }) => {
+        if (element) {
+            element.removeEventListener(event, handler, options);
+        }
+    });
+    globalListeners = [];
+}
+
 function setsEqual(a, b) {
     if (a.size !== b.size) return false;
     for (let item of a) {
@@ -172,9 +214,6 @@ function setsEqual(a, b) {
     return true;
 }
 
-/**
- * Debounce Function
- */
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -183,9 +222,6 @@ function debounce(func, wait) {
     };
 }
 
-/**
- * Announce to Screen Reader (with throttling)
- */
 function announceToScreenReader(message, priority = 'polite') {
     const liveRegion = document.getElementById('aria-live-region');
     if (!liveRegion) return;
@@ -197,7 +233,6 @@ function announceToScreenReader(message, priority = 'polite') {
 
     liveRegion.setAttribute('aria-live', priority);
     liveRegion.textContent = message;
-
     lastAnnouncement = now;
 
     setTimeout(() => {
@@ -205,9 +240,6 @@ function announceToScreenReader(message, priority = 'polite') {
     }, 1000);
 }
 
-/**
- * Haptic Feedback
- */
 function hapticFeedback(pattern = 10) {
     if ('vibrate' in navigator) {
         navigator.vibrate(pattern);
@@ -215,7 +247,7 @@ function hapticFeedback(pattern = 10) {
 }
 
 // =====================================================
-// AUDIO SYSTEM
+// AUDIO SYSTEM - ✅ FIX: iOS AudioContext Support
 // =====================================================
 
 function initAudioContext() {
@@ -226,23 +258,41 @@ function initAudioContext() {
     }
 }
 
+// ✅ FIX: Separates Resume für iOS nach User-Interaktion
+function resumeAudioContext() {
+    if (state.audioContext &&
+        state.audioContext.state === 'suspended' &&
+        !state.audioContextResumed) {
+        state.audioContext.resume().then(() => {
+            state.audioContextResumed = true;
+            debug('AudioContext resumed after user interaction');
+        }).catch(err => {
+            debug('AudioContext resume failed:', err);
+        });
+    }
+}
+
 function playTone(frequency, duration, type = 'sine', volume = 0.1) {
-    if (!state.audioContext) return;
+    if (!state.audioContext || state.audioContext.state !== 'running') return;
 
-    const oscillator = state.audioContext.createOscillator();
-    const gainNode = state.audioContext.createGain();
+    try {
+        const oscillator = state.audioContext.createOscillator();
+        const gainNode = state.audioContext.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(state.audioContext.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(state.audioContext.destination);
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
 
-    gainNode.gain.setValueAtTime(volume, state.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + duration);
+        gainNode.gain.setValueAtTime(volume, state.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + duration);
 
-    oscillator.start(state.audioContext.currentTime);
-    oscillator.stop(state.audioContext.currentTime + duration);
+        oscillator.start(state.audioContext.currentTime);
+        oscillator.stop(state.audioContext.currentTime + duration);
+    } catch (e) {
+        debug('Audio playback error:', e);
+    }
 }
 
 function playSuccessSound() {
@@ -288,23 +338,23 @@ function canPlayPosition(player, targetPosition) {
 
 function getPositionPenalty(mainPosition, targetPosition) {
     if (mainPosition === targetPosition) {
-        return {text: '', severe: false};
+        return { text: '', severe: false };
     }
 
     const compatibility = config.positionCompatibility[mainPosition];
-    if (!compatibility) return {text: '', severe: true};
+    if (!compatibility) return { text: '', severe: true };
 
     const value = compatibility[targetPosition];
 
     if (value === undefined || value === 0) {
-        return {text: '🚫 Kann Position nicht spielen', severe: true};
+        return { text: '🚫 Kann Position nicht spielen', severe: true };
     } else if (value < 0.7) {
-        return {text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true};
+        return { text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true };
     } else if (value < 0.9) {
-        return {text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false};
+        return { text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false };
     }
 
-    return {text: '', severe: false};
+    return { text: '', severe: false };
 }
 
 function calculateEffectiveStrength(player, position) {
@@ -326,17 +376,62 @@ function calculateEffectiveStrength(player, position) {
     return Math.round(baseStrength * compatibilityValue);
 }
 
-/**
- * Helper: Get Status Badge HTML
- */
 function getStatusBadgeHTML(player) {
     if (player.status === 'fit') return '';
 
     const icon = player.status === 'injured' ? '🚑' : '⛔';
     const label = player.status === 'injured' ? 'Verletzt' : 'Gesperrt';
 
-    return `<div class="player-status-badge status-${player.status}" 
+    return `<div class="player-status-badge status-${escapeHtml(player.status)}" 
                  aria-label="${label}">${icon}</div>`;
+}
+
+// =====================================================
+// LANDSCAPE HINT - ✅ FIX: Mit localStorage-Dismiss
+// =====================================================
+
+function isLandscapeHintDismissed() {
+    try {
+        return localStorage.getItem(CONFIG.LANDSCAPE_HINT_STORAGE_KEY) === 'true';
+    } catch {
+        return false;
+    }
+}
+
+function dismissLandscapeHint() {
+    try {
+        localStorage.setItem(CONFIG.LANDSCAPE_HINT_STORAGE_KEY, 'true');
+    } catch {
+        // localStorage nicht verfügbar
+    }
+    const hint = document.getElementById('landscapeHint');
+    if (hint) {
+        hint.style.display = 'none';
+    }
+}
+
+function initLandscapeHint() {
+    const hint = document.getElementById('landscapeHint');
+    if (!hint) return;
+
+    // Wenn bereits dismissed, verstecken
+    if (isLandscapeHintDismissed()) {
+        hint.style.display = 'none';
+        return;
+    }
+
+    // Close-Button hinzufügen wenn nicht vorhanden
+    if (!hint.querySelector('.landscape-hint-close')) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'landscape-hint-close';
+        closeBtn.setAttribute('aria-label', 'Hinweis schließen');
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            dismissLandscapeHint();
+        };
+        hint.querySelector('.landscape-hint-content')?.appendChild(closeBtn);
+    }
 }
 
 // =====================================================
@@ -350,8 +445,6 @@ function renderFormationSlots(preservePlayers = false) {
     const formation = config.formations[state.currentFormation];
     if (!formation) return;
 
-    // ✅ FIX: Backup basierend auf dem Index erstellen, nicht auf dem Positionsnamen.
-    // Das verhindert Duplikate, wenn eine Position (z.B. "IV") mehrfach existiert.
     const playerBackup = preservePlayers
         ? new Map(state.fieldSlots.map((slot, index) => [index, slot.player]))
         : new Map();
@@ -362,12 +455,10 @@ function renderFormationSlots(preservePlayers = false) {
             position: pos.position,
             x: pos.x,
             y: pos.y,
-            // ✅ FIX: Spieler anhand des Index wiederherstellen
             player: playerBackup.get(index) || null
         };
     });
 
-    // HTML nur für leere Slots rendern (besetzte Slots werden später separat gefüllt)
     container.innerHTML = state.fieldSlots.map((slot, index) => {
         const positionName = POSITION_NAMES[slot.position] || slot.position;
 
@@ -376,12 +467,12 @@ function renderFormationSlots(preservePlayers = false) {
                  id="${slot.id}"
                  data-slot-index="${index}"
                  data-slot-type="field"
-                 data-position="${slot.position}"
+                 data-position="${escapeHtml(slot.position)}"
                  role="button"
                  tabindex="0"
-                 aria-label="${positionName}, leer"
+                 aria-label="${escapeHtml(positionName)}, leer"
                  style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);">
-                <div class="slot-position">${slot.position}</div>
+                <div class="slot-position">${escapeHtml(slot.position)}</div>
                 <div class="slot-placeholder" aria-hidden="true">⚽</div>
             </div>
         `;
@@ -392,7 +483,7 @@ function renderBenchSlots() {
     const container = document.getElementById('benchSlots');
     if (!container) return;
 
-    state.benchSlots = Array.from({length: CONFIG.MAX_BENCH}, (_, i) => ({
+    state.benchSlots = Array.from({ length: CONFIG.MAX_BENCH }, (_, i) => ({
         id: `bench-${i}`,
         player: null
     }));
@@ -419,7 +510,7 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
 
     const penalty = slotPosition
         ? getPositionPenalty(player.main_position, slotPosition)
-        : {text: '', severe: false};
+        : { text: '', severe: false };
 
     const isUnavailable = player.status !== 'fit';
     const canPlay = slotPosition ? canPlayPosition(player, slotPosition) : true;
@@ -534,14 +625,14 @@ function renderSlot(slotType, slotIndex, animate = false) {
 
         if (slotType === 'field') {
             element.innerHTML = `
-                <div class="slot-position">${slot.position}</div>
+                <div class="slot-position">${escapeHtml(slot.position)}</div>
                 <div class="slot-placeholder" aria-hidden="true">⚽</div>
             `;
         } else {
             element.innerHTML = '<div class="bench-placeholder" aria-hidden="true">+</div>';
         }
 
-        element.setAttribute('aria-label', `${positionName}, leer`);
+        element.setAttribute('aria-label', `${escapeHtml(positionName)}, leer`);
     }
 }
 
@@ -607,7 +698,6 @@ function updatePlacedPlayersSet() {
         if (slot.player) newIds.add(slot.player.id);
     });
 
-    // Nur bei Änderung re-rendern
     if (!setsEqual(state.placedPlayerIds, newIds)) {
         state.placedPlayerIds = newIds;
         renderAvailablePlayers();
@@ -632,7 +722,6 @@ function updateTeamStrength() {
         return;
     }
 
-    // Performance: Check Cache
     const currentIds = new Set(fieldPlayers.map(s => s.player.id));
     const now = Date.now();
 
@@ -659,7 +748,6 @@ function updateTeamStrength() {
         strengthElement.classList.add('updating');
         setTimeout(() => strengthElement.classList.remove('updating'), 400);
 
-        // Screen Reader Announcement (throttled)
         if (oldValue !== rounded) {
             const change = rounded > oldValue ? 'gestiegen' : 'gesunken';
             announceToScreenReader(`Teamstärke ${change} auf ${rounded}`);
@@ -671,7 +759,6 @@ function updateTeamStrength() {
         contextElement.textContent = `(Ø ${average})`;
     }
 
-    // Update Cache
     state.cachedStrength = rounded;
     state.lastFieldPlayerIds = currentIds;
     state.strengthCacheTime = now;
@@ -685,10 +772,16 @@ function updateBenchCount() {
     }
 }
 
+// =====================================================
+// VALIDATION - ✅ FIX: Auto-Open bei Fehlern
+// =====================================================
+
 function validateLineup() {
     const validationPanel = document.getElementById('validationPanel');
     const validationList = document.getElementById('validationList');
     const validationTitle = document.querySelector('.validation-title');
+    const validationToggle = document.getElementById('validationToggle');
+    const validationContent = document.querySelector('.validation-content');
 
     if (!validationPanel || !validationList) return;
 
@@ -743,7 +836,8 @@ function validateLineup() {
         });
     }
 
-    const isValid = messages.filter(m => m.type === 'error').length === 0;
+    const hasErrors = messages.filter(m => m.type === 'error').length > 0;
+    const isValid = !hasErrors;
 
     if (validationTitle) {
         validationTitle.textContent = isValid ? 'Aufstellung gültig' : 'Aufstellung ungültig';
@@ -751,6 +845,18 @@ function validateLineup() {
 
     validationPanel.classList.toggle('valid', isValid);
     validationPanel.classList.toggle('invalid', !isValid);
+
+    // ✅ FIX: Bei Fehlern automatisch öffnen
+    if (hasErrors && validationPanel.classList.contains('collapsed')) {
+        validationPanel.classList.remove('collapsed');
+        if (validationToggle) {
+            validationToggle.setAttribute('aria-expanded', 'true');
+        }
+        if (validationContent) {
+            validationContent.setAttribute('aria-hidden', 'false');
+        }
+        toggleValidationPanel(false);
+    }
 
     if (messages.length === 0) {
         validationList.innerHTML = `
@@ -760,7 +866,7 @@ function validateLineup() {
             </li>
         `;
     } else {
-        const allMessages = messages;
+        const allMessages = [...messages];
         if (isValid && messages.filter(m => m.type === 'warning').length === 0) {
             allMessages.push({
                 type: 'success',
@@ -783,7 +889,6 @@ function validateLineup() {
         `).join('');
     }
 
-    // Screen Reader Announcement
     if (!isValid) {
         announceToScreenReader(`Aufstellung ungültig. ${messages.length} Problem(e) gefunden.`, 'assertive');
     }
@@ -794,6 +899,9 @@ function validateLineup() {
 // =====================================================
 
 function placePlayer(player, slotType, slotIndex, skipUndo = false) {
+    // ✅ FIX: iOS AudioContext aktivieren bei User-Interaktion
+    resumeAudioContext();
+
     if (!player || player.status !== 'fit') {
         showToast('Spieler ist nicht fit genug', 'error');
         playErrorSound();
@@ -815,12 +923,11 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
 
     const oldPosition = removePlayerFromLineup(player.id);
 
-    // Add to Undo Stack
     if (!skipUndo) {
         state.undoStack.push({
             action: 'place',
             player: player,
-            newPosition: {type: slotType, index: slotIndex},
+            newPosition: { type: slotType, index: slotIndex },
             oldPosition: oldPosition,
             timestamp: Date.now()
         });
@@ -858,7 +965,7 @@ function removePlayerFromLineup(playerId) {
 
     state.fieldSlots.forEach((slot, index) => {
         if (slot.player && slot.player.id === playerId) {
-            oldPosition = {type: 'field', index};
+            oldPosition = { type: 'field', index };
             slot.player = null;
             renderSlot('field', index);
         }
@@ -866,7 +973,7 @@ function removePlayerFromLineup(playerId) {
 
     state.benchSlots.forEach((slot, index) => {
         if (slot.player && slot.player.id === playerId) {
-            oldPosition = {type: 'bench', index};
+            oldPosition = { type: 'bench', index };
             slot.player = null;
             renderSlot('bench', index);
         }
@@ -880,12 +987,15 @@ function removePlayerFromLineup(playerId) {
 }
 
 function removePlayerWithAnimation(playerId) {
-    const player = state.availablePlayers.find(p => p.id === playerId);
+    // ✅ FIX: iOS AudioContext aktivieren
+    resumeAudioContext();
+
+    // ✅ FIX: O(1) Lookup statt O(n)
+    const player = state.getPlayerById(playerId);
     if (!player) return;
 
     const oldPosition = removePlayerFromLineup(playerId);
 
-    // Add to Undo Stack
     if (oldPosition) {
         state.undoStack.push({
             action: 'remove',
@@ -908,6 +1018,9 @@ function removePlayerWithAnimation(playerId) {
 }
 
 function showUndoToast(message, undoCallback) {
+    // Entferne existierende Toasts
+    document.querySelectorAll('.toast-undo').forEach(t => t.remove());
+
     const template = document.getElementById('undoToastTemplate');
     if (!template) return;
 
@@ -978,11 +1091,15 @@ function setLoadingState(element, isLoading) {
 // =====================================================
 
 function handleDragStart(e) {
+    // ✅ FIX: iOS AudioContext aktivieren
+    resumeAudioContext();
+
     const card = e.target.closest('.player-card');
     if (!card) return;
 
     const playerId = parseInt(card.dataset.playerId);
-    const player = state.availablePlayers.find(p => p.id === playerId);
+    // ✅ FIX: O(1) Lookup
+    const player = state.getPlayerById(playerId);
 
     if (!player || player.status !== 'fit') {
         e.preventDefault();
@@ -1048,9 +1165,10 @@ function handleDragOver(e) {
         e.dataTransfer.dropEffect = 'move';
     } else {
         slot.classList.add('drag-invalid');
-        const positionName = POSITION_NAMES[position];
+        const positionName = POSITION_NAMES[position] || position;
+        // ✅ FIX: XSS-sichere Ausgabe
         slot.setAttribute('data-error-hint',
-            `${state.selectedPlayer.main_position} kann nicht ${positionName} spielen`);
+            `${escapeHtml(state.selectedPlayer.main_position)} kann nicht ${escapeHtml(positionName)} spielen`);
         e.dataTransfer.dropEffect = 'none';
     }
 }
@@ -1121,21 +1239,24 @@ function removeGhost() {
 }
 
 function handleTouchStart(e) {
+    // ✅ FIX: iOS AudioContext aktivieren bei Touch
+    resumeAudioContext();
+
     const card = e.target.closest('.player-card');
     if (!card || card.classList.contains('unavailable')) return;
 
-    // Prevent if clicking remove button
     if (e.target.closest('.quick-remove-btn')) return;
 
     const playerId = parseInt(card.dataset.playerId);
-    state.draggedPlayer = state.availablePlayers.find(p => p.id === playerId);
+    // ✅ FIX: O(1) Lookup
+    state.draggedPlayer = state.getPlayerById(playerId);
 
     if (!state.draggedPlayer || state.draggedPlayer.status !== 'fit') {
         return;
     }
 
     const touch = e.touches[0];
-    state.touchStartPos = {x: touch.clientX, y: touch.clientY};
+    state.touchStartPos = { x: touch.clientX, y: touch.clientY };
 
     card.classList.add('drag-starting');
     hapticFeedback(10);
@@ -1162,7 +1283,6 @@ function handleTouchMove(e) {
     state.ghostElement.style.left = (touch.clientX - rect.width / 2) + 'px';
     state.ghostElement.style.top = (touch.clientY - rect.height / 2) + 'px';
 
-    // Auto-Scroll Logic
     const viewportHeight = window.innerHeight;
     const touchY = touch.clientY;
 
@@ -1170,14 +1290,14 @@ function handleTouchMove(e) {
         const intensity = Math.pow(1 - (touchY / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({top: -speed, behavior: 'auto'});
+        window.scrollBy({ top: -speed, behavior: 'auto' });
         showScrollIndicator('up');
     } else if (touchY > viewportHeight - CONFIG.AUTO_SCROLL_ZONE_PX) {
         const distanceFromBottom = viewportHeight - touchY;
         const intensity = Math.pow(1 - (distanceFromBottom / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({top: speed, behavior: 'auto'});
+        window.scrollBy({ top: speed, behavior: 'auto' });
         showScrollIndicator('down');
     } else {
         hideScrollIndicator();
@@ -1211,9 +1331,9 @@ function handleTouchMove(e) {
             state.currentDragOverSlot = slot;
         } else {
             slot.classList.add('drag-invalid');
-            const positionName = POSITION_NAMES[position];
+            const positionName = POSITION_NAMES[position] || position;
             slot.setAttribute('data-error-hint',
-                `${state.draggedPlayer.main_position} kann nicht ${positionName} spielen`);
+                `${escapeHtml(state.draggedPlayer.main_position)} kann nicht ${escapeHtml(positionName)} spielen`);
         }
     }
 }
@@ -1284,6 +1404,9 @@ function handleTouchCancel() {
     hideScrollIndicator();
     state.clearTouch();
     state.currentDragOverSlot = null;
+
+    // ✅ FIX: Visuelles Feedback bei Abbruch
+    announceToScreenReader('Ziehen abgebrochen');
 }
 
 // =====================================================
@@ -1303,7 +1426,6 @@ function handleSlotKeyboard(e) {
         }
     }
 
-    // Arrow-Key Navigation
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         navigateSlots(slot, e.key);
@@ -1340,18 +1462,21 @@ function navigateSlots(currentSlot, direction) {
 // FORMATION & LINEUP MANAGEMENT
 // =====================================================
 
-/**
- * Formationswechsel - OHNE Bestätigungsabfrage
- * Spieler werden automatisch auf kompatible Positionen migriert
- */
+// ✅ FIX: Race-Condition-Schutz
 async function handleFormationChange(e) {
     const newFormation = e.target.value;
 
+    // Early return bei gleicher Formation
     if (newFormation === state.currentFormation) return;
+
+    // ✅ FIX: Race-Condition verhindern
+    if (state.isFormationChanging) {
+        e.target.value = state.currentFormation; // Reset dropdown
+        return;
+    }
 
     const fieldPlayers = state.fieldSlots.filter(s => s.player);
 
-    // Wenn keine Spieler aufgestellt sind, einfach wechseln
     if (fieldPlayers.length === 0) {
         state.currentFormation = newFormation;
         renderFormationSlots();
@@ -1361,32 +1486,33 @@ async function handleFormationChange(e) {
         return;
     }
 
-    // Loading State
+    // ✅ FIX: State SOFORT setzen um Doppelklicks zu verhindern
     state.isFormationChanging = true;
     setLoadingState(e.target, true);
 
     try {
-        // Backup der aktuellen Spieler
         const oldPlayers = state.fieldSlots.map(s => ({
             player: s.player,
             originalPosition: s.position
         })).filter(s => s.player);
 
-        // Formation wechseln
+        // Backup für Undo
+        const oldFormation = state.currentFormation;
+        const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
+        const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
+
         state.currentFormation = newFormation;
         renderFormationSlots();
 
         let migratedCount = 0;
         let toBenchCount = 0;
+        const movedToBench = [];
 
-        // Spieler intelligent migrieren
-        oldPlayers.forEach(({player, originalPosition}) => {
-            // Versuch 1: Exakte Position finden
+        oldPlayers.forEach(({ player, originalPosition }) => {
             let targetSlot = state.fieldSlots.findIndex(s =>
                 !s.player && s.position === originalPosition
             );
 
-            // Versuch 2: Kompatible Position finden
             if (targetSlot === -1) {
                 targetSlot = state.fieldSlots.findIndex(s =>
                     !s.player && canPlayPosition(player, s.position)
@@ -1398,17 +1524,16 @@ async function handleFormationChange(e) {
                 renderSlot('field', targetSlot);
                 migratedCount++;
             } else {
-                // Auf die Bank verschieben
                 const emptyBench = state.benchSlots.findIndex(s => !s.player);
                 if (emptyBench !== -1) {
                     state.benchSlots[emptyBench].player = player;
                     renderSlot('bench', emptyBench);
                     toBenchCount++;
+                    movedToBench.push(player.name);
                 }
             }
         });
 
-        // UI aktualisieren
         updatePlacedPlayersSet();
         renderAvailablePlayers();
         updateTeamStrength();
@@ -1416,13 +1541,37 @@ async function handleFormationChange(e) {
         validateLineup();
         attachSlotEventListeners();
 
-        // Feedback
         let message = `${newFormation}: ${migratedCount} Spieler übernommen`;
         if (toBenchCount > 0) {
             message += `, ${toBenchCount} auf Bank`;
         }
         showToast(message, 'success');
         announceToScreenReader(message);
+
+        // ✅ FIX: Undo für Formationswechsel
+        if (toBenchCount > 0) {
+            showUndoToast(`${movedToBench.join(', ')} auf Bank verschoben`, () => {
+                // Restore old state
+                state.currentFormation = oldFormation;
+                document.getElementById('formationSelect').value = oldFormation;
+                state.fieldSlots = oldFieldSlots;
+                state.benchSlots = oldBenchSlots;
+
+                renderFormationSlots(true);
+                state.fieldSlots.forEach((slot, index) => {
+                    if (slot.player) renderSlot('field', index);
+                });
+                state.benchSlots.forEach((slot, index) => {
+                    if (slot.player) renderSlot('bench', index);
+                });
+
+                updatePlacedPlayersSet();
+                updateTeamStrength();
+                updateBenchCount();
+                validateLineup();
+                attachSlotEventListeners();
+            });
+        }
 
     } finally {
         state.isFormationChanging = false;
@@ -1431,8 +1580,18 @@ async function handleFormationChange(e) {
 }
 
 function clearLineup() {
-    if (!confirm('Möchten Sie die gesamte Aufstellung zurücksetzen?')) return;
+    // Backup für Undo
+    const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
+    const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
+    const hadPlayers = state.fieldSlots.some(s => s.player) ||
+        state.benchSlots.some(s => s.player);
 
+    if (!hadPlayers) {
+        showToast('Aufstellung ist bereits leer', 'info');
+        return;
+    }
+
+    // ✅ FIX: Confirm-Dialog entfernt, stattdessen Undo
     state.fieldSlots.forEach(slot => slot.player = null);
     state.benchSlots.forEach(slot => slot.player = null);
 
@@ -1447,6 +1606,30 @@ function clearLineup() {
 
     showToast('Aufstellung zurückgesetzt', 'success');
     announceToScreenReader('Aufstellung zurückgesetzt');
+
+    // ✅ FIX: Undo für Reset
+    showUndoToast('Aufstellung zurückgesetzt', () => {
+        state.fieldSlots = oldFieldSlots;
+        state.benchSlots = oldBenchSlots;
+
+        renderFormationSlots(true);
+        renderBenchSlots();
+
+        state.fieldSlots.forEach((slot, index) => {
+            if (slot.player) renderSlot('field', index);
+        });
+        state.benchSlots.forEach((slot, index) => {
+            if (slot.player) renderSlot('bench', index);
+        });
+
+        updatePlacedPlayersSet();
+        updateTeamStrength();
+        updateBenchCount();
+        validateLineup();
+        attachSlotEventListeners();
+
+        announceToScreenReader('Aufstellung wiederhergestellt');
+    });
 }
 
 function checkSaveReadiness() {
@@ -1461,10 +1644,10 @@ function checkSaveReadiness() {
 
     const goalkeeper = state.fieldSlots.find(slot => slot.position === 'TW' && slot.player);
     if (!goalkeeper) {
-        return {ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.'};
+        return { ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.' };
     }
 
-    return {ready: true, message: 'Speicherung möglich'};
+    return { ready: true, message: 'Speicherung möglich' };
 }
 
 function saveLineup() {
@@ -1484,7 +1667,6 @@ function saveLineup() {
         version: 1
     };
 
-    // Loading State
     state.isSaving = true;
     const saveBtn = document.getElementById('saveLineup');
     setLoadingState(saveBtn, true);
@@ -1510,16 +1692,28 @@ function saveLineup() {
     }
 }
 
+// ✅ FIX: Erweiterte Schema-Validierung
 function validateLineupSchema(lineup) {
-    return (
-        lineup &&
-        typeof lineup.formation === 'string' &&
-        Array.isArray(lineup.field) &&
-        Array.isArray(lineup.bench) &&
-        lineup.field.length === CONFIG.MAX_PLAYERS &&
-        lineup.bench.length === CONFIG.MAX_BENCH &&
-        (lineup.version === undefined || lineup.version === 1)
-    );
+    if (!lineup || typeof lineup !== 'object') return false;
+    if (typeof lineup.formation !== 'string') return false;
+    if (!Array.isArray(lineup.field) || !Array.isArray(lineup.bench)) return false;
+    if (lineup.field.length !== CONFIG.MAX_PLAYERS) return false;
+    if (lineup.bench.length !== CONFIG.MAX_BENCH) return false;
+
+    // ✅ FIX: Prüfen ob Formation existiert
+    if (!config.formations[lineup.formation]) return false;
+
+    // ✅ FIX: Prüfen auf doppelte IDs
+    const allIds = [...lineup.field, ...lineup.bench].filter(id => id !== null);
+    const uniqueIds = new Set(allIds);
+    if (allIds.length !== uniqueIds.size) return false;
+
+    // ✅ FIX: Prüfen ob alle IDs valide Spieler sind
+    for (const id of allIds) {
+        if (!state.getPlayerById(id)) return false;
+    }
+
+    return true;
 }
 
 function loadLineup() {
@@ -1542,7 +1736,8 @@ function loadLineup() {
 
         lineup.field.forEach((playerId, index) => {
             if (playerId) {
-                const player = state.availablePlayers.find(p => p.id === playerId);
+                // ✅ FIX: O(1) Lookup
+                const player = state.getPlayerById(playerId);
                 if (player) {
                     state.fieldSlots[index].player = player;
                     renderSlot('field', index);
@@ -1552,7 +1747,7 @@ function loadLineup() {
 
         lineup.bench.forEach((playerId, index) => {
             if (playerId) {
-                const player = state.availablePlayers.find(p => p.id === playerId);
+                const player = state.getPlayerById(playerId);
                 if (player) {
                     state.benchSlots[index].player = player;
                     renderSlot('bench', index);
@@ -1580,32 +1775,22 @@ function loadLineup() {
 // EVENT LISTENERS
 // =====================================================
 
+// ✅ FIX: Verbesserte Slot-Event-Listener-Verwaltung
 function attachSlotEventListeners() {
-    // Entferne alte Slot-Listener aus Tracking
-    eventListeners = eventListeners.filter(({element}) => {
-        const isSlot = element?.classList?.contains('field-slot') ||
-            element?.classList?.contains('bench-slot');
-        return !isSlot || document.contains(element);
-    });
-
-    // Clone & Replace (entfernt alle Event Listener)
     document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-        const clone = slot.cloneNode(true);
-        slot.parentNode.replaceChild(clone, slot);
-    });
+        // Entferne alte Listener für dieses Element
+        removeElementListeners(slot);
 
-    // Neue Listener hinzufügen
-    document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-        addEventListener(slot, 'dragenter', handleDragEnter, false);
-        addEventListener(slot, 'dragover', handleDragOver, false);
-        addEventListener(slot, 'dragleave', handleDragLeave, false);
-        addEventListener(slot, 'drop', handleDrop, false);
-        addEventListener(slot, 'keydown', handleSlotKeyboard, false);
+        // Füge neue Listener hinzu
+        addTrackedEventListener(slot, 'dragenter', handleDragEnter, false);
+        addTrackedEventListener(slot, 'dragover', handleDragOver, false);
+        addTrackedEventListener(slot, 'dragleave', handleDragLeave, false);
+        addTrackedEventListener(slot, 'drop', handleDrop, false);
+        addTrackedEventListener(slot, 'keydown', handleSlotKeyboard, false);
     });
 }
 
 function handleOrientationChange() {
-    // Clear previous timeout
     if (orientationTimeout) {
         clearTimeout(orientationTimeout);
     }
@@ -1613,29 +1798,24 @@ function handleOrientationChange() {
     orientationTimeout = setTimeout(() => {
         debug('🔄 Orientation changed, re-rendering formation...');
 
-        // ✅ SCHRITT 1: Formation mit Spieler-Erhaltung neu rendern
         renderFormationSlots(true);
 
-        // ✅ SCHRITT 2: Alle Slots mit Spielern visuell aktualisieren
         state.fieldSlots.forEach((slot, index) => {
             if (slot.player) {
-                renderSlot('field', index, false); // false = keine Animation
+                renderSlot('field', index, false);
             }
         });
 
-        // ✅ SCHRITT 3: Bank-Slots aktualisieren (nicht betroffen, aber sicherheitshalber)
         state.benchSlots.forEach((slot, index) => {
             if (slot.player) {
                 renderSlot('bench', index, false);
             }
         });
 
-        // ✅ SCHRITT 4: UI-State aktualisieren
         updateTeamStrength();
         updateBenchCount();
         validateLineup();
 
-        // ✅ SCHRITT 5: Event Listeners neu anbinden (wichtig für neue DOM-Elemente)
         attachSlotEventListeners();
 
         orientationTimeout = null;
@@ -1660,21 +1840,21 @@ function initEventListeners() {
 
     const formationSelect = document.getElementById('formationSelect');
     if (formationSelect) {
-        addEventListener(formationSelect, 'change', handleFormationChange);
+        addTrackedEventListener(formationSelect, 'change', handleFormationChange);
     }
 
     const clearBtn = document.getElementById('clearLineup');
     const saveBtn = document.getElementById('saveLineup');
 
-    if (clearBtn) addEventListener(clearBtn, 'click', clearLineup);
-    if (saveBtn) addEventListener(saveBtn, 'click', saveLineup);
+    if (clearBtn) addTrackedEventListener(clearBtn, 'click', clearLineup);
+    if (saveBtn) addTrackedEventListener(saveBtn, 'click', saveLineup);
 
     const validationHeader = document.getElementById('validationHeader');
     const validationPanel = document.getElementById('validationPanel');
     const validationToggle = document.getElementById('validationToggle');
 
     if (validationHeader && validationPanel) {
-        addEventListener(validationHeader, 'click', () => {
+        addTrackedEventListener(validationHeader, 'click', () => {
             const isCollapsed = validationPanel.classList.toggle('collapsed');
             validationToggle.setAttribute('aria-expanded', !isCollapsed);
             validationPanel.querySelector('.validation-content')
@@ -1682,14 +1862,14 @@ function initEventListeners() {
             toggleValidationPanel(isCollapsed);
         });
 
-        addEventListener(validationHeader, 'keydown', (e) => {
+        addTrackedEventListener(validationHeader, 'keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 validationHeader.click();
             }
         });
 
-        // Default: Collapsed on mobile
+        // Default: Collapsed on mobile, aber öffnet bei Fehlern automatisch
         if (window.matchMedia('(max-width: 767px)').matches) {
             validationPanel.classList.add('collapsed');
             validationToggle.setAttribute('aria-expanded', 'false');
@@ -1705,40 +1885,40 @@ function initEventListeners() {
 
     if (searchInput) {
         const debouncedSearch = debounce(renderAvailablePlayers, CONFIG.DEBOUNCE_SEARCH_MS);
-        addEventListener(searchInput, 'input', debouncedSearch);
+        addTrackedEventListener(searchInput, 'input', debouncedSearch);
     }
     if (positionFilter) {
-        addEventListener(positionFilter, 'change', renderAvailablePlayers);
+        addTrackedEventListener(positionFilter, 'change', renderAvailablePlayers);
     }
     if (sortSelect) {
-        addEventListener(sortSelect, 'change', renderAvailablePlayers);
+        addTrackedEventListener(sortSelect, 'change', renderAvailablePlayers);
     }
 
-    addEventListener(document, 'dragstart', (e) => {
+    addTrackedEventListener(document, 'dragstart', (e) => {
         if (e.target.closest('.player-card')) {
             handleDragStart(e);
         }
     });
 
-    addEventListener(document, 'dragend', (e) => {
+    addTrackedEventListener(document, 'dragend', (e) => {
         if (e.target.closest('.player-card')) {
             handleDragEnd(e);
         }
     });
 
     if (isTouchDevice) {
-        addEventListener(document, 'touchstart', (e) => {
+        addTrackedEventListener(document, 'touchstart', (e) => {
             if (e.target.closest('.player-card')) {
                 handleTouchStart(e);
             }
-        }, {passive: false});
+        }, { passive: false });
 
-        addEventListener(document, 'touchmove', handleTouchMoveRAF, {passive: false});
-        addEventListener(document, 'touchend', handleTouchEnd);
-        addEventListener(document, 'touchcancel', handleTouchCancel);
+        addTrackedEventListener(document, 'touchmove', handleTouchMoveRAF, { passive: false });
+        addTrackedEventListener(document, 'touchend', handleTouchEnd);
+        addTrackedEventListener(document, 'touchcancel', handleTouchCancel);
     }
 
-    addEventListener(document, 'click', (e) => {
+    addTrackedEventListener(document, 'click', (e) => {
         const removeBtn = e.target.closest('.quick-remove-btn');
         if (removeBtn) {
             e.preventDefault();
@@ -1748,20 +1928,20 @@ function initEventListeners() {
         }
     });
 
-    addEventListener(document, 'mousedown', (e) => {
+    addTrackedEventListener(document, 'mousedown', (e) => {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
     });
 
-    addEventListener(document, 'touchstart', (e) => {
+    addTrackedEventListener(document, 'touchstart', (e) => {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
-    }, {passive: false});
+    }, { passive: false });
 
-    addEventListener(window, 'orientationchange', handleOrientationChange);
-    addEventListener(window, 'resize', handleOrientationChange);
+    addTrackedEventListener(window, 'orientationchange', handleOrientationChange);
+    addTrackedEventListener(window, 'resize', handleOrientationChange);
 
     attachSlotEventListeners();
 }
@@ -1775,6 +1955,9 @@ export function init() {
 
     initAudioContext();
     state.availablePlayers = [...config.examplePlayers];
+
+    // ✅ FIX: Player Map für O(1) Lookups aufbauen
+    state.buildPlayerMap(state.availablePlayers);
 
     renderFormationSlots();
     renderBenchSlots();
@@ -1790,6 +1973,9 @@ export function init() {
 
     initEventListeners();
 
+    // ✅ FIX: Landscape-Hint mit Dismiss-Funktion initialisieren
+    initLandscapeHint();
+
     debug('✅ Lineup System vollständig initialisiert');
     announceToScreenReader('Aufstellungs-Seite geladen', 'polite');
 }
@@ -1797,12 +1983,8 @@ export function init() {
 export function cleanup() {
     debug('🧹 Lineup System Cleanup wird durchgeführt...');
 
-    eventListeners.forEach(({element, event, handler, options}) => {
-        if (element) {
-            element.removeEventListener(event, handler, options);
-        }
-    });
-    eventListeners = [];
+    // ✅ FIX: Verbesserte Cleanup-Logik
+    removeAllGlobalListeners();
 
     removeGhost();
     hideScrollIndicator();
@@ -1826,13 +2008,16 @@ export function cleanup() {
     state.clearTouch();
 
     if (state.audioContext) {
-        state.audioContext.close();
+        state.audioContext.close().catch(() => {});
         state.audioContext = null;
+        state.audioContextResumed = false;
     }
 
-    // Clear caches
     compatibilityCache.clear();
     lastAnnouncement = 0;
+
+    // Entferne dynamisch erstellte Toasts
+    document.querySelectorAll('.toast-undo').forEach(t => t.remove());
 
     debug('✅ Lineup System Cleanup abgeschlossen');
 }

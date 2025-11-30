@@ -1,8 +1,8 @@
 /* =====================================================
-   KICKERSCUP - LINEUP CSS FIXES v2.4 - OVERLAP FIX
-   ✅ BUGFIX: Überlappende Spielerkarten auf Mobile behoben
-   ✅ BUGFIX: Kleinere, kompaktere Karten für Spielfeld
-   ✅ BUGFIX: Optimierte Slot-Größen für 375px
+   KICKERSCUP - LINEUP CSS FIXES v2.5 - TOUCH TARGET FIX
+   ✅ FIX: Touch-Targets auf mindestens 44x44px
+   ✅ FIX: Remove-Buttons mit größerem Hit-Area
+   ✅ FIX: Optimierte Slot-Größen für 375px
    ✅ KRITISCH: Mehr Abstand zwischen Cards für Touch-Bedienung
    ===================================================== */
 
@@ -11,171 +11,186 @@
 
     /* ========== KRITISCHER FIX: Optimierte Container-Höhe ========== */
     .field-background {
-        min-height: 520px !important;
+        min-height: 520px;
         position: relative;
     }
 
     /* ✅ Field Slots Container */
     .field-slots {
-        position: absolute !important;
+        position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        height: 100% !important;
-        width: 100% !important;
-        /* Weniger Padding = mehr Platz für Karten */
-        padding: 15px 5px 15px !important;
+        height: 100%;
+        width: 100%;
+        padding: 15px 5px 15px;
     }
 
-    /* ✅ KRITISCH: Kleine Slots um Überlappung zu verhindern */
+    /* ✅ KRITISCH: Kleine Slots aber Touch-Accessible */
     .field-slot {
-        width: 52px !important;
-        height: 62px !important;
-        min-width: 44px !important;
-        min-height: 44px !important;
+        width: 52px;
+        height: 62px;
+        /* ✅ FIX: Minimum Touch Target */
+        min-width: 44px;
+        min-height: 44px;
     }
 
     /* ✅ Leere Slots kompakter */
     .field-slot:not(.occupied) {
-        padding: 3px !important;
-        background: rgba(0, 199, 139, 0.08) !important;
+        padding: 3px;
+        background: rgba(0, 199, 139, 0.08);
     }
 
     .field-slot .slot-position {
-        font-size: 8px !important;
-        letter-spacing: 0.5px !important;
-        font-weight: 700 !important;
+        font-size: 8px;
+        letter-spacing: 0.5px;
+        font-weight: 700;
     }
 
     .field-slot .slot-placeholder {
-        font-size: 12px !important;
-        opacity: 0.4 !important;
+        font-size: 12px;
+        opacity: 0.4;
     }
 
     /* ========== KRITISCH: Ultra-kompakte Spielerkarten auf dem Feld ========== */
     .field-card-compact {
-        padding: 3px !important;
-        min-height: auto !important;
-        width: 100% !important;
-        height: 100% !important;
-        box-sizing: border-box !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        overflow: hidden !important;
+        padding: 3px;
+        min-height: auto;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
     }
 
     .field-card-compact .player-card-header {
-        margin-bottom: 1px !important;
-        gap: 1px !important;
-        flex-wrap: nowrap !important;
+        margin-bottom: 1px;
+        gap: 1px;
+        flex-wrap: nowrap;
     }
 
     /* ✅ Spielername: Abgekürzt auf Initialen + Nachname */
     .field-card-compact .player-card-name {
-        font-size: 7px !important;
-        line-height: 1.1 !important;
-        max-width: 32px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-        font-weight: 600 !important;
+        font-size: 7px;
+        line-height: 1.1;
+        max-width: 32px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 600;
     }
 
     .field-card-compact .player-card-position {
-        font-size: 6px !important;
-        padding: 1px 2px !important;
-        flex-shrink: 0 !important;
+        font-size: 6px;
+        padding: 1px 2px;
+        flex-shrink: 0;
     }
 
     /* ✅ Stats auf Feldkarten: Nur EW anzeigen, Alter verstecken */
     .field-card-compact .player-card-field-stats {
-        gap: 1px !important;
+        gap: 1px;
     }
 
     /* Verstecke Alter-Stat auf sehr kleinen Karten */
     .field-card-compact .field-stat-item:nth-child(2) {
-        display: none !important;
+        display: none;
     }
 
     .field-card-compact .field-stat-item {
-        padding: 1px 2px !important;
-        background: rgba(0, 199, 139, 0.1) !important;
+        padding: 1px 2px;
+        background: rgba(0, 199, 139, 0.1);
     }
 
     .field-card-compact .field-stat-label {
-        font-size: 5px !important;
-        letter-spacing: 0 !important;
+        font-size: 5px;
+        letter-spacing: 0;
     }
 
     .field-card-compact .field-stat-value {
-        font-size: 8px !important;
-        font-weight: 700 !important;
+        font-size: 8px;
+        font-weight: 700;
     }
 
     /* ✅ Position-Penalty Text verstecken auf Mobile */
     .field-card-compact .player-card-penalty {
-        display: none !important;
+        display: none;
     }
 
     /* ✅ Status-Badge kleiner */
     .field-card-compact .player-status-badge {
-        font-size: 6px !important;
-        padding: 1px 2px !important;
-        top: 1px !important;
-        left: 1px !important;
+        font-size: 6px;
+        padding: 1px 2px;
+        top: 1px;
+        left: 1px;
     }
 
-    /* ========== Remove-Button: Klein aber zugänglich ========== */
+    /* ========== ✅ FIX: Remove-Button mit größerem Touch-Target ========== */
     .field-slot .quick-remove-btn,
     .field-card-compact .quick-remove-btn {
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 11px !important;
-        top: -5px !important;
-        right: -5px !important;
-        padding: 0 !important;
-        line-height: 16px !important;
-        opacity: 0.9 !important;
-        border-width: 1px !important;
+        /* Visuell klein */
+        width: 22px;
+        height: 22px;
+        font-size: 13px;
+        top: -6px;
+        right: -6px;
+        padding: 0;
+        line-height: 18px;
+        opacity: 0.9;
+        border-width: 2px;
+    }
+
+    /* ✅ FIX: Größeres Touch-Target durch Pseudo-Element */
+    .field-slot .quick-remove-btn::before,
+    .field-card-compact .quick-remove-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* 44px Touch-Target */
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
     }
 
     /* ========== FIX: Konsistente Font-Sizes ========== */
     .lineup-title {
-        font-size: calc(var(--text-3xl) * 0.6) !important;
-        letter-spacing: 1px !important;
-        margin-bottom: 4px !important;
+        font-size: calc(var(--text-3xl) * 0.6);
+        letter-spacing: 1px;
+        margin-bottom: 4px;
     }
 
     .lineup-subtitle {
-        font-size: var(--text-xs) !important;
+        font-size: var(--text-xs);
     }
 
     /* ========== FIX: Formation Controls kompakter ========== */
     .formation-controls {
-        padding: var(--space-sm) var(--space-sm) !important;
-        gap: var(--space-sm) !important;
+        padding: var(--space-sm) var(--space-sm);
+        gap: var(--space-sm);
     }
 
     .team-strength-display {
-        padding: 8px 12px !important;
+        padding: 8px 12px;
     }
 
     .strength-value {
-        font-size: var(--text-lg) !important;
+        font-size: var(--text-lg);
     }
 
     /* ========== FIX: Bench & Kader Sections ========== */
     .bench-section,
     .available-players-section {
-        padding: var(--space-sm) var(--space-sm) !important;
+        padding: var(--space-sm) var(--space-sm);
     }
 
     .section-title {
-        font-size: var(--text-sm) !important;
+        font-size: var(--text-sm);
         gap: var(--space-xs);
-        margin-bottom: var(--space-sm) !important;
+        margin-bottom: var(--space-sm);
     }
 
     /* ========== FIX: Input Min-Height für iOS Auto-Zoom Prevention ========== */
@@ -183,63 +198,86 @@
     .player-search,
     .position-filter,
     .sort-select {
-        min-height: 44px !important;
-        font-size: 16px !important;
-        padding: var(--space-sm) 12px !important;
+        min-height: 44px;
+        font-size: 16px;
+        padding: var(--space-sm) 12px;
     }
 
     .action-buttons .btn {
-        min-height: 44px !important;
-        font-size: var(--text-xs) !important;
-        padding: var(--space-sm) 12px !important;
+        min-height: 44px;
+        font-size: var(--text-xs);
+        padding: var(--space-sm) 12px;
     }
 
     /* ========== OPTIMIERUNG: Available Players Grid ========== */
     .available-players-list {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        max-height: 350px !important;
-        padding: 2px !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        max-height: 350px;
+        padding: 2px;
     }
 
     .player-mini-card {
-        min-height: 85px !important;
-        padding: 6px !important;
-        position: relative !important;
+        min-height: 85px;
+        padding: 6px;
+        position: relative;
     }
 
-    /* ========== KRITISCH: Remove-Button auf Mini-Cards ========== */
+    /* ========== ✅ FIX: Remove-Button auf Mini-Cards mit Touch-Target ========== */
     .player-mini-card .quick-remove-btn {
-        opacity: 0.85 !important;
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 14px !important;
-        top: 2px !important;
-        right: 2px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-        background: rgba(245, 101, 101, 0.95) !important;
+        opacity: 0.85;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+        top: 2px;
+        right: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        background: rgba(245, 101, 101, 0.95);
+    }
+
+    /* ✅ FIX: Größeres Touch-Target */
+    .player-mini-card .quick-remove-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
     }
 
     .player-mini-card .quick-remove-btn:active {
-        opacity: 1 !important;
-        transform: scale(0.9) !important;
+        opacity: 1;
+        transform: scale(0.9);
     }
 
     /* Bench Slots */
     .bench-slot .quick-remove-btn {
-        opacity: 0.85 !important;
-        width: 28px !important;
-        height: 28px !important;
+        opacity: 0.85;
+        width: 28px;
+        height: 28px;
+    }
+
+    .bench-slot .quick-remove-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
     }
 
     /* ========== OPTIMIERUNG: Bench Slots ========== */
     .bench-slots {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 6px !important;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
     }
 
     .bench-slot {
-        min-height: 100px !important;
+        min-height: 100px;
     }
 }
 
@@ -247,11 +285,11 @@
 @media (min-width: 375px) and (max-width: 389px) and (orientation: portrait) {
     /* Portrait-Mode: Optimierte Höhe */
     .field-background {
-        min-height: 520px !important;
+        min-height: 520px;
     }
 
     .landscape-hint {
-        display: flex !important;
+        display: flex;
         animation: hintPulse 2s ease-in-out 3;
     }
 }
@@ -259,104 +297,125 @@
 /* ========== iPhone 12/13/14 (390px-427px) ========== */
 @media (min-width: 390px) and (max-width: 427px) {
     .field-background {
-        min-height: 560px !important;
+        min-height: 560px;
     }
 
     .field-slots {
-        padding: 18px 8px 18px !important;
+        padding: 18px 8px 18px;
     }
 
     .field-slot {
-        width: 58px !important;
-        height: 68px !important;
+        width: 58px;
+        height: 68px;
+        min-width: 44px;
+        min-height: 44px;
     }
 
     .field-card-compact .player-card-name {
-        font-size: 8px !important;
-        max-width: 38px !important;
+        font-size: 8px;
+        max-width: 38px;
     }
 
     .field-card-compact .field-stat-item:nth-child(2) {
-        display: none !important;
+        display: none;
     }
 
+    /* ✅ FIX: Remove-Button mit Touch-Target */
     .field-slot .quick-remove-btn {
-        width: 20px !important;
-        height: 20px !important;
-        font-size: 12px !important;
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+
+    .field-slot .quick-remove-btn::before {
+        width: 44px;
+        height: 44px;
+    }
+
+    .player-mini-card .quick-remove-btn::before,
+    .bench-slot .quick-remove-btn::before {
+        width: 48px;
+        height: 48px;
     }
 }
 
 /* ========== iPhone Pro Max (428px-767px) ========== */
 @media (min-width: 428px) and (max-width: 767px) {
     .field-background {
-        min-height: 580px !important;
+        min-height: 580px;
     }
 
     .field-slots {
-        padding: 20px 10px 20px !important;
+        padding: 20px 10px 20px;
     }
 
     .field-slot {
-        width: 65px !important;
-        height: 75px !important;
+        width: 65px;
+        height: 75px;
+        min-width: 44px;
+        min-height: 44px;
     }
 
     .field-card-compact .player-card-name {
-        font-size: 9px !important;
-        max-width: 45px !important;
+        font-size: 9px;
+        max-width: 45px;
     }
 
     .field-card-compact .field-stat-item:nth-child(2) {
-        display: flex !important;
+        display: flex;
     }
 
     .field-slot .quick-remove-btn {
-        width: 22px !important;
-        height: 22px !important;
+        width: 26px;
+        height: 26px;
+    }
+
+    .field-slot .quick-remove-btn::before {
+        width: 44px;
+        height: 44px;
     }
 }
 
 /* ========== LANDSCAPE-MODUS ========== */
 @media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
     .field-background {
-        min-height: 400px !important;
+        min-height: 400px;
     }
 
     .field-slots {
-        position: absolute !important;
+        position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        height: 100% !important;
-        width: 100% !important;
-        padding: 15px 10px 15px !important;
+        height: 100%;
+        width: 100%;
+        padding: 15px 10px 15px;
     }
 
     .field-slot {
-        width: 55px !important;
-        height: 60px !important;
+        width: 55px;
+        height: 60px;
         min-width: 44px;
         min-height: 44px;
     }
 
     .field-card-compact .player-card-name {
-        font-size: 7px !important;
+        font-size: 7px;
     }
 
     .field-card-compact .field-stat-item:nth-child(2) {
-        display: none !important;
+        display: none;
     }
 
     /* Remove-Button auch im Landscape sichtbar */
     .quick-remove-btn {
-        opacity: 0.8 !important;
+        opacity: 0.8;
     }
 
     /* Landscape-Hint verstecken */
     .landscape-hint {
-        display: none !important;
+        display: none;
     }
 }
 
@@ -400,7 +459,7 @@
     }
 
     .validation-panel {
-        margin-bottom: var(--space-sm) !important;
+        margin-bottom: var(--space-sm);
     }
 }
 
@@ -451,16 +510,16 @@
     .field-slot,
     .bench-slot,
     .player-card {
-        border-width: 3px !important;
+        border-width: 3px;
     }
 
     .validation-item {
-        border-left-width: 5px !important;
+        border-left-width: 5px;
     }
 
     .text-muted,
     --text-muted {
-        color: #ffffff !important;
+        color: #ffffff;
     }
 }
 
@@ -470,19 +529,59 @@
     .scroll-indicator,
     .ghost-dragging,
     .loading::after {
-        animation: none !important;
+        animation: none;
     }
 }
 
 /* ========== TOUCH INSTRUCTIONS - Kompakter ========== */
 @media (max-width: 767px) {
     .touch-instructions {
-        top: 65px !important;
-        padding: 6px 12px !important;
-        font-size: 11px !important;
+        top: 65px;
+        padding: 6px 12px;
+        font-size: 11px;
     }
 
     .touch-instructions-content p {
-        font-size: 11px !important;
+        font-size: 11px;
     }
+}
+
+/* ========== ✅ FIX: Landscape Hint Close Button ========== */
+.landscape-hint-close {
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    color: var(--dark-primary);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    margin-left: var(--space-xs);
+    position: relative;
+    /* ✅ FIX: Touch-Target */
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.landscape-hint-close::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+}
+
+.landscape-hint-close:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.landscape-hint-close:active {
+    transform: scale(0.9);
 }

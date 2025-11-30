@@ -1,14 +1,17 @@
-<!-- AUFSTELLUNG PAGE (FULLY ACCESSIBLE & OPTIMIZED v2.0) -->
+<!-- AUFSTELLUNG PAGE (FULLY ACCESSIBLE & OPTIMIZED v2.1) -->
+<!-- ✅ FIX: Landscape-Hint mit Close-Button -->
+<!-- ✅ FIX: Validation-Panel öffnet bei Fehlern automatisch -->
 
-<!-- Skip-Links für Accessibility (NEU) -->
+<!-- Skip-Links für Accessibility -->
 <a class="skip-link" href="#fieldSlots">Direkt zum Spielfeld</a>
 <a class="skip-link" href="#availablePlayersList">Direkt zur Spielerliste</a>
 
-<!-- Landscape Hint for Portrait Mode -->
+<!-- Landscape Hint for Portrait Mode - ✅ FIX: Mit Close-Button -->
 <div aria-live="polite" class="landscape-hint" id="landscapeHint" role="status">
     <div class="landscape-hint-content">
         <span aria-hidden="true" class="landscape-hint-icon">🔄</span>
         <p class="landscape-hint-text">Tipp: Drehe dein Gerät für eine bessere Ansicht</p>
+        <!-- Close-Button wird via JS hinzugefügt wenn nicht per localStorage dismissed -->
     </div>
 </div>
 
@@ -39,7 +42,7 @@
             <option value="4-3-1-2">4-3-1-2 (Diamant)</option>
         </select>
         <span class="sr-only" id="formation-help">
-            Ändern der Formation wird die aktuelle Aufstellung intelligentüber nehmen oder auf die Bank verschieben
+            Ändern der Formation wird die aktuelle Aufstellung intelligent übernehmen oder auf die Bank verschieben
         </span>
     </div>
 
@@ -67,7 +70,7 @@
     </div>
 </div>
 
-<!-- Validation Messages -->
+<!-- Validation Messages - ✅ FIX: Öffnet automatisch bei Fehlern -->
 <div aria-labelledby="validation-title" class="validation-panel collapsed" id="validationPanel" role="region">
     <div aria-expanded="false" class="validation-header" id="validationHeader" role="button" tabindex="0">
         <span aria-hidden="true" class="validation-icon">✓</span>
@@ -145,18 +148,19 @@
                         <option value="DEF">🛡️ Abwehr</option>
                         <option value="MID">⚙️ Mittelfeld</option>
                         <option value="ATT">⚡ Angriff</option>
-                        <option value="">─────────────</option>
-                        <option value="LI">Linker Innenvert. (LI)</option>
-                        <option value="LV">Linker Vert. (LV)</option>
-                        <option value="IV">Innenvert. (IV)</option>
-                        <option value="RV">Rechter Vert. (RV)</option>
-                        <option value="LM">Linkes MF (LM)</option>
-                        <option value="RM">Rechtes MF (RM)</option>
-                        <option value="ZOM">Zentr. Off. MF (ZOM)</option>
-                        <option value="ZDM">Zentr. Def. MF (ZDM)</option>
-                        <option value="MS">Mittelstürmer (MS)</option>
-                        <option value="LS">Linksstürmer (LS)</option>
-                        <option value="RS">Rechtsstürmer (RS)</option>
+                        <optgroup label="Einzelne Positionen">
+                            <option value="LI">Linker Innenvert. (LI)</option>
+                            <option value="LV">Linker Vert. (LV)</option>
+                            <option value="IV">Innenvert. (IV)</option>
+                            <option value="RV">Rechter Vert. (RV)</option>
+                            <option value="LM">Linkes MF (LM)</option>
+                            <option value="RM">Rechtes MF (RM)</option>
+                            <option value="ZOM">Zentr. Off. MF (ZOM)</option>
+                            <option value="ZDM">Zentr. Def. MF (ZDM)</option>
+                            <option value="MS">Mittelstürmer (MS)</option>
+                            <option value="LS">Linksstürmer (LS)</option>
+                            <option value="RS">Rechtsstürmer (RS)</option>
+                        </optgroup>
                     </select>
                     <select aria-label="Spieler sortieren"
                             class="sort-select"
