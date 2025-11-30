@@ -1,7 +1,8 @@
 /* =====================================================
-   KICKERSCUP - LINEUP CSS FIXES v2.2 - FINAL FIX
+   KICKERSCUP - LINEUP CSS FIXES v2.3 - FINAL FIX
    ✅ BUGFIX: field-slots height problem behoben
-   ✅ Das Problem war: field-slots füllte nicht die volle field-background Höhe
+   ✅ BUGFIX: Remove-Button Zugänglichkeit verbessert
+   ✅ KRITISCH: Mehr Abstand zwischen Cards für Touch-Bedienung
    ===================================================== */
 
 /* ========== CRITICAL FIX: Field Slots Container Höhe ========== */
@@ -97,13 +98,57 @@
     /* ========== OPTIMIERUNG: Available Players Grid ========== */
     .available-players-list {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: var(--space-sm) !important;
+        gap: 12px !important;
         max-height: 380px !important;
+        padding: 4px !important;
     }
 
     .player-mini-card {
         min-height: 90px !important;
-        padding: var(--space-sm) !important;
+        padding: 8px !important;
+        position: relative !important;
+    }
+
+    /* ========== KRITISCH: Remove-Button Zugänglichkeit ========== */
+    /* Auf Touch-Geräten IMMER sichtbar machen */
+    .player-mini-card .quick-remove-btn {
+        opacity: 0.85 !important;
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 18px !important;
+        top: 4px !important;
+        right: 4px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+        background: rgba(245, 101, 101, 0.95) !important;
+    }
+
+    .player-mini-card .quick-remove-btn:active {
+        opacity: 1 !important;
+        transform: scale(0.9) !important;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    /* Field-Cards */
+    .field-card-compact .quick-remove-btn {
+        opacity: 0.85 !important;
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 18px !important;
+        top: 4px !important;
+        right: 4px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .field-card-compact .quick-remove-btn:active {
+        opacity: 1 !important;
+        transform: scale(0.9) !important;
+    }
+
+    /* Bench Slots */
+    .bench-slot .quick-remove-btn {
+        opacity: 0.85 !important;
+        width: 38px !important;
+        height: 38px !important;
     }
 
     /* ========== OPTIMIERUNG: Bench Slots ========== */
@@ -156,6 +201,11 @@
         height: 85px !important;
         min-width: 44px;
         min-height: 44px;
+    }
+
+    /* Remove-Button auch im Landscape sichtbar */
+    .quick-remove-btn {
+        opacity: 0.8 !important;
     }
 }
 
