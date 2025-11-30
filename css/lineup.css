@@ -952,7 +952,7 @@
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
-  background: rgba(0, 199, 139, 0.05) url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2300C78B" d="M6 8L0 0h12z"/></svg>') no-repeat right 12px center;
+    background: rgba(0, 199, 139, 0.05) url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2300C78B" d="M6 8L0 0h12z"/></svg>') no-repeat right 12px center;
     padding-right: 35px; /* [Padding Right bleibt für den Dropdown-Pfeil getrennt oder muss in die Shorthand integriert werden, wenn er über allen Werten steht.] */
 }
 

@@ -1084,7 +1084,10 @@ function checkSaveReadiness() {
 
     // 1. Mindestens 7 Spieler auf dem Feld
     if (fieldPlayersCount < 7) {
-        return {ready: false, message: `Zum Speichern müssen mindestens 7 Spieler auf dem Feld aufgestellt sein. Aktuell: ${fieldPlayersCount}`};
+        return {
+            ready: false,
+            message: `Zum Speichern müssen mindestens 7 Spieler auf dem Feld aufgestellt sein. Aktuell: ${fieldPlayersCount}`
+        };
     }
 
     // 2. Mindestens ein Torwart aufgestellt (auf der TW-Position)
