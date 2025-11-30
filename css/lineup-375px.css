@@ -1,131 +1,119 @@
 /* =====================================================
-   KICKERSCUP - LINEUP 375px FIX
-   Lösung für überlappende Positionen auf kleinen Bildschirmen
-   ✅ PORTRAIT FIX: Keine !important bei top-Positionen
-   Y-Koordinaten werden jetzt im JavaScript angepasst!
+   KICKERSCUP - LINEUP 375px RESPONSIVE FIX
+   ✅ Portrait-optimierte Y-Koordinaten (via JS)
+   ✅ Konsistente Design-Tokens
+   ✅ Touch-Target-Größen (min 44px)
    ===================================================== */
 
-/* Base Mobile (375px - 389px) - VERBESSERT */
+/* Base Mobile (375px - 389px) */
 @media (min-width: 375px) and (max-width: 389px) {
 
     /* ========== SPIELFELD OPTIMIERUNG ========== */
-    /* Spielfeld höher machen für bessere Verteilung */
     .field-background {
-        min-height: 750px !important; /* Von 650px auf 750px erhöht */
+        min-height: 750px !important;
     }
 
-    /* Field Slots Container - mehr Padding oben/unten */
     .field-slots {
-        padding: 50px 10px !important; /* Mehr vertikaler Raum */
+        padding: 50px var(--space-sm) !important;
         position: relative;
     }
 
-    /* Kleinere Slot-Größe für mehr Platz */
     .field-slot {
-        width: 70px !important; /* Von 75px reduziert */
-        height: 90px !important; /* Von 95px reduziert */
+        width: 70px !important;
+        height: 90px !important;
     }
 
-    /* Position-Label kleiner */
     .slot-position {
-        font-size: 10px !important;
-        padding: 3px 6px;
+        font-size: var(--text-xs) !important;
+        padding: var(--space-xs) var(--space-xs);
     }
 
-    /* Placeholder kleiner */
     .slot-placeholder {
-        font-size: 24px !important;
+        font-size: var(--text-xl) !important;
     }
 
     /* ========== SPIELERKARTEN KOMPAKTER ========== */
-    /* Field Cards noch kompakter */
     .field-card-compact {
         padding: 7px !important;
         min-height: 84px !important;
     }
 
     .field-card-compact .player-card-name {
-        font-size: 11px !important;
-        margin-bottom: 4px;
+        font-size: var(--text-sm) !important;
+        margin-bottom: var(--space-xs);
     }
 
-    /* Stats kleiner */
     .field-stat-item {
-        padding: 3px 5px !important;
+        padding: var(--space-xs) var(--space-xs) !important;
     }
 
     .field-stat-label {
-        font-size: 9px !important;
+        font-size: var(--text-xs) !important;
     }
 
     .field-stat-value {
-        font-size: 12px !important;
+        font-size: var(--text-sm) !important;
     }
 
-    /* Quick Remove Button kleiner */
+    /* ========== QUICK REMOVE BUTTON (44px Touch Target) ========== */
     .quick-remove-btn {
-        width: 24px !important;
-        height: 24px !important;
-        font-size: 16px !important;
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 18px !important;
         top: 2px;
         right: 2px;
     }
 
-    /* ========== FORMATIONS-ANPASSUNGEN ========== */
-    /* ✅ WICHTIG: Keine top-Position Overrides mehr! */
-    /* Die Y-Koordinaten werden jetzt dynamisch im JavaScript angepasst */
-    /* renderFormationSlots() in lineup.js passt die Positionen automatisch an */
-    /* ========== WEITERE OPTIMIERUNGEN ========== */
-    /* Formation Controls kompakter */
+    /* ========== FORMATION CONTROLS ========== */
     .formation-controls {
-        padding: 18px 12px !important;
-        gap: 12px !important;
+        padding: 18px var(--space-sm) !important;
+        gap: var(--space-sm) !important;
     }
 
     .formation-dropdown {
-        font-size: 14px !important;
-        padding: 10px 14px !important;
+        font-size: var(--text-sm) !important;
+        padding: var(--space-sm) 14px !important;
     }
 
     .team-strength-display {
-        padding: 10px 16px !important;
+        padding: var(--space-sm) var(--space-md) !important;
     }
 
     .strength-value {
-        font-size: 22px !important;
+        font-size: 1.375rem !important;
     }
 
-    /* Buttons kompakter */
+    /* ========== BUTTONS ========== */
     .action-buttons .btn {
-        font-size: 13px !important;
-        padding: 10px 14px !important;
+        font-size: var(--text-sm) !important;
+        padding: var(--space-sm) 14px !important;
     }
 
-    /* Squad Panel Anpassungen */
+    /* ========== SQUAD PANEL ========== */
     .bench-section,
     .available-players-section {
-        padding: 15px 12px !important;
+        padding: var(--space-md) var(--space-sm) !important;
     }
 
     .section-title {
-        font-size: 14px !important;
-        gap: 6px;
+        font-size: var(--text-sm) !important;
+        gap: var(--space-xs);
     }
 
-    /* Bench Slots - 2 Spalten statt 3 für bessere Lesbarkeit */
+    /* Bench Slots - 2 Spalten */
     .bench-slots {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+        gap: var(--space-sm) !important;
     }
 
     .bench-slot {
         min-height: 120px !important;
     }
 
-    /* Available Players */
+    /* Available Players - 2 Spalten */
     .available-players-list {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+        gap: var(--space-sm) !important;
         max-height: 380px !important;
     }
 
@@ -135,51 +123,49 @@
     }
 
     .mini-card-name {
-        font-size: 12px !important;
+        font-size: var(--text-sm) !important;
     }
 
     .mini-card-info {
-        font-size: 10px !important;
+        font-size: var(--text-xs) !important;
     }
 
     .mini-card-ew-value {
-        font-size: 15px !important;
+        font-size: var(--text-base) !important;
     }
 
-    /* Validation Panel */
+    /* ========== VALIDATION PANEL ========== */
     .validation-panel {
-        margin-bottom: 20px !important;
+        margin-bottom: var(--space-lg) !important;
     }
 
     .validation-header {
-        padding: 10px 12px !important;
+        padding: var(--space-sm) var(--space-sm) !important;
     }
 
     .validation-content {
-        padding: 10px 12px !important;
+        padding: var(--space-sm) var(--space-sm) !important;
     }
 
-    /* Landscape Hint */
+    /* ========== LANDSCAPE HINT ========== */
     .landscape-hint {
-        padding: 10px 15px !important;
+        padding: var(--space-sm) var(--space-md) !important;
         bottom: 85px !important;
     }
 
     .landscape-hint-text {
-        font-size: 11px !important;
+        font-size: var(--text-sm) !important;
     }
 }
 
-/* ========== ALTERNATIVE: Querformat-Optimierung ========== */
-/* Falls das Gerät im Landscape-Modus ist, nutzen wir die volle Breite besser */
-
+/* ========== LANDSCAPE-MODUS OPTIMIERUNG ========== */
 @media (min-width: 375px) and (max-width: 767px) and (orientation: landscape) {
     .field-background {
-        min-height: 500px !important; /* Im Querformat niedriger */
+        min-height: 500px !important;
     }
 
     .field-slots {
-        padding: 30px 15px !important;
+        padding: var(--space-xl) var(--space-md) !important;
     }
 
     .field-slot {
@@ -190,7 +176,7 @@
     .lineup-main-layout {
         display: grid;
         grid-template-columns: 1fr 280px;
-        gap: 15px;
+        gap: var(--space-md);
     }
 
     .squad-panel {
@@ -209,20 +195,22 @@
 
 /* ========== PORTRAIT-SPEZIFISCHE OPTIMIERUNGEN ========== */
 @media (min-width: 375px) and (max-width: 389px) and (orientation: portrait) {
-    /* Spielfeld im Portrait-Modus noch höher */
     .field-background {
         min-height: 850px !important;
     }
 
-    /* Mehr vertikaler Abstand zwischen Slots */
     .field-slots {
-        padding: 60px 10px !important;
+        padding: 60px var(--space-sm) !important;
     }
 
-    /* Landscape Hint prominent anzeigen */
     .landscape-hint {
         display: flex !important;
-        animation: hintPulse 2s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .landscape-hint {
+            animation: hintPulse 2s ease-in-out infinite;
+        }
     }
 
     @keyframes hintPulse {
@@ -237,12 +225,8 @@
     }
 }
 
-/* ========== KOMPATIBILITÄT MIT ÄLTEREN GERÄTEN ========== */
-
-/* iPhone SE 1st Gen & ältere (320px - 374px) */
-/* OPTIONAL: Falls Du doch Geräte unter 375px unterstützen willst */
+/* ========== ÄLTERE GERÄTE (< 375px) ========== */
 @media (max-width: 374px) {
-    /* Warnung anzeigen */
     .viewport-warning {
         position: fixed;
         top: 60px;
@@ -251,17 +235,16 @@
         z-index: 10003;
         background: rgba(245, 101, 101, 0.95);
         border: 2px solid #f56565;
-        border-radius: 12px;
-        padding: 12px 18px;
+        border-radius: var(--radius-lg);
+        padding: var(--space-sm) 18px;
         max-width: 90%;
         text-align: center;
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: white;
         font-weight: 600;
         box-shadow: 0 8px 30px rgba(245, 101, 101, 0.5);
     }
 
-    /* Minimal-Support für sehr kleine Geräte */
     .field-background {
         min-height: 900px !important;
     }
@@ -272,94 +255,21 @@
     }
 
     .field-card-compact {
-        padding: 5px !important;
+        padding: var(--space-xs) !important;
         min-height: 70px !important;
-    }
-
-    .field-card-compact .player-card-name {
-        font-size: 10px !important;
-    }
-
-    .field-stat-item {
-        padding: 2px 4px !important;
-    }
-
-    .field-stat-label {
-        font-size: 8px !important;
-    }
-
-    .field-stat-value {
-        font-size: 10px !important;
     }
 
     .bench-slots,
     .available-players-list {
         grid-template-columns: 1fr !important;
     }
-
-    .formation-controls {
-        padding: 15px 10px !important;
-    }
-
-    .lineup-title {
-        font-size: 24px !important;
-    }
 }
 
-/* ========== PERFORMANCE-OPTIMIERUNGEN ========== */
-
-/* Reduziere Animationen auf langsamen Geräten */
-@media (prefers-reduced-motion: reduce) {
-    .field-slot,
-    .player-card,
-    .ghost-dragging,
-    .landscape-hint {
-        animation: none !important;
-        transition: none !important;
-    }
-
-    .scroll-indicator {
-        animation: none !important;
-    }
-
-    .strength-value.updating {
-        animation: none !important;
-    }
-}
-
-/* Dark Mode spezifische Anpassungen */
-@media (prefers-color-scheme: dark) {
-    .field-background {
-        box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
-    }
-
-    .field-slot {
-        background: rgba(0, 199, 139, 0.12);
-    }
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: more) {
-    .field-slot {
-        border-width: 3px !important;
-    }
-
-    .player-card {
-        border-width: 3px !important;
-    }
-
-    .validation-item {
-        border-left-width: 5px !important;
-    }
-}
-
-/* ========== TOUCH-SPECIFIC OPTIMIERUNGEN ========== */
-
-/* Vergrößere Touch-Targets auf Touch-Geräten */
+/* ========== TOUCH-OPTIMIERUNGEN ========== */
 @media (pointer: coarse) {
     .quick-remove-btn {
-        width: 32px !important;
-        height: 32px !important;
+        width: 44px !important;
+        height: 44px !important;
         font-size: 20px !important;
     }
 
@@ -378,92 +288,4 @@
     .validation-header {
         min-height: 48px !important;
     }
-}
-
-/* ========== DEBUGGING HILFE ========== */
-
-/* Aktiviere diese Klasse im HTML für visuelles Debugging */
-.debug-mode .field-slot {
-    border: 2px solid red !important;
-    background: rgba(255, 0, 0, 0.1) !important;
-}
-
-.debug-mode .field-slot::before {
-    content: attr(data-position);
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: red;
-    color: white;
-    font-size: 8px;
-    padding: 2px 4px;
-    border-radius: 3px;
-    z-index: 1000;
-}
-
-/* Zeige aktuelle Y-Position für Debugging */
-.debug-mode .field-slot::after {
-    content: attr(style);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    background: blue;
-    color: white;
-    font-size: 7px;
-    padding: 2px 4px;
-    border-radius: 3px;
-    z-index: 1000;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* ========== NOTIZEN FÜR ENTWICKLER ========== */
-
-/*
- * WICHTIG: Y-POSITION HANDLING
- * ============================
- *
- * Die Y-Positionen der Field-Slots werden NICHT mehr via CSS überschrieben!
- *
- * Stattdessen erfolgt die Anpassung im JavaScript:
- * - Datei: lineup.js
- * - Funktion: renderFormationSlots()
- * - Logik: Portrait-Detection + Y-Koordinaten-Anpassung
- *
- * Anpassungen:
- * - TW (Torwart):           +3% nach unten
- * - Abwehr (LV, RV, IV, LI): -2% nach oben
- * - ZDM (Defensives MF):     -2% nach oben
- * - Sturm (LS, MS, RS, ST):  -3% nach oben
- * - ZOM, LM, RM:            unverändert
- *
- * Vorteile dieser Lösung:
- * 1. Keine CSS-Spezifitätsprobleme mit !important
- * 2. Dynamische Anpassung bei Orientierungswechsel
- * 3. Funktioniert automatisch für alle 9 Formationen
- * 4. Zentrale Kontrolle in einer Funktion
- * 5. Einfach wartbar und erweiterbar
- *
- * Bei Problemen:
- * - Prüfe ob lineup.js die aktualisierte renderFormationSlots() hat
- * - Prüfe ob handleOrientationChange() registriert ist
- * - Teste mit console.log() die adjustedY Werte
- * - Aktiviere .debug-mode für visuelle Y-Position-Anzeige
- */
-
-/* ========== FALLBACK FÜR JAVASCRIPT-DISABLED ========== */
-
-/* Falls JavaScript deaktiviert ist, zeige Warnung */
-.no-js .lineup-container::before {
-    content: 'JavaScript ist erforderlich für die Aufstellung';
-    display: block;
-    background: rgba(245, 101, 101, 0.95);
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-weight: 600;
-    border-radius: 10px;
-    margin-bottom: 20px;
 }
