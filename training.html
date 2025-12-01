@@ -1,61 +1,329 @@
 <div class="content-area">
     <div class="training-container">
+
+        <!-- Training Header -->
         <div class="training-header">
-            <h1 class="training-header-title">🔥 Dein Weg zur Spitze: Training planen</h1>
-            <p class="training-header-subtitle">Definiere deine Intensität. Maximiere Attribute und kontrolliere die
-                Frische.</p>
+            <h1 class="training-header-title">🔥 Training</h1>
+            <p class="training-header-subtitle">Mannschaft und Spieler gezielt fördern</p>
         </div>
 
-        <div class="coach-corner-guide">
-            <h3 class="guide-title">Coach's Corner: Die Kunst des Ausgleichs</h3>
-            <p class="guide-text">Jeder Trainingstag bringt einen <strong>Kompromiss</strong> mit sich. Ein hartes
-                Konditionstraining mag die Kondition steigern, aber die Frische für das nächste Spiel senken. Das Ziel
-                ist es, die gewünschten Attribute zu maximieren, ohne die Frische auf einen kritischen Wert fallen zu
-                lassen. Achte stets auf die <strong>Gesamtbilanz</strong>, um Übertraining zu vermeiden!</p>
+        <!-- TAB NAVIGATION (NEU) -->
+        <div class="training-tabs">
+            <button class="training-tab active" data-tab="team-training">
+                <span class="tab-icon">👥</span>
+                <span class="tab-label">Mannschaftstraining</span>
+            </button>
+            <button class="training-tab" data-tab="individual-training">
+                <span class="tab-icon">🎯</span>
+                <span class="tab-label">Einzeltraining</span>
+                <span class="tab-badge">4 Spieler</span>
+            </button>
         </div>
-        <div class="training-main-layout">
-            <div class="training-library">
-                <h2 class="section-title">
-                    <span>📚</span>
-                    <span>Verfügbare Trainingseinheiten</span>
-                </h2>
-                <div class="training-cards-grid" id="trainingCardsGrid">
+
+        <!-- ==================== TAB: MANNSCHAFTSTRAINING ==================== -->
+        <div class="tab-panel active" id="team-training-panel">
+
+            <div class="coach-corner-guide">
+                <h3 class="guide-title">Coach's Corner: Die Kunst des Ausgleichs</h3>
+                <p class="guide-text">Jeder Trainingstag bringt einen <strong>Kompromiss</strong> mit sich. Ein hartes
+                    Konditionstraining mag die Kondition steigern, aber die Frische für das nächste Spiel senken. Das Ziel
+                    ist es, die gewünschten Attribute zu maximieren, ohne die Frische auf einen kritischen Wert fallen zu
+                    lassen. Achte stets auf die <strong>Gesamtbilanz</strong>, um Übertraining zu vermeiden!</p>
+            </div>
+
+            <div class="training-main-layout">
+                <div class="training-library">
+                    <h2 class="section-title">
+                        <span>📚</span>
+                        <span>Verfügbare Trainingseinheiten</span>
+                    </h2>
+                    <div class="training-cards-grid" id="trainingCardsGrid">
+                        <!-- Wird per JS gerendert -->
+                    </div>
+                </div>
+
+                <div class="training-timeline">
+                    <h2 class="section-title">
+                        <span>⏰</span>
+                        <span>Tagesplan</span>
+                    </h2>
+
+                    <div class="strategy-tips-box">
+                        <h4 class="tips-title">Strategie-Tipps:</h4>
+                        <ul class="tips-list">
+                            <li class="tip-item tip-freshness">⚠️ <strong>Fokus Frische:</strong> Wenn die Frische-Bilanz
+                                ins Minus rutscht, ist eine <strong>Regenerations- oder Freizeiteinheit</strong> pro Zyklus
+                                Pflicht. Niedrige Frische erhöht das Verletzungsrisiko.
+                            </li>
+                            <li class="tip-item tip-form">🎯 <strong>Zielgerichtetes Training:</strong> Setze <strong>Standardsituationen</strong>
+                                und <strong>Torschuss</strong> gezielt ein, um die `Form` der Spieler zu steigern.
+                            </li>
+                            <li class="tip-item tip-balance">⚖️ <strong>Balancierte Last:</strong> Die Kosten für
+                                `Kondition` durch Technik- oder Erholungseinheiten müssen durch die harten <strong>Konditionseinheiten</strong>
+                                (z.B. Brutale Kondition) an anderen Tagen kompensiert werden.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="total-impact-summary" id="totalImpactSummary">
+                        <!-- Wird per JS gerendert -->
+                    </div>
+
+                    <div class="timeline-slots" id="timelineSlots">
+                        <!-- Wird per JS gerendert -->
+                    </div>
+
+                    <div class="timeline-actions">
+                        <button class="save-btn" id="saveBtn" disabled>
+                            <span>💾</span> Trainingsplan speichern
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="training-timeline">
-                <h2 class="section-title">
-                    <span>⏰</span>
-                    <span>Tagesplan</span>
-                </h2>
+        </div>
 
-                <div class="strategy-tips-box">
-                    <h4 class="tips-title">Strategie-Tipps:</h4>
-                    <ul class="tips-list">
-                        <li class="tip-item tip-freshness">⚠️ <strong>Fokus Frische:</strong> Wenn die Frische-Bilanz
-                            ins Minus rutscht, ist eine <strong>Regenerations- oder Freizeiteinheit</strong> pro Zyklus
-                            Pflicht. Niedrige Frische erhöht das Verletzungsrisiko.
-                        </li>
-                        <li class="tip-item tip-form">🎯 <strong>Zielgerichtetes Training:</strong> Setze <strong>Standardsituationen</strong>
-                            und <strong>Torschuss</strong> gezielt ein, um die `Form` der Spieler zu steigern.
-                        </li>
-                        <li class="tip-item tip-balance">⚖️ <strong>Balancierte Last:</strong> Die Kosten für
-                            `Kondition` durch Technik- oder Erholungseinheiten müssen durch die harten <strong>Konditionseinheiten</strong>
-                            (z.B. Brutale Kondition) an anderen Tagen kompensiert werden.
-                        </li>
-                    </ul>
-                </div>
-                <div class="total-impact-summary" id="totalImpactSummary">
+        <!-- ==================== TAB: EINZELTRAINING (NEU) ==================== -->
+        <div class="tab-panel" id="individual-training-panel">
+
+            <div class="coach-corner-guide individual-guide">
+                <h3 class="guide-title">🎯 Einzeltraining: Gezielte Spielerförderung</h3>
+                <p class="guide-text">Wähle bis zu <strong>4 Spieler</strong> für individuelles Training aus.
+                    Jede Trainingsart hat spezifische Auswirkungen auf <strong>Kondition</strong>, <strong>Form</strong>,
+                    <strong>Frische</strong> und <strong>Motivation</strong>. Das Einzeltraining wird täglich um
+                    <strong>12:45 Uhr</strong> ausgeführt.</p>
+            </div>
+
+            <!-- Spieler-Slots (4 Stück) -->
+            <div class="individual-slots-container">
+
+                <!-- Slot 1 -->
+                <div class="individual-slot" data-slot="1">
+                    <div class="slot-empty-state">
+                        <div class="slot-add-icon">+</div>
+                        <span class="slot-add-text">Spieler wählen</span>
+                    </div>
+                    <div class="slot-filled-state" style="display: none;">
+                        <div class="slot-player-info">
+                            <div class="player-avatar">
+                                <img src="" alt="" class="avatar-img">
+                                <span class="player-position-badge"></span>
+                            </div>
+                            <div class="player-details">
+                                <span class="player-name"></span>
+                                <div class="player-stats-mini">
+                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
+                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slot-training-info">
+                            <div class="it-training-selected">
+                                <span class="training-icon"></span>
+                                <span class="training-name">Training wählen</span>
+                            </div>
+                            <div class="training-effects"></div>
+                        </div>
+                        <div class="slot-actions">
+                            <button class="btn-change-training" title="Training ändern">
+                                <span>🔄</span>
+                            </button>
+                            <button class="btn-remove-player" title="Spieler entfernen">
+                                <span>✕</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="timeline-slots" id="timelineSlots">
+                <!-- Slot 2 -->
+                <div class="individual-slot" data-slot="2">
+                    <div class="slot-empty-state">
+                        <div class="slot-add-icon">+</div>
+                        <span class="slot-add-text">Spieler wählen</span>
+                    </div>
+                    <div class="slot-filled-state" style="display: none;">
+                        <div class="slot-player-info">
+                            <div class="player-avatar">
+                                <img src="" alt="" class="avatar-img">
+                                <span class="player-position-badge"></span>
+                            </div>
+                            <div class="player-details">
+                                <span class="player-name"></span>
+                                <div class="player-stats-mini">
+                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
+                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slot-training-info">
+                            <div class="it-training-selected">
+                                <span class="training-icon"></span>
+                                <span class="training-name">Training wählen</span>
+                            </div>
+                            <div class="training-effects"></div>
+                        </div>
+                        <div class="slot-actions">
+                            <button class="btn-change-training" title="Training ändern">
+                                <span>🔄</span>
+                            </button>
+                            <button class="btn-remove-player" title="Spieler entfernen">
+                                <span>✕</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="timeline-actions">
-                    <button class="save-btn" disabled id="saveBtn">
-                        💾 Trainingstag Speichern
+
+                <!-- Slot 3 -->
+                <div class="individual-slot" data-slot="3">
+                    <div class="slot-empty-state">
+                        <div class="slot-add-icon">+</div>
+                        <span class="slot-add-text">Spieler wählen</span>
+                    </div>
+                    <div class="slot-filled-state" style="display: none;">
+                        <div class="slot-player-info">
+                            <div class="player-avatar">
+                                <img src="" alt="" class="avatar-img">
+                                <span class="player-position-badge"></span>
+                            </div>
+                            <div class="player-details">
+                                <span class="player-name"></span>
+                                <div class="player-stats-mini">
+                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
+                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slot-training-info">
+                            <div class="it-training-selected">
+                                <span class="training-icon"></span>
+                                <span class="training-name">Training wählen</span>
+                            </div>
+                            <div class="training-effects"></div>
+                        </div>
+                        <div class="slot-actions">
+                            <button class="btn-change-training" title="Training ändern">
+                                <span>🔄</span>
+                            </button>
+                            <button class="btn-remove-player" title="Spieler entfernen">
+                                <span>✕</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slot 4 -->
+                <div class="individual-slot" data-slot="4">
+                    <div class="slot-empty-state">
+                        <div class="slot-add-icon">+</div>
+                        <span class="slot-add-text">Spieler wählen</span>
+                    </div>
+                    <div class="slot-filled-state" style="display: none;">
+                        <div class="slot-player-info">
+                            <div class="player-avatar">
+                                <img src="" alt="" class="avatar-img">
+                                <span class="player-position-badge"></span>
+                            </div>
+                            <div class="player-details">
+                                <span class="player-name"></span>
+                                <div class="player-stats-mini">
+                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
+                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slot-training-info">
+                            <div class="it-training-selected">
+                                <span class="training-icon"></span>
+                                <span class="training-name">Training wählen</span>
+                            </div>
+                            <div class="training-effects"></div>
+                        </div>
+                        <div class="slot-actions">
+                            <button class="btn-change-training" title="Training ändern">
+                                <span>🔄</span>
+                            </button>
+                            <button class="btn-remove-player" title="Spieler entfernen">
+                                <span>✕</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Zusammenfassung & Aktionen -->
+            <div class="individual-summary-panel">
+                <div class="summary-stats">
+                    <div class="summary-item">
+                        <span class="summary-label">Spieler im Training:</span>
+                        <span class="summary-value" id="it-players-count">0 / 4</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Nächste Ausführung:</span>
+                        <span class="summary-value" id="it-next-execution">12:45 Uhr</span>
+                    </div>
+                </div>
+                <div class="summary-actions">
+                    <button class="action-btn secondary" id="btn-reset-individual">
+                        <span>↺</span> Zurücksetzen
+                    </button>
+                    <button class="action-btn primary" id="btn-confirm-individual" disabled>
+                        <span>✓</span> Training bestätigen
                     </button>
                 </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: Spieler-Auswahl (Einzeltraining) -->
+<div class="modal-overlay" id="player-select-modal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">Spieler auswählen</h3>
+            <button class="modal-close" aria-label="Schließen">&times;</button>
+        </div>
+        <div class="modal-search">
+            <input type="text" class="search-input" placeholder="Spieler suchen..." id="player-search-input">
+            <span class="search-icon">🔍</span>
+        </div>
+        <div class="modal-filters">
+            <button class="filter-btn active" data-filter="all">Alle</button>
+            <button class="filter-btn" data-filter="TW">TW</button>
+            <button class="filter-btn" data-filter="DEF">DEF</button>
+            <button class="filter-btn" data-filter="MIT">MIT</button>
+            <button class="filter-btn" data-filter="STU">STU</button>
+        </div>
+        <div class="modal-content" id="player-list">
+            <!-- Spieler werden per JS eingefügt -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Training-Auswahl (Einzeltraining - 4x4 Grid) -->
+<div class="modal-overlay" id="it-training-select-modal" style="display: none;">
+    <div class="modal-container modal-training-grid">
+        <div class="modal-header">
+            <h3 class="modal-title">Training wählen für <span id="it-modal-player-name"></span></h3>
+            <button class="modal-close" aria-label="Schließen">&times;</button>
+        </div>
+        <div class="modal-content">
+            <div class="it-training-grid" id="it-training-grid">
+                <!-- 16 Trainingsarten werden per JS eingefügt -->
+            </div>
+            <div class="training-legend">
+                <span class="legend-item"><span class="legend-color positive"></span> Positiver Effekt</span>
+                <span class="legend-item"><span class="legend-color negative"></span> Negativer Effekt</span>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Toast-Benachrichtigungen -->
+<div class="toast-container" id="toast-container"></div>

@@ -32,8 +32,8 @@ const moduleRegistry = {
         module: null
     },
     training: {
-        scripts: ['./training.js'],
-        css: ['css/training.css'],
+        scripts: ['./individual-training-config.js','./training.js'],
+        css: ['css/training.css', 'css/training-individual.css'],
         cssElements: [],
         module: null
     },
