@@ -243,7 +243,46 @@ const saveTrainingPlan = async () => {
 
 let individualAssignments = new Map();
 let activeSlot = null;
-let players = typeof SAMPLE_PLAYERS !== 'undefined' ? SAMPLE_PLAYERS : [];
+
+// FALLBACK: Spielerdaten direkt hier definieren, falls Config nicht geladen wurde
+const DEFAULT_PLAYERS = [
+    { id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8 },
+    { id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7 },
+    { id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9 },
+    { id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6 },
+    { id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8 },
+    { id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7 },
+    { id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8 },
+    { id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6 },
+    { id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7 },
+    { id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9 },
+    { id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8 },
+    { id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7 }
+];
+
+// Verwende SAMPLE_PLAYERS falls vorhanden, sonst Fallback
+let players = typeof SAMPLE_PLAYERS !== 'undefined' ? SAMPLE_PLAYERS : DEFAULT_PLAYERS;
+let currentFilter = 'all';
+
+// FALLBACK: Positionskategorien direkt hier definieren
+const DEFAULT_POSITION_CATEGORIES = {
+    TW: ['TW'],
+    DEF: ['LV', 'IV', 'RV'],
+    MIT: ['LM', 'ZDM', 'ZOM', 'RM'],
+    STU: ['LS', 'MS', 'RS', 'ST']
+};
+
+const POSITION_CATS = typeof POSITION_CATEGORIES !== 'undefined' ? POSITION_CATEGORIES : DEFAULT_POSITION_CATEGORIES;
+
+// DEBUG: Spieler-Initialisierung prüfen
+console.log('🔍 DEBUG: SAMPLE_PLAYERS verfügbar?', typeof SAMPLE_PLAYERS !== 'undefined');
+console.log('🔍 DEBUG: Anzahl Spieler:', players.length);
+if (players.length > 0) {
+    console.log('✅ DEBUG: Erste 3 Spieler:', players.slice(0, 3));
+    console.log('✅ DEBUG: Verwende', typeof SAMPLE_PLAYERS !== 'undefined' ? 'SAMPLE_PLAYERS' : 'DEFAULT_PLAYERS');
+} else {
+    console.error('❌ DEBUG: KEINE SPIELER GELADEN! Prüfe ob individual-training-config.js vor training.js geladen wurde.');
+}
 
 const initIndividualTraining = () => {
     const panel = document.getElementById('individual-training-panel');
@@ -253,6 +292,7 @@ const initIndividualTraining = () => {
     }
 
     console.log('Einzeltraining initialisiert');
+    console.log('🔍 DEBUG in initIndividualTraining: Spieler verfügbar:', players.length);
 
     // Lade gespeicherte Zuweisungen
     loadIndividualFromStorage();
@@ -263,16 +303,32 @@ const initIndividualTraining = () => {
 };
 
 const openPlayerModal = (slotId) => {
+    console.log('🔍 DEBUG openPlayerModal: Slot', slotId);
+    console.log('🔍 DEBUG: Anzahl Spieler beim Modal-Öffnen:', players.length);
+
     activeSlot = slotId;
+    currentFilter = 'all'; // Reset filter
+
+    // Filter-Buttons zurücksetzen
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === 'all') {
+            btn.classList.add('active');
+        }
+    });
+
     renderPlayerList();
+
     const modal = document.getElementById('player-select-modal');
     if (modal) {
         modal.classList.add('active');
         modal.style.display = 'flex';
+
         const searchInput = document.getElementById('player-search-input');
         if (searchInput) {
             searchInput.value = '';
-            searchInput.focus();
+            // Focus nach kurzer Verzögerung für bessere UX
+            setTimeout(() => searchInput.focus(), 100);
         }
     }
 };
@@ -300,11 +356,19 @@ const closeModals = () => {
         setTimeout(() => modal.style.display = 'none', 300);
     });
     activeSlot = null;
+    currentFilter = 'all';
 };
 
 const renderPlayerList = () => {
     const container = document.getElementById('player-list');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ DEBUG renderPlayerList: Container #player-list nicht gefunden!');
+        return;
+    }
+
+    console.log('🔍 DEBUG renderPlayerList: Container gefunden');
+    console.log('🔍 DEBUG renderPlayerList: Spieler-Array:', players);
+    console.log('🔍 DEBUG renderPlayerList: Spieler-Anzahl:', players.length);
 
     const assignedPlayerIds = new Set(
         Array.from(individualAssignments.values()).map(a => a.player.id)
@@ -331,15 +395,22 @@ const renderPlayerList = () => {
         `;
     });
 
+    console.log('🔍 DEBUG renderPlayerList: HTML-Länge:', html.length);
     container.innerHTML = html;
+    console.log('🔍 DEBUG renderPlayerList: Container innerHTML gesetzt');
 
-    // Event Listeners
-    container.querySelectorAll('.player-list-item:not(.disabled)').forEach(item => {
+    // Event Listeners für Spieler-Auswahl
+    const playerItems = container.querySelectorAll('.player-list-item:not(.disabled)');
+    console.log('🔍 DEBUG renderPlayerList: Gefundene Player-Items:', playerItems.length);
+
+    playerItems.forEach(item => {
         item.addEventListener('click', () => {
             const playerId = parseInt(item.dataset.playerId);
             selectPlayer(playerId);
         });
     });
+
+    console.log('✅ Player list gerendert:', players.length, 'Spieler');
 };
 
 const renderIndividualTrainingGrid = (selectedTrainingId = null) => {
@@ -369,7 +440,7 @@ const renderIndividualTrainingGrid = (selectedTrainingId = null) => {
 
     container.innerHTML = html;
 
-    // Event Listeners
+    // Event Listeners für Training-Auswahl
     container.querySelectorAll('.it-training-tile').forEach(tile => {
         tile.addEventListener('click', () => {
             const trainingId = parseInt(tile.dataset.trainingId);
@@ -397,6 +468,8 @@ const selectPlayer = (playerId) => {
 
     // Training-Modal öffnen
     setTimeout(() => openTrainingModal(activeSlot), 350);
+
+    console.log('Spieler ausgewählt:', player.name, 'für Slot', activeSlot);
 };
 
 const selectIndividualTraining = (trainingId) => {
@@ -446,15 +519,17 @@ const updateIndividualUI = () => {
 
                 const playerName = filledState.querySelector('.player-name');
                 const positionBadge = filledState.querySelector('.player-position-badge');
-                const statStrength = filledState.querySelector('.stat-strength');
                 const statKondition = filledState.querySelector('.stat-kondition');
+                const statForm = filledState.querySelector('.stat-form');
                 const statFrische = filledState.querySelector('.stat-frische');
+                const statMotivation = filledState.querySelector('.stat-motivation');
 
                 if (playerName) playerName.textContent = assignment.player.name;
                 if (positionBadge) positionBadge.textContent = assignment.player.position;
-                if (statStrength) statStrength.textContent = assignment.player.strength;
-                if (statKondition) statKondition.textContent = assignment.player.kondition;
-                if (statFrische) statFrische.textContent = assignment.player.frische;
+                if (statKondition) statKondition.textContent = assignment.player.kondition || 0;
+                if (statForm) statForm.textContent = assignment.player.form || 0;
+                if (statFrische) statFrische.textContent = assignment.player.frische || 0;
+                if (statMotivation) statMotivation.textContent = assignment.player.motivation || 0;
 
                 const trainingSelected = filledState.querySelector('.it-training-selected');
                 const trainingIcon = filledState.querySelector('.training-icon');
@@ -673,6 +748,65 @@ const initTabs = () => {
 };
 
 // =====================================================
+// FILTER & SEARCH FUNCTIONS (VERBESSERT)
+// =====================================================
+
+const filterPlayersByPosition = (filter) => {
+    currentFilter = filter;
+    const items = document.querySelectorAll('.player-list-item');
+
+    console.log('Filtere nach:', filter);
+
+    items.forEach(item => {
+        const position = item.dataset.position;
+
+        if (filter === 'all') {
+            item.style.display = '';
+        } else {
+            const positions = POSITION_CATS[filter] || [];
+            item.style.display = positions.includes(position) ? '' : 'none';
+        }
+    });
+
+    // Zähle sichtbare Spieler
+    const visibleCount = Array.from(items).filter(item => item.style.display !== 'none').length;
+    console.log('Sichtbare Spieler:', visibleCount);
+};
+
+const searchPlayers = (searchTerm) => {
+    const term = searchTerm.toLowerCase().trim();
+    const items = document.querySelectorAll('.player-list-item');
+
+    console.log('Suche nach:', term);
+
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const nameElement = item.querySelector('.player-name');
+        const name = nameElement ? nameElement.textContent.toLowerCase() : '';
+        const position = item.dataset.position || '';
+
+        // Kombiniere Suche mit aktivem Filter
+        let matchesSearch = term === '' || name.includes(term) || position.toLowerCase().includes(term);
+        let matchesFilter = true;
+
+        if (currentFilter !== 'all') {
+            const positions = POSITION_CATS[currentFilter] || [];
+            matchesFilter = positions.includes(position);
+        }
+
+        if (matchesSearch && matchesFilter) {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    console.log('Gefundene Spieler:', visibleCount);
+};
+
+// =====================================================
 // EVENT HANDLERS
 // =====================================================
 
@@ -734,28 +868,20 @@ const handleDocumentClick = (e) => {
         closeModals();
     }
 
-    // Filter Buttons
+    // Filter Buttons (VERBESSERT)
     if (target.closest('.filter-btn')) {
         const btn = target.closest('.filter-btn');
+        const filter = btn.dataset.filter;
+
+        console.log('Filter-Button geklickt:', filter);
+
+        // Aktiviere den geklickten Button
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        filterPlayersByPosition(btn.dataset.filter);
+
+        // Wende Filter an
+        filterPlayersByPosition(filter);
     }
-};
-
-const filterPlayersByPosition = (filter) => {
-    const items = document.querySelectorAll('.player-list-item');
-
-    items.forEach(item => {
-        const position = item.dataset.position;
-
-        if (filter === 'all') {
-            item.style.display = '';
-        } else {
-            const positions = typeof POSITION_CATEGORIES !== 'undefined' ? POSITION_CATEGORIES[filter] : [];
-            item.style.display = positions.includes(position) ? '' : 'none';
-        }
-    });
 };
 
 // =====================================================
@@ -784,16 +910,22 @@ export function init() {
         if (e.key === 'Escape') closeModals();
     });
 
-    // Spieler-Suche
+    // Spieler-Suche (VERBESSERT)
     const searchInput = document.getElementById('player-search-input');
     if (searchInput) {
+        // Input Event für Live-Suche
         addEventListener(searchInput, 'input', (e) => {
-            const term = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.player-list-item').forEach(item => {
-                const name = item.querySelector('.player-name').textContent.toLowerCase();
-                item.style.display = name.includes(term) ? '' : 'none';
-            });
+            searchPlayers(e.target.value);
         });
+
+        // Verhindere Form-Submit
+        addEventListener(searchInput, 'keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+
+        console.log('Spieler-Suche initialisiert');
     }
 
     // Buttons
@@ -818,6 +950,7 @@ export function cleanup() {
     selectedTrainings = [null, null, null, null];
     individualAssignments.clear();
     activeSlot = null;
+    currentFilter = 'all';
 
     console.log('Training-Modul cleanup ✓');
 }

@@ -112,9 +112,10 @@
                             <div class="player-details">
                                 <span class="player-name"></span>
                                 <div class="player-stats-mini">
-                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
-                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
-                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                    <span class="stat-item" title="Kondition">KO: <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Form">FO: <span class="stat-form"></span></span>
+                                    <span class="stat-item" title="Frische">FR: <span class="stat-frische"></span></span>
+                                    <span class="stat-item" title="Motivation">MO: <span class="stat-motivation"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -151,9 +152,10 @@
                             <div class="player-details">
                                 <span class="player-name"></span>
                                 <div class="player-stats-mini">
-                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
-                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
-                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                    <span class="stat-item" title="Kondition">KO: <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Form">FO: <span class="stat-form"></span></span>
+                                    <span class="stat-item" title="Frische">FR: <span class="stat-frische"></span></span>
+                                    <span class="stat-item" title="Motivation">MO: <span class="stat-motivation"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -190,9 +192,10 @@
                             <div class="player-details">
                                 <span class="player-name"></span>
                                 <div class="player-stats-mini">
-                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
-                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
-                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                    <span class="stat-item" title="Kondition">KO: <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Form">FO: <span class="stat-form"></span></span>
+                                    <span class="stat-item" title="Frische">FR: <span class="stat-frische"></span></span>
+                                    <span class="stat-item" title="Motivation">MO: <span class="stat-motivation"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -229,9 +232,10 @@
                             <div class="player-details">
                                 <span class="player-name"></span>
                                 <div class="player-stats-mini">
-                                    <span class="stat-item" title="Stärke">⭐ <span class="stat-strength"></span></span>
-                                    <span class="stat-item" title="Kondition">💪 <span class="stat-kondition"></span></span>
-                                    <span class="stat-item" title="Frische">⚡ <span class="stat-frische"></span>%</span>
+                                    <span class="stat-item" title="Kondition">KO: <span class="stat-kondition"></span></span>
+                                    <span class="stat-item" title="Form">FO: <span class="stat-form"></span></span>
+                                    <span class="stat-item" title="Frische">FR: <span class="stat-frische"></span></span>
+                                    <span class="stat-item" title="Motivation">MO: <span class="stat-motivation"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -282,7 +286,7 @@
     </div>
 </div>
 
-<!-- Modal: Spieler-Auswahl (Einzeltraining) -->
+<!-- Modal: Spieler-Auswahl (Einzeltraining) - VERBESSERT -->
 <div class="modal-overlay" id="player-select-modal" style="display: none;">
     <div class="modal-container">
         <div class="modal-header">
@@ -290,15 +294,30 @@
             <button class="modal-close" aria-label="Schließen">&times;</button>
         </div>
         <div class="modal-search">
-            <input type="text" class="search-input" placeholder="Spieler suchen..." id="player-search-input">
+            <input type="text" class="search-input" placeholder="Spieler suchen..." id="player-search-input" autocomplete="off">
             <span class="search-icon">🔍</span>
         </div>
         <div class="modal-filters">
-            <button class="filter-btn active" data-filter="all">Alle</button>
-            <button class="filter-btn" data-filter="TW">TW</button>
-            <button class="filter-btn" data-filter="DEF">DEF</button>
-            <button class="filter-btn" data-filter="MIT">MIT</button>
-            <button class="filter-btn" data-filter="STU">STU</button>
+            <button class="filter-btn active" data-filter="all">
+                <span class="filter-icon">👥</span>
+                <span class="filter-label">Alle</span>
+            </button>
+            <button class="filter-btn" data-filter="TW">
+                <span class="filter-icon">🧤</span>
+                <span class="filter-label">Torwart</span>
+            </button>
+            <button class="filter-btn" data-filter="DEF">
+                <span class="filter-icon">🛡️</span>
+                <span class="filter-label">Abwehr</span>
+            </button>
+            <button class="filter-btn" data-filter="MIT">
+                <span class="filter-icon">⚙️</span>
+                <span class="filter-label">Mittelfeld</span>
+            </button>
+            <button class="filter-btn" data-filter="STU">
+                <span class="filter-icon">⚽</span>
+                <span class="filter-label">Sturm</span>
+            </button>
         </div>
         <div class="modal-content" id="player-list">
             <!-- Spieler werden per JS eingefügt -->

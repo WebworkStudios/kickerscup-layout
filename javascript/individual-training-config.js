@@ -42,7 +42,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Straftraining',
             icon: '🔥',
             category: 'intensiv',
-            effects: { kondition: 2, form: 0, frische: 3, motivation: -1 },
+            effects: { kondition: 2, form: 0, frische: -3, motivation: -1 },
             description: 'Intensives Training - hoher Frische-Verbrauch'
         },
         SPRINT: {
@@ -58,7 +58,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Schwalben',
             icon: '🦅',
             category: 'speziell',
-            effects: { kondition: 2, form: 1, frische: -1, motivation: 0 },
+            effects: { kondition: -2, form: 1, frische: -1, motivation: 0 },
             description: 'Spezielles Training für theatralische Einlagen'
         },
         PAESSE: {
@@ -204,25 +204,40 @@ const INDIVIDUAL_TRAINING_CONFIG = {
     }
 };
 
-// Beispiel-Spielerdaten
+// Beispiel-Spielerdaten (WICHTIG: Global verfügbar machen!)
 const SAMPLE_PLAYERS = [
-    { id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92 },
-    { id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88 },
-    { id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95 },
-    { id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90 },
-    { id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85 },
-    { id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91 },
-    { id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87 },
-    { id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93 },
-    { id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89 },
-    { id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82 },
-    { id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94 },
-    { id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88 }
+    { id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8 },
+    { id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7 },
+    { id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9 },
+    { id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6 },
+    { id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8 },
+    { id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7 },
+    { id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8 },
+    { id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6 },
+    { id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7 },
+    { id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9 },
+    { id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8 },
+    { id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7 }
 ];
 
+// Positionskategorien für Filter
 const POSITION_CATEGORIES = {
     TW: ['TW'],
     DEF: ['LV', 'IV', 'RV'],
     MIT: ['LM', 'ZDM', 'ZOM', 'RM'],
     STU: ['LS', 'MS', 'RS', 'ST']
 };
+
+// WICHTIG: Global verfügbar machen!
+window.INDIVIDUAL_TRAINING_CONFIG = INDIVIDUAL_TRAINING_CONFIG;
+window.SAMPLE_PLAYERS = SAMPLE_PLAYERS;
+window.POSITION_CATEGORIES = POSITION_CATEGORIES;
+
+console.log('✅ Individual Training Config geladen');
+console.log('📊 Spieler verfügbar:', SAMPLE_PLAYERS.length);
+console.log('🎯 Trainingsarten verfügbar:', Object.keys(INDIVIDUAL_TRAINING_CONFIG.trainingTypes).length);
+console.log('🌍 Global verfügbar gemacht:', {
+    INDIVIDUAL_TRAINING_CONFIG: typeof window.INDIVIDUAL_TRAINING_CONFIG !== 'undefined',
+    SAMPLE_PLAYERS: typeof window.SAMPLE_PLAYERS !== 'undefined',
+    POSITION_CATEGORIES: typeof window.POSITION_CATEGORIES !== 'undefined'
+});
