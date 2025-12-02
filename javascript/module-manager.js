@@ -4,6 +4,7 @@
 // ✅ NEU: Vollständiges CSS-Cleanup bei Modulwechsel
 // ✅ NEU: Performance-Optimierung durch CSS-Entfernung
 // ✅ NEU: Verhindert CSS-Konflikte zwischen Modulen
+// ✅ NEU: Finance-Modul integriert
 // =====================================================
 
 // Tracking für geladene Module
@@ -52,6 +53,12 @@ const moduleRegistry = {
     league: {
         scripts: ['./league.js'],
         css: ['css/league.css'],
+        cssElements: [],
+        module: null
+    },
+    finance: {
+        scripts: ['./finance.js'],
+        css: ['css/finance.css'],
         cssElements: [],
         module: null
     },

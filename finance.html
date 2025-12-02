@@ -1,0 +1,377 @@
+<!-- FINANZEN PAGE -->
+<div class="finance-header">
+    <h1 class="finance-title">FINANZEN</h1>
+    <p class="finance-subtitle">Vereinsvermögen und Saisonbilanz im Überblick</p>
+</div>
+
+<!-- Vermögensstatus Card -->
+<div class="finance-card glass vermoegens-card">
+    <div class="card-header">
+        <h2 class="card-title">💎 Vereinsvermögen</h2>
+    </div>
+
+    <div class="vermoegens-main">
+        <div class="current-capital" id="currentCapital">2.485.750 €</div>
+
+        <div class="capital-change">
+            <span class="change-label">Vormonat:</span>
+            <span class="change-value" id="lastMonthCapital">2.250.000 €</span>
+        </div>
+
+        <div class="capital-trend" id="capitalTrend">
+            <span class="trend-value">+235.750 € (+10%)</span>
+            <span class="trend-icon">↗</span>
+            <span class="trend-status">Wachsend</span>
+        </div>
+    </div>
+
+    <div class="vermoegens-chart-section">
+        <h3 class="chart-title">📈 Vermögensverlauf (6 Monate)</h3>
+        <div class="chart-container">
+            <canvas id="capitalChart" width="400" height="200"></canvas>
+        </div>
+        <div class="chart-legend" id="chartLegend">
+            <!-- Wird per JS gefüllt -->
+        </div>
+    </div>
+</div>
+
+<!-- Saison-Fortschritt Card -->
+<div class="finance-card glass saison-card">
+    <div class="card-header">
+        <h2 class="card-title">📅 Laufende Saison</h2>
+        <span class="season-month" id="seasonMonth">Dezember 2024</span>
+    </div>
+
+    <div class="saison-progress">
+        <div class="progress-info">
+            <span class="progress-label">Tag <span id="currentDay">15</span> von <span id="totalDays">27</span></span>
+            <span class="progress-percent" id="progressPercent">56%</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 56%;"></div>
+        </div>
+        <div class="days-remaining" id="daysRemaining">
+            <span class="remaining-icon">⏰</span>
+            <span class="remaining-text">Saisonende in 12 Tagen</span>
+        </div>
+    </div>
+
+    <div class="saison-balance">
+        <h3 class="balance-title">💰 Saison-Bilanz</h3>
+
+        <div class="balance-grid">
+            <div class="balance-item balance-income">
+                <span class="balance-label">Einnahmen:</span>
+                <span class="balance-value" id="seasonIncome">+980.000 €</span>
+            </div>
+            <div class="balance-item balance-expenses">
+                <span class="balance-label">Ausgaben:</span>
+                <span class="balance-value" id="seasonExpenses">-520.000 €</span>
+            </div>
+        </div>
+
+        <div class="balance-divider"></div>
+
+        <div class="balance-profit">
+            <span class="profit-label">Gewinn:</span>
+            <span class="profit-value" id="seasonProfit">+460.000 €</span>
+            <span class="profit-icon">↗</span>
+        </div>
+
+        <div class="balance-avg">
+            <span class="avg-label">Ø pro Tag:</span>
+            <span class="avg-value" id="avgPerDay">+30.667 €</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ein-/Ausgaben Übersicht -->
+<div class="finance-card glass kategorien-card">
+    <div class="card-header">
+        <h2 class="card-title">📊 Kategorien</h2>
+        <span class="card-subtitle">Aktuelle Saison</span>
+    </div>
+
+    <!-- Einnahmen -->
+    <div class="kategorie-section">
+        <div class="kategorie-header income-header">
+            <h3 class="kategorie-title">💚 EINNAHMEN</h3>
+            <span class="kategorie-total" id="totalIncome">+980.000 €</span>
+        </div>
+
+        <div class="kategorie-list" id="incomeList">
+            <!-- Wird per JS gefüllt -->
+        </div>
+    </div>
+
+    <div class="kategorie-divider"></div>
+
+    <!-- Ausgaben -->
+    <div class="kategorie-section">
+        <div class="kategorie-header expenses-header">
+            <h3 class="kategorie-title">❌ AUSGABEN</h3>
+            <span class="kategorie-total" id="totalExpenses">-520.000 €</span>
+        </div>
+
+        <div class="kategorie-list" id="expensesList">
+            <!-- Wird per JS gefüllt -->
+        </div>
+    </div>
+
+    <div class="kategorie-actions">
+        <button class="btn btn-primary" id="btnShowTransactions">
+            📋 Alle Transaktionen anzeigen
+        </button>
+    </div>
+</div>
+
+<!-- Prognose Card -->
+<div class="finance-card glass prognose-card">
+    <div class="card-header">
+        <h2 class="card-title">📈 Prognose bis Saisonende</h2>
+        <span class="card-subtitle">28. des Monats</span>
+    </div>
+
+    <div class="prognose-current">
+        <div class="prognose-row">
+            <span class="prognose-label">Aktuelles Vermögen:</span>
+            <span class="prognose-value" id="prognoseCurrentCapital">2.485.750 €</span>
+        </div>
+        <div class="prognose-row">
+            <span class="prognose-label">Aktuelle Bilanz:</span>
+            <span class="prognose-value income" id="prognoseCurrentBalance">+460.000 €</span>
+        </div>
+    </div>
+
+    <div class="prognose-divider"></div>
+
+    <!-- Erwartete Einnahmen -->
+    <div class="prognose-section">
+        <h3 class="prognose-section-title income">💚 Erwartete Einnahmen</h3>
+
+        <div class="prognose-item">
+            <div class="prognose-item-icon">🏟️</div>
+            <div class="prognose-item-info">
+                <span class="prognose-item-label">Zuschauer</span>
+                <span class="prognose-item-detail">3 Spiele</span>
+            </div>
+            <span class="prognose-item-amount income">+233.100 €</span>
+        </div>
+
+        <div class="prognose-item">
+            <div class="prognose-item-icon">🤝</div>
+            <div class="prognose-item-info">
+                <span class="prognose-item-label">Sponsoren</span>
+                <span class="prognose-item-detail">2 Raten</span>
+            </div>
+            <span class="prognose-item-amount income">+30.000 €</span>
+        </div>
+
+        <div class="prognose-item">
+            <div class="prognose-item-icon">🏆</div>
+            <div class="prognose-item-info">
+                <span class="prognose-item-label">Prämien</span>
+                <span class="prognose-item-detail">geschätzt</span>
+            </div>
+            <span class="prognose-item-amount income estimated">+224.000 €</span>
+        </div>
+
+        <div class="prognose-sum">
+            <span class="prognose-sum-label">Gesamt:</span>
+            <span class="prognose-sum-value income">+487.100 €</span>
+        </div>
+    </div>
+
+    <div class="prognose-divider"></div>
+
+    <!-- Erwartete Ausgaben -->
+    <div class="prognose-section">
+        <h3 class="prognose-section-title expense">❌ Erwartete Ausgaben</h3>
+
+        <div class="prognose-item">
+            <div class="prognose-item-icon">💰</div>
+            <div class="prognose-item-info">
+                <span class="prognose-item-label">Gehälter</span>
+                <span class="prognose-item-detail">12 Tage</span>
+            </div>
+            <span class="prognose-item-amount expense">-331.200 €</span>
+        </div>
+
+        <div class="prognose-item">
+            <div class="prognose-item-icon">📋</div>
+            <div class="prognose-item-info">
+                <span class="prognose-item-label">Sonstige</span>
+                <span class="prognose-item-detail">geschätzt</span>
+            </div>
+            <span class="prognose-item-amount expense estimated">-16.000 €</span>
+        </div>
+
+        <div class="prognose-sum">
+            <span class="prognose-sum-label">Gesamt:</span>
+            <span class="prognose-sum-value expense">-347.200 €</span>
+        </div>
+    </div>
+
+    <div class="prognose-divider"></div>
+
+    <!-- Prognose-Ergebnis -->
+    <div class="prognose-result">
+        <h3 class="result-title">📊 PROGNOSE</h3>
+
+        <div class="result-row main">
+            <span class="result-label">Vermögen am 28.:</span>
+            <span class="result-value" id="prognoseCapital">2.625.650 €</span>
+        </div>
+
+        <div class="result-row">
+            <span class="result-label">Erwarteter Gewinn:</span>
+            <span class="result-value income" id="prognoseProfit">+139.900 €</span>
+        </div>
+
+        <div class="result-row">
+            <span class="result-label">Saison-Gesamt:</span>
+            <span class="result-value income" id="prognoseSeasonTotal">+599.900 €</span>
+        </div>
+    </div>
+
+    <div class="prognose-confidence">
+        <div class="confidence-header">
+            <span class="confidence-label">Prognose-Zuverlässigkeit:</span>
+            <span class="confidence-percent" id="confidencePercent">85%</span>
+        </div>
+        <div class="confidence-bar-container">
+            <div class="confidence-bar-fill" id="confidenceBarFill" style="width: 85%;"></div>
+        </div>
+        <div class="confidence-note">
+            ⚠️ Hinweis: Prämien sind Schätzungen basierend auf bisherigem Tempo
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     TIMELINE MODAL (NEU INTEGRIERT)
+     ===================================================== -->
+<div class="timeline-modal" id="timelineModal">
+    <div class="timeline-modal-overlay" id="timelineModalOverlay"></div>
+
+    <div class="timeline-modal-content">
+        <!-- Header -->
+        <div class="timeline-header">
+            <div class="timeline-header-left">
+                <h2 class="timeline-title">📋 Transaktionen</h2>
+                <p class="timeline-subtitle" id="timelineSubtitle">Dezember 2024 (Tag 1-15)</p>
+            </div>
+            <button class="timeline-close" id="timelineClose" aria-label="Schließen">
+                <span>✕</span>
+            </button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="timeline-filters">
+            <!-- Zeitraum Filter -->
+            <div class="filter-group">
+                <label class="filter-label">Zeitraum:</label>
+                <select class="filter-select" id="filterTimeframe">
+                    <option value="current">Aktuelle Saison</option>
+                    <option value="last">Letzte Saison</option>
+                    <option value="last3">Letzte 3 Saisons</option>
+                    <option value="all">Alle</option>
+                </select>
+            </div>
+
+            <!-- Typ Filter -->
+            <div class="filter-group">
+                <label class="filter-label">Typ:</label>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter-type="all">
+                        <span class="filter-btn-icon">📊</span>
+                        <span class="filter-btn-label">Alle</span>
+                    </button>
+                    <button class="filter-btn" data-filter-type="income">
+                        <span class="filter-btn-icon">💚</span>
+                        <span class="filter-btn-label">Einnahmen</span>
+                    </button>
+                    <button class="filter-btn" data-filter-type="expense">
+                        <span class="filter-btn-icon">❌</span>
+                        <span class="filter-btn-label">Ausgaben</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kategorie Filter -->
+            <div class="filter-group">
+                <label class="filter-label">Kategorie:</label>
+                <select class="filter-select" id="filterCategory">
+                    <option value="all">Alle Kategorien</option>
+                    <optgroup label="Einnahmen">
+                        <option value="zuschauer">🏟️ Zuschauer</option>
+                        <option value="praemien">🏆 Prämien</option>
+                        <option value="sponsoren">🤝 Sponsoren</option>
+                        <option value="transfers_in">🔄 Transfers (Ein)</option>
+                        <option value="sonstige_in">📦 Sonstige (Ein)</option>
+                    </optgroup>
+                    <optgroup label="Ausgaben">
+                        <option value="gehaelter">💰 Gehälter</option>
+                        <option value="transfers_out">🔄 Transfers (Aus)</option>
+                        <option value="stadion">🏗️ Stadion</option>
+                        <option value="sonstige_out">📋 Sonstige (Aus)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Suche -->
+            <div class="filter-group filter-search">
+                <label class="filter-label">Suche:</label>
+                <div class="search-input-wrapper">
+                    <input
+                            type="text"
+                            class="search-input"
+                            id="searchInput"
+                            placeholder="Beschreibung suchen..."
+                            autocomplete="off"
+                    >
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="timeline-stats">
+            <div class="timeline-stat-item income">
+                <span class="timeline-stat-label">Einnahmen:</span>
+                <span class="timeline-stat-value" id="timelineIncomeTotal">+0 €</span>
+            </div>
+            <div class="timeline-stat-item expense">
+                <span class="timeline-stat-label">Ausgaben:</span>
+                <span class="timeline-stat-value" id="timelineExpenseTotal">-0 €</span>
+            </div>
+            <div class="timeline-stat-item balance">
+                <span class="timeline-stat-label">Bilanz:</span>
+                <span class="timeline-stat-value" id="timelineBalance">0 €</span>
+            </div>
+            <div class="timeline-stat-item count">
+                <span class="timeline-stat-label">Transaktionen:</span>
+                <span class="timeline-stat-value" id="timelineCount">0</span>
+            </div>
+        </div>
+
+        <!-- Timeline Content -->
+        <div class="timeline-content" id="timelineContent">
+            <!-- Wird per JS gefüllt -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="timeline-loading hidden" id="timelineLoading">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Lade weitere Transaktionen...</p>
+        </div>
+
+        <!-- No Results -->
+        <div class="timeline-no-results hidden" id="timelineNoResults">
+            <div class="no-results-icon">📭</div>
+            <h3 class="no-results-title">Keine Transaktionen gefunden</h3>
+            <p class="no-results-text">Versuche einen anderen Filter oder Zeitraum.</p>
+        </div>
+    </div>
+</div>

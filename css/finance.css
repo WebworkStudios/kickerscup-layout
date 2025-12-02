@@ -1,0 +1,917 @@
+/* =====================================================
+   KICKERSCUP - FINANCE STYLESHEET (375px MINIMUM)
+   Finanzverwaltung & Vermögensübersicht
+   Minimum Supported Viewport: 375px (iPhone SE 2020)
+   ===================================================== */
+
+/* ========== FINANCE HEADER ========== */
+.finance-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.finance-title {
+    font-size: 36px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 20px var(--turquoise-glow));
+}
+
+.finance-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+/* ========== FINANCE CARDS ========== */
+.finance-card {
+    margin-bottom: 25px;
+    padding: 25px 20px;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.finance-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--platinum));
+}
+
+.finance-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px var(--turquoise-glow);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-title {
+    font-size: 20px;
+    color: var(--gold-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.card-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ========== VERMÖGENSSTATUS CARD ========== */
+.vermoegens-main {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+.current-capital {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    font-family: 'Rajdhani', sans-serif;
+    text-shadow: 0 0 20px var(--turquoise-glow);
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+.capital-change {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.change-label {
+    color: var(--text-muted);
+}
+
+.change-value {
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.capital-trend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 20px;
+    border: 1px solid var(--turquoise-border);
+    font-size: 15px;
+    max-width: fit-content;
+    margin: 0 auto;
+}
+
+.trend-value {
+    color: var(--gold-primary);
+    font-weight: 700;
+}
+
+.trend-icon {
+    font-size: 20px;
+    color: #48bb78;
+}
+
+.trend-status {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Vermögens-Chart */
+.vermoegens-chart-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid var(--turquoise-border);
+}
+
+.chart-title {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    margin-bottom: 15px;
+}
+
+#capitalChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+/* ========== SAISON-FORTSCHRITT CARD ========== */
+.season-month {
+    font-size: 14px;
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.saison-progress {
+    margin-bottom: 25px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.progress-label {
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.progress-percent {
+    color: var(--gold-primary);
+    font-weight: 700;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-primary), var(--platinum));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 15px var(--turquoise-glow);
+}
+
+.days-remaining {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 12px;
+    border: 1px solid var(--turquoise-border);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.remaining-icon {
+    font-size: 16px;
+}
+
+/* Saison-Bilanz */
+.saison-balance {
+    padding: 20px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 12px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.balance-title {
+    font-size: 16px;
+    color: var(--gold-primary);
+    margin-bottom: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.balance-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.balance-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.balance-value {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.balance-income .balance-value {
+    color: #48bb78;
+}
+
+.balance-expenses .balance-value {
+    color: #f56565;
+}
+
+.balance-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--turquoise-border);
+    margin: 15px 0;
+}
+
+.balance-profit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(72, 187, 120, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.profit-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.profit-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #48bb78;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.profit-icon {
+    font-size: 20px;
+    color: #48bb78;
+}
+
+.balance-avg {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.avg-label {
+    color: var(--text-muted);
+}
+
+.avg-value {
+    color: var(--gold-primary);
+    font-weight: 700;
+}
+
+/* ========== KATEGORIEN CARD ========== */
+.kategorie-section {
+    margin-bottom: 20px;
+}
+
+.kategorie-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.income-header {
+    background: rgba(72, 187, 120, 0.1);
+    border: 1px solid rgba(72, 187, 120, 0.3);
+}
+
+.expenses-header {
+    background: rgba(245, 101, 101, 0.1);
+    border: 1px solid rgba(245, 101, 101, 0.3);
+}
+
+.kategorie-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.income-header .kategorie-title {
+    color: #68d391;
+}
+
+.expenses-header .kategorie-title {
+    color: #fc8181;
+}
+
+.kategorie-total {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.income-header .kategorie-total {
+    color: #48bb78;
+}
+
+.expenses-header .kategorie-total {
+    color: #f56565;
+}
+
+.kategorie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.kategorie-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: rgba(0, 199, 139, 0.03);
+    border-radius: 10px;
+    border: 1px solid var(--turquoise-border);
+    transition: all 0.3s ease;
+}
+
+.kategorie-item:hover {
+    background: rgba(0, 199, 139, 0.08);
+    transform: translateX(3px);
+}
+
+.item-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 10px;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.item-label {
+    font-size: 14px;
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.item-count {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.item-amount {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;
+}
+
+.item-amount.income {
+    color: #48bb78;
+}
+
+.item-amount.expense {
+    color: #f56565;
+}
+
+.kategorie-divider {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--turquoise-border), transparent);
+    margin: 25px 0;
+}
+
+.kategorie-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    color: var(--dark-primary);
+    box-shadow: 0 5px 20px var(--turquoise-shadow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--turquoise-glow);
+}
+
+/* ========== PROGNOSE CARD ========== */
+.prognose-current {
+    padding: 15px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 10px;
+    border: 1px solid var(--turquoise-border);
+    margin-bottom: 20px;
+}
+
+.prognose-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.prognose-row:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+}
+
+.prognose-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.prognose-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-white);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.prognose-value.income {
+    color: #48bb78;
+}
+
+.prognose-value.expense {
+    color: #f56565;
+}
+
+.prognose-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--turquoise-border);
+    margin: 20px 0;
+}
+
+.prognose-section {
+    margin-bottom: 20px;
+}
+
+.prognose-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--turquoise-border);
+}
+
+.prognose-section-title.income {
+    color: #68d391;
+    border-color: rgba(72, 187, 120, 0.3);
+}
+
+.prognose-section-title.expense {
+    color: #fc8181;
+    border-color: rgba(245, 101, 101, 0.3);
+}
+
+.prognose-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(0, 199, 139, 0.03);
+    border-radius: 8px;
+}
+
+.prognose-item-icon {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 8px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.prognose-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.prognose-item-label {
+    font-size: 13px;
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.prognose-item-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.prognose-item-amount {
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;
+}
+
+.prognose-item-amount.income {
+    color: #48bb78;
+}
+
+.prognose-item-amount.expense {
+    color: #f56565;
+}
+
+.prognose-item-amount.estimated {
+    opacity: 0.8;
+    position: relative;
+}
+
+.prognose-item-amount.estimated::after {
+    content: '~';
+    position: absolute;
+    left: -8px;
+    font-size: 18px;
+    opacity: 0.6;
+}
+
+.prognose-sum {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 15px;
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-top: 2px solid var(--turquoise-border);
+}
+
+.prognose-sum-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.prognose-sum-value {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.prognose-sum-value.income {
+    color: #48bb78;
+}
+
+.prognose-sum-value.expense {
+    color: #f56565;
+}
+
+/* Prognose Result */
+.prognose-result {
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(0, 199, 139, 0.1), rgba(0, 230, 160, 0.05));
+    border-radius: 12px;
+    border: 2px solid var(--gold-primary);
+    margin-bottom: 20px;
+}
+
+.result-title {
+    font-size: 16px;
+    color: var(--gold-primary);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.result-row.main {
+    padding: 15px 0;
+    border-bottom: 2px solid var(--turquoise-border);
+}
+
+.result-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.result-row.main .result-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.result-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.result-row.main .result-value {
+    font-size: 24px;
+    text-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.result-value.income {
+    color: #48bb78;
+}
+
+/* Confidence Meter */
+.prognose-confidence {
+    padding: 15px;
+    background: rgba(0, 199, 139, 0.05);
+    border-radius: 10px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.confidence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.confidence-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.confidence-percent {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.confidence-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.confidence-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ed8936, var(--gold-primary), #48bb78);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.confidence-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* iPhone 12/13/14 Standard (390px - 427px) */
+@media (min-width: 390px) and (max-width: 427px) {
+    .finance-title {
+        font-size: 40px;
+    }
+
+    .finance-card {
+        padding: 28px 22px;
+    }
+
+    .current-capital {
+        font-size: 46px;
+    }
+
+    .chart-container {
+        height: 220px;
+    }
+}
+
+/* iPhone Pro Max (428px - 767px) */
+@media (min-width: 428px) and (max-width: 767px) {
+    .finance-title {
+        font-size: 44px;
+    }
+
+    .finance-card {
+        padding: 30px 25px;
+    }
+
+    .current-capital {
+        font-size: 50px;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+    .balance-grid {
+        gap: 20px;
+    }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .finance-title {
+        font-size: 48px;
+    }
+
+    .finance-card {
+        padding: 35px 30px;
+    }
+
+    .current-capital {
+        font-size: 54px;
+    }
+
+    .chart-container {
+        height: 260px;
+    }
+
+    /* 2-Spalten Layout für Karten */
+    .finance-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+
+    .vermoegens-card {
+        grid-column: span 2;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .finance-title {
+        font-size: 52px;
+    }
+
+    .finance-card {
+        padding: 40px;
+    }
+
+    .current-capital {
+        font-size: 58px;
+    }
+
+    .chart-container {
+        height: 280px;
+    }
+
+    /* 2-Spalten Layout für Karten */
+    .finance-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+
+    .vermoegens-card {
+        grid-column: span 2;
+    }
+
+    .prognose-card {
+        grid-column: span 2;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.hidden {
+    display: none !important;
+}

@@ -63,6 +63,10 @@ const pages = {
         html: 'league.html',
         module: 'league'
     },
+    finance: {
+        html: 'finance.html',
+        module: 'finance'
+    },
     cup: {
         html: 'pages/cup.html',
         module: 'cup'
