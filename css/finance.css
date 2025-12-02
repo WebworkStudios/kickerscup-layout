@@ -803,6 +803,581 @@
     line-height: 1.4;
 }
 
+/* ========== TIMELINE MODAL ========== */
+.timeline-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    height: 100vh; /* Mobile Safari fix */
+    height: 100dvh; /* Dynamic viewport height */
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    overflow: hidden; /* Verhindert Body-Scroll */
+}
+
+.timeline-modal.active {
+    display: flex;
+}
+
+/* Body Scroll Lock - wird via JS hinzugefügt */
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+}
+
+.timeline-modal-overlay {
+    position: fixed; /* Changed from absolute */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+    z-index: 1;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.timeline-modal-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh; /* Erhöht von 85vh für Mobile */
+    max-height: 90dvh;
+    background: rgba(13, 13, 13, 0.98);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 16px; /* Reduziert von 20px für Mobile */
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden; /* WICHTIG: Verhindert Content-Overflow */
+}
+
+@supports (backdrop-filter: blur(20px)) {
+    .timeline-modal-content {
+        background: rgba(13, 13, 13, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Timeline Header */
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 15px;
+    border-bottom: 2px solid var(--turquoise-border);
+    flex-shrink: 0;
+    gap: 15px;
+}
+
+.timeline-header-left {
+    flex: 1;
+    min-width: 0; /* Wichtig für text-overflow */
+}
+
+.timeline-title {
+    font-size: 20px; /* Reduziert von 24px für Mobile */
+    color: var(--gold-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px; /* Reduziert von 2px */
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px var(--turquoise-glow);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeline-subtitle {
+    font-size: 12px; /* Reduziert von 13px */
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeline-close {
+    width: 36px; /* Reduziert von 40px für Mobile */
+    height: 36px;
+    min-width: 36px; /* Verhindert Schrumpfen */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-white);
+    font-size: 18px; /* Reduziert von 20px */
+    flex-shrink: 0;
+}
+
+.timeline-close:hover {
+    background: rgba(245, 101, 101, 0.2);
+    border-color: #f56565;
+    transform: scale(1.1);
+}
+
+/* Timeline Filters */
+.timeline-filters {
+    padding: 15px 20px;
+    background: rgba(0, 199, 139, 0.03);
+    border-bottom: 1px solid var(--turquoise-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    max-height: 30vh; /* Limitiert Höhe auf Mobile */
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-label {
+    font-size: 10px; /* Reduziert von 11px */
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300c78b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 35px;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+    background-color: rgba(0, 199, 139, 0.1);
+    border-color: var(--gold-primary);
+    outline: none;
+}
+
+.filter-select option {
+    background: var(--dark-primary);
+    color: var(--text-white);
+    padding: 10px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-white);
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    min-height: 44px; /* Touch-friendly */
+}
+
+.filter-btn:hover,
+.filter-btn:active {
+    background: rgba(0, 199, 139, 0.1);
+    transform: translateY(-1px);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    border-color: var(--gold-primary);
+    color: var(--dark-primary);
+    box-shadow: 0 4px 15px var(--turquoise-shadow);
+}
+
+.filter-btn-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.filter-btn-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Search Input */
+.filter-search {
+    margin-top: 0;
+}
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 12px;
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+    min-height: 44px; /* Touch-friendly */
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-input:focus {
+    background: rgba(0, 199, 139, 0.1);
+    border-color: var(--gold-primary);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    pointer-events: none;
+    color: var(--text-muted);
+}
+
+/* Timeline Stats */
+.timeline-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 15px 20px;
+    background: rgba(0, 199, 139, 0.03);
+    border-bottom: 1px solid var(--turquoise-border);
+    flex-shrink: 0;
+}
+
+.timeline-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.timeline-stat-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeline-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeline-stat-item.income .timeline-stat-value {
+    color: #48bb78;
+}
+
+.timeline-stat-item.expense .timeline-stat-value {
+    color: #f56565;
+}
+
+.timeline-stat-item.balance .timeline-stat-value {
+    color: var(--gold-primary);
+}
+
+.timeline-stat-item.count .timeline-stat-value {
+    color: var(--text-white);
+}
+
+/* Timeline Content */
+.timeline-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 15px 20px;
+    min-height: 0; /* WICHTIG für Flex-Scroll */
+    -webkit-overflow-scrolling: touch; /* Smooth Scroll iOS */
+}
+
+.timeline-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timeline-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.timeline-content::-webkit-scrollbar-thumb {
+    background: var(--gold-primary);
+    border-radius: 10px;
+}
+
+.timeline-content::-webkit-scrollbar-thumb:hover {
+    background: var(--platinum);
+}
+
+/* Timeline Day Group */
+.timeline-day-group {
+    margin-bottom: 20px;
+}
+
+.timeline-day-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--turquoise-border);
+}
+
+.timeline-day-date {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timeline-day-count {
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 3px 8px;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.timeline-day-balance {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;
+}
+
+.timeline-day-balance.positive {
+    color: #48bb78;
+}
+
+.timeline-day-balance.negative {
+    color: #f56565;
+}
+
+/* Timeline Transaction Item */
+.timeline-transaction {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(0, 199, 139, 0.03);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 60px; /* Touch-friendly */
+}
+
+.timeline-transaction:active {
+    background: rgba(0, 199, 139, 0.08);
+    transform: translateX(2px);
+}
+
+/* Desktop hover */
+@media (hover: hover) and (pointer: fine) {
+    .timeline-transaction:hover {
+        background: rgba(0, 199, 139, 0.08);
+        transform: translateX(3px);
+        box-shadow: 0 5px 15px var(--turquoise-shadow);
+    }
+}
+
+.timeline-transaction.income {
+    border-left: 3px solid #48bb78;
+}
+
+.timeline-transaction.expense {
+    border-left: 3px solid #f56565;
+}
+
+.transaction-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 199, 139, 0.1);
+    border-radius: 8px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.transaction-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.transaction-title {
+    font-size: 13px;
+    color: var(--text-white);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.transaction-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.transaction-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.transaction-amount {
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-left: 8px;
+}
+
+.transaction-amount.income {
+    color: #48bb78;
+}
+
+.transaction-amount.expense {
+    color: #f56565;
+}
+
+/* Loading & No Results */
+.timeline-loading,
+.timeline-no-results {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.timeline-loading .loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 3px solid rgba(0, 199, 139, 0.2);
+    border-top-color: var(--gold-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.timeline-loading .loading-text {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.no-results-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-results-title {
+    font-size: 18px;
+    color: var(--gold-primary);
+    margin-bottom: 10px;
+}
+
+.no-results-text {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
 /* ========== RESPONSIVE BREAKPOINTS ========== */
 
 /* iPhone 12/13/14 Standard (390px - 427px) */
@@ -875,6 +1450,99 @@
     .vermoegens-card {
         grid-column: span 2;
     }
+
+    /* Timeline Optimierungen für Tablet */
+    .timeline-modal {
+        padding: 30px;
+    }
+
+    .timeline-modal-content {
+        max-height: 85vh;
+        border-radius: 20px;
+    }
+
+    .timeline-header {
+        padding: 25px 30px 20px;
+    }
+
+    .timeline-title {
+        font-size: 24px;
+        letter-spacing: 2px;
+    }
+
+    .timeline-subtitle {
+        font-size: 13px;
+    }
+
+    .timeline-close {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 20px;
+    }
+
+    .timeline-filters {
+        padding: 20px 30px;
+        gap: 15px;
+    }
+
+    .timeline-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding: 20px 30px;
+    }
+
+    .timeline-stat-label {
+        font-size: 10px;
+    }
+
+    .timeline-stat-value {
+        font-size: 16px;
+    }
+
+    .timeline-content {
+        padding: 20px 30px;
+    }
+
+    .timeline-day-header {
+        gap: 12px;
+    }
+
+    .timeline-day-date {
+        font-size: 14px;
+    }
+
+    .timeline-day-count {
+        font-size: 11px;
+    }
+
+    .timeline-day-balance {
+        font-size: 14px;
+    }
+
+    .timeline-transaction {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 20px;
+    }
+
+    .transaction-title {
+        font-size: 14px;
+    }
+
+    .transaction-amount {
+        font-size: 16px;
+    }
+
+    .filter-buttons {
+        max-width: 500px;
+    }
 }
 
 /* Desktop (1024px+) */
@@ -908,6 +1576,141 @@
 
     .prognose-card {
         grid-column: span 2;
+    }
+
+    /* Timeline Desktop Optimierungen */
+    .timeline-modal {
+        padding: 40px;
+    }
+
+    .timeline-modal-content {
+        max-width: 1000px;
+        max-height: 85vh;
+        border-radius: 24px;
+    }
+
+    .timeline-header {
+        padding: 30px 40px 25px;
+    }
+
+    .timeline-title {
+        font-size: 28px;
+        letter-spacing: 2px;
+    }
+
+    .timeline-subtitle {
+        font-size: 14px;
+    }
+
+    .timeline-close {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 22px;
+    }
+
+    /* Timeline Filters - Horizontal Layout */
+    .timeline-filters {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        padding: 25px 40px;
+        gap: 20px;
+        max-height: none;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-label {
+        font-size: 11px;
+    }
+
+    .filter-search {
+        margin-top: 0;
+        min-width: 280px;
+    }
+
+    /* Timeline Stats - 4 Columns */
+    .timeline-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        padding: 25px 40px;
+    }
+
+    .timeline-stat-item {
+        padding: 14px;
+    }
+
+    .timeline-stat-label {
+        font-size: 11px;
+    }
+
+    .timeline-stat-value {
+        font-size: 18px;
+    }
+
+    .timeline-content {
+        padding: 25px 40px;
+    }
+
+    .timeline-content::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .timeline-day-group {
+        margin-bottom: 30px;
+    }
+
+    .timeline-day-header {
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .timeline-day-date {
+        font-size: 15px;
+    }
+
+    .timeline-day-count {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+
+    .timeline-day-balance {
+        font-size: 15px;
+    }
+
+    .timeline-transaction {
+        gap: 15px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .transaction-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 22px;
+        border-radius: 10px;
+    }
+
+    .transaction-info {
+        gap: 4px;
+    }
+
+    .transaction-title {
+        font-size: 15px;
+    }
+
+    .transaction-desc {
+        font-size: 12px;
+    }
+
+    .transaction-amount {
+        font-size: 18px;
+        padding-left: 12px;
     }
 }
 
