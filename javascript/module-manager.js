@@ -1,10 +1,7 @@
 // =====================================================
 // KICKERSCUP - MODULE MANAGER (ESM) - ENHANCED
 // Zentrales System für Script-Loading & Lifecycle
-// ✅ NEU: Vollständiges CSS-Cleanup bei Modulwechsel
-// ✅ NEU: Performance-Optimierung durch CSS-Entfernung
-// ✅ NEU: Verhindert CSS-Konflikte zwischen Modulen
-// ✅ NEU: Finance-Modul integriert
+// ✅ NEU: ChampionsCup-Modul integriert
 // =====================================================
 
 // Tracking für geladene Module
@@ -17,7 +14,7 @@ const moduleRegistry = {
     dashboard: {
         scripts: ['./dashboard.js'],
         css: ['css/dashboard.css', 'css/utilities.css'],
-        cssElements: [],  // ← NEU: Tracking von CSS <link> Elementen
+        cssElements: [],
         module: null
     },
     team: {
@@ -68,6 +65,12 @@ const moduleRegistry = {
         cssElements: [],
         module: null
     },
+    championscup: {
+        scripts: ['./champions-cup.js'],
+        css: ['css/champions-cup.css'],
+        cssElements: [],
+        module: null
+    },
     settings: {
         scripts: ['./settings.js'],
         css: ['css/settings.css'],
@@ -78,25 +81,15 @@ const moduleRegistry = {
 
 /**
  * Lädt ein CSS-File mit Deduplizierung und Modul-Tracking
- * ✅ NEU: CSS-Elemente werden dem Modul zugeordnet für späteres Cleanup
- *
- * @param {string} href - Pfad zur CSS-Datei
- * @param {string} moduleName - Name des Moduls (für Tracking)
- * @returns {Promise<HTMLLinkElement>}
  */
 async function loadStyle(href, moduleName) {
-    // Check Cache - aber erstelle neues Element wenn es zu anderem Modul gehört
     const cacheKey = `${href}`;
 
     if (loadedStyles.has(cacheKey)) {
         const existingLink = loadedStyles.get(cacheKey);
-
-        // ✅ NEU: Prüfe ob das Element noch im DOM ist
         if (existingLink && existingLink.parentNode) {
-            // Element existiert bereits und ist im DOM
             return existingLink;
         } else {
-            // Element wurde entfernt, Cache-Eintrag löschen
             loadedStyles.delete(cacheKey);
         }
     }
@@ -105,26 +98,24 @@ async function loadStyle(href, moduleName) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = href;
-
-        // ✅ NEU: Modul-Zuordnung per data-Attribut
         link.dataset.module = moduleName;
         link.dataset.cssPath = href;
 
         link.onload = () => {
-            // Cache aktualisieren
             loadedStyles.set(cacheKey, link);
-
-            // ✅ NEU: Zum Modul hinzufügen für späteres Cleanup
             if (moduleName && moduleRegistry[moduleName]) {
                 if (!moduleRegistry[moduleName].cssElements.includes(link)) {
                     moduleRegistry[moduleName].cssElements.push(link);
                 }
             }
-
+            console.log(`✓ CSS geladen: ${href}`);
             resolve(link);
         };
 
-        link.onerror = () => reject(new Error(`CSS failed: ${href}`));
+        link.onerror = () => {
+            console.error(`❌ CSS fehlgeschlagen: ${href}`);
+            reject(new Error(`CSS failed: ${href}`));
+        };
 
         document.head.appendChild(link);
     });
@@ -132,29 +123,26 @@ async function loadStyle(href, moduleName) {
 
 /**
  * Lädt ein Modul via Dynamic Import
- * @param {string} src - Pfad zum ES Module
- * @returns {Promise<Object>} - Geladenes Modul-Objekt
  */
 async function loadModule(src) {
-    // Check Cache
     if (loadedScripts.has(src)) {
         return loadedScripts.get(src);
     }
 
     try {
+        console.log(`⏳ Lade Modul: ${src}`);
         const module = await import(src);
         loadedScripts.set(src, module);
+        console.log(`✓ Modul geladen: ${src}`);
         return module;
     } catch (error) {
+        console.error(`❌ Modul fehlgeschlagen: ${src}`, error);
         throw new Error(`Module failed: ${src} - ${error.message}`);
     }
 }
 
 /**
- * ✅ NEU: Entfernt CSS-Dateien eines Moduls aus dem DOM
- * Verbessert Performance und verhindert CSS-Konflikte
- *
- * @param {string} moduleName - Name des zu bereinigenden Moduls
+ * Entfernt CSS-Dateien eines Moduls aus dem DOM
  */
 function cleanupModuleCSS(moduleName) {
     const config = moduleRegistry[moduleName];
@@ -165,53 +153,48 @@ function cleanupModuleCSS(moduleName) {
 
     console.log(`🧹 CSS-Cleanup für Modul: ${moduleName}`);
 
-    // Entferne alle CSS-Elemente des Moduls
     config.cssElements.forEach(linkElement => {
         if (linkElement && linkElement.parentNode) {
             const href = linkElement.dataset.cssPath || linkElement.href;
             console.log(`  ↳ Entferne: ${href}`);
-
-            // ✅ Aus DOM entfernen
             linkElement.parentNode.removeChild(linkElement);
-
-            // ✅ Aus Cache entfernen
             loadedStyles.delete(href);
         }
     });
 
-    // Array leeren
     config.cssElements = [];
 }
 
 /**
  * Preload eines Moduls (lädt CSS/JS aber initialisiert NICHT)
- * WICHTIG: Navigation verwendet dies BEVOR HTML ins DOM kommt
- * ✅ GEÄNDERT: Übergibt moduleName an loadStyle für Tracking
  */
 export async function preloadModule(moduleName) {
     const config = moduleRegistry[moduleName];
     if (!config) {
-        console.warn(`Modul nicht registriert: ${moduleName}`);
+        console.warn(`⚠️ Modul nicht registriert: ${moduleName}`);
         return;
     }
 
+    console.log(`📦 Preload Modul: ${moduleName}`);
+
     try {
-        // Lade CSS parallel - ✅ NEU: Mit Modul-Tracking
+        // Lade CSS parallel
         if (config.css?.length) {
+            console.log(`  → Lade ${config.css.length} CSS-Datei(en)...`);
             await Promise.all(
                 config.css.map(css => loadStyle(css, moduleName))
             );
         }
 
-        // Lade Scripts sequentiell (um Abhängigkeiten zu respektieren)
-        // Das letzte Script im Array ist das Hauptmodul mit init/cleanup
+        // Lade Scripts sequentiell
         for (const script of config.scripts) {
             const module = await loadModule(script);
-            // Speichere nur das Hauptmodul (letztes Script)
             if (script === config.scripts[config.scripts.length - 1]) {
                 config.module = module;
             }
         }
+
+        console.log(`✅ Preload abgeschlossen: ${moduleName}`);
 
     } catch (error) {
         console.error(`❌ Fehler beim Preload von ${moduleName}:`, error);
@@ -221,13 +204,12 @@ export async function preloadModule(moduleName) {
 
 /**
  * Deaktiviert das aktuell aktive Modul
- * ✅ NEU: Führt vollständiges CSS-Cleanup durch
  */
 export async function deactivateCurrentModule() {
     for (const [name, config] of activeModules.entries()) {
         console.log(`⏹️  Deaktiviere Modul: ${name}`);
 
-        // 1. JavaScript Cleanup-Hook aufrufen
+        // JavaScript Cleanup
         if (config.module?.cleanup) {
             try {
                 await config.module.cleanup();
@@ -237,16 +219,15 @@ export async function deactivateCurrentModule() {
             }
         }
 
-        // 2. ✅ NEU: CSS-Cleanup durchführen
+        // CSS-Cleanup
         cleanupModuleCSS(name);
 
-        // 3. Module aus Tracking entfernen
         activeModules.delete(name);
     }
 }
 
 /**
- * Gibt Modul-Config zurück (für manuelle Initialisierung)
+ * Gibt Modul-Config zurück
  */
 export function getModuleConfig(moduleName) {
     return moduleRegistry[moduleName];
@@ -276,8 +257,7 @@ export function getActiveModule() {
 }
 
 /**
- * ✅ NEU: Debug-Funktion - Zeigt alle geladenen CSS-Dateien
- * Hilfreich für Entwicklung und Debugging
+ * Debug-Funktion - Zeigt alle geladenen CSS-Dateien
  */
 export function debugCSS() {
     console.log('📋 Aktuell geladene CSS-Dateien:');
@@ -298,7 +278,7 @@ export function debugCSS() {
     });
 }
 
-// ✅ NEU: Globale Debug-Funktion verfügbar machen (nur Development)
+// Debug-Funktion verfügbar machen
 if (typeof window !== 'undefined') {
     window.debugModuleCSS = debugCSS;
 }

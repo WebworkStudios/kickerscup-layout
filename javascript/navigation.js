@@ -1,9 +1,7 @@
 // =====================================================
 // KICKERSCUP - NAVIGATION SYSTEM (ESM)
 // Routing & Page Management mit ModuleManager
-// ✅ FIX: Flicker-Free Page Transitions
-// ✅ FIX: Race-Condition-Schutz bei schnellem Klicken
-// ✅ FIX: transitionend statt hardcoded Timeout
+// ✅ ChampionsCup integriert
 // =====================================================
 
 import {deactivateCurrentModule, getModuleConfig, preloadModule, setActiveModule} from './module-manager.js';
@@ -13,9 +11,9 @@ import {deactivateCurrentModule, getModuleConfig, preloadModule, setActiveModule
 // =====================================================
 
 const CONFIG = {
-    TRANSITION_DURATION: 150,      // ms - muss mit CSS übereinstimmen
-    LOADER_DELAY: 300,             // ms - Loader erst nach dieser Zeit zeigen
-    TRANSITION_TIMEOUT: 500        // ms - Fallback falls transitionend nicht feuert
+    TRANSITION_DURATION: 150,
+    LOADER_DELAY: 300,
+    TRANSITION_TIMEOUT: 500
 };
 
 // =====================================================
@@ -23,8 +21,8 @@ const CONFIG = {
 // =====================================================
 
 let currentPage = 'dashboard';
-let currentLoadId = 0;            // Race-Condition-Schutz
-let isNavigating = false;         // Verhindert Doppelklicks
+let currentLoadId = 0;
+let isNavigating = false;
 let loaderTimeout = null;
 
 const contentWrapper = document.getElementById('contentWrapper');
@@ -68,8 +66,12 @@ const pages = {
         module: 'finance'
     },
     cup: {
-        html: 'pages/cup.html',
+        html: 'cup.html',
         module: 'cup'
+    },
+    championscup: {
+        html: 'champions-cup.html',
+        module: 'championscup'
     },
     settings: {
         html: 'pages/settings.html',
@@ -81,12 +83,6 @@ const pages = {
 // UTILITY FUNCTIONS
 // =====================================================
 
-/**
- * Wartet auf das Ende der CSS-Transition mit Fallback-Timeout
- * @param {HTMLElement} element - Element mit Transition
- * @param {number} fallbackMs - Fallback-Timeout in ms
- * @returns {Promise<void>}
- */
 function waitForTransition(element, fallbackMs = CONFIG.TRANSITION_TIMEOUT) {
     return new Promise(resolve => {
         let resolved = false;
@@ -100,24 +96,16 @@ function waitForTransition(element, fallbackMs = CONFIG.TRANSITION_TIMEOUT) {
         };
 
         const onTransitionEnd = (e) => {
-            // Nur auf opacity-Transition des Elements selbst reagieren
             if (e.target === element && e.propertyName === 'opacity') {
                 done();
             }
         };
 
         element.addEventListener('transitionend', onTransitionEnd);
-
-        // Fallback falls transitionend nicht feuert (z.B. bei display:none)
         const fallbackTimeout = setTimeout(done, fallbackMs);
     });
 }
 
-/**
- * Lädt HTML-Content einer Seite mit Caching
- * @param {string} htmlPath - Pfad zur HTML-Datei
- * @returns {Promise<string|null>} HTML-Content oder null bei Fehler
- */
 async function fetchPageHTML(htmlPath) {
     if (pageCache.has(htmlPath)) {
         return pageCache.get(htmlPath);
@@ -140,14 +128,10 @@ async function fetchPageHTML(htmlPath) {
 // LOADING INDICATOR
 // =====================================================
 
-/**
- * Zeigt Loading-Indikator nach Verzögerung (vermeidet Flicker bei schnellen Loads)
- */
 function scheduleLoadingIndicator() {
     clearLoadingIndicator();
 
     loaderTimeout = setTimeout(() => {
-        // Nur anzeigen wenn noch im Loading-State
         if (contentWrapper.classList.contains('page-loading')) {
             const existingLoader = contentWrapper.querySelector('.page-loader');
             if (!existingLoader) {
@@ -163,9 +147,6 @@ function scheduleLoadingIndicator() {
     }, CONFIG.LOADER_DELAY);
 }
 
-/**
- * Entfernt Loading-Indikator und cleared Timeout
- */
 function clearLoadingIndicator() {
     if (loaderTimeout) {
         clearTimeout(loaderTimeout);
@@ -182,9 +163,6 @@ function clearLoadingIndicator() {
 // ERROR PAGE
 // =====================================================
 
-/**
- * Zeigt Fehlerseite
- */
 function showErrorPage() {
     contentWrapper.innerHTML = `
         <div style="
@@ -217,7 +195,6 @@ function showErrorPage() {
         </div>
     `;
 
-    // Seite sichtbar machen
     contentWrapper.classList.remove('page-loading');
     contentWrapper.classList.add('page-ready');
 }
@@ -226,9 +203,6 @@ function showErrorPage() {
 // NAVIGATION UPDATE
 // =====================================================
 
-/**
- * Aktualisiert die aktive Navigation
- */
 function updateNavigation(pageName) {
     const navButtons = document.querySelectorAll('.nav-btn');
 
@@ -249,20 +223,7 @@ function updateNavigation(pageName) {
 // MAIN PAGE LOADING
 // =====================================================
 
-/**
- * Lädt eine Seite mit Flicker-Free Transition
- *
- * Ablauf:
- * 1. Fade-Out starten (opacity → 0)
- * 2. Parallel: HTML + CSS/JS laden
- * 3. Warten auf Fade-Out Ende
- * 4. Altes Modul deaktivieren
- * 5. Neues HTML einfügen (unsichtbar)
- * 6. Neues Modul initialisieren
- * 7. Fade-In starten (opacity → 1)
- */
 async function loadPage(pageName) {
-    // Validierung
     const pageConfig = pages[pageName];
     if (!pageConfig) {
         console.error(`Seite "${pageName}" nicht gefunden`);
@@ -270,108 +231,94 @@ async function loadPage(pageName) {
         return;
     }
 
-    // Race-Condition-Schutz: Neue Load-ID vergeben
     const loadId = ++currentLoadId;
 
-    // Verhindere Doppelklicks während Navigation
     if (isNavigating) {
         return;
     }
     isNavigating = true;
 
     try {
-        // 1. Fade-Out starten
+        console.log(`🚀 Lade Seite: ${pageName}`);
+
+        // Fade-Out starten
         contentWrapper.classList.add('page-loading');
         contentWrapper.classList.remove('page-ready');
 
-        // Loading-Indikator nach Verzögerung einplanen
         scheduleLoadingIndicator();
 
-        // 2. Parallel laden: CSS/JS + HTML gleichzeitig
+        // Parallel laden: CSS/JS + HTML
         let htmlContent = null;
 
         if (pageConfig.module) {
-            // Beide parallel starten, auf beide warten
             const results = await Promise.allSettled([
                 preloadModule(pageConfig.module),
                 fetchPageHTML(pageConfig.html)
             ]);
 
-            // HTML-Ergebnis extrahieren
             const htmlResult = results[1];
             if (htmlResult.status === 'fulfilled') {
                 htmlContent = htmlResult.value;
             }
         } else {
-            // Nur HTML laden
             htmlContent = await fetchPageHTML(pageConfig.html);
         }
 
-        // Fehler beim HTML-Laden
         if (htmlContent === null) {
             throw new Error(`HTML konnte nicht geladen werden: ${pageConfig.html}`);
         }
 
-        // Race-Condition-Check: Wurde inzwischen eine andere Seite angefordert?
         if (loadId !== currentLoadId) {
             console.log(`Navigation abgebrochen: Neue Navigation gestartet`);
             return;
         }
 
-        // 3. Warten auf Fade-Out Ende (CSS transition)
         await waitForTransition(contentWrapper);
 
-        // Nochmal Race-Condition-Check nach Transition
         if (loadId !== currentLoadId) {
             return;
         }
 
-        // 4. Altes Modul deaktivieren (cleanup)
         await deactivateCurrentModule();
 
-        // 5. Loading-Indikator entfernen
         clearLoadingIndicator();
 
-        // 6. Neues HTML einfügen (noch unsichtbar wegen opacity: 0)
         contentWrapper.innerHTML = htmlContent;
 
-        // 7. Neues Modul initialisieren
+        // Modul initialisieren
         const moduleName = pageConfig.module;
         if (moduleName) {
             const moduleConfig = getModuleConfig(moduleName);
             const moduleExports = moduleConfig?.module;
 
-            // Bracket-Notation für dynamischen Zugriff (vermeidet Linter-Warnung)
             const initFn = moduleExports?.['init'];
             if (typeof initFn === 'function') {
+                console.log(`🎬 Initialisiere Modul: ${moduleName}`);
                 await initFn();
                 setActiveModule(moduleName, moduleConfig);
             }
         }
 
-        // Letzter Race-Condition-Check vor Anzeige
         if (loadId !== currentLoadId) {
             return;
         }
 
-        // 8. Fade-In starten
         contentWrapper.classList.remove('page-loading');
         contentWrapper.classList.add('page-ready');
 
-        // 9. State aktualisieren
         currentPage = pageName;
         updateNavigation(pageName);
 
-    } catch (error) {
-        console.error('Fehler beim Laden der Seite:', error);
+        console.log(`✅ Seite geladen: ${pageName}`);
 
-        // Nur Fehler anzeigen wenn dies noch die aktuelle Navigation ist
+    } catch (error) {
+        console.error('❌ Fehler beim Laden der Seite:', error);
+
         if (loadId === currentLoadId) {
             clearLoadingIndicator();
             showErrorPage();
         }
     } finally {
-        // Navigation wieder freigeben (nur wenn dies die aktuelle Navigation war)
         if (loadId === currentLoadId) {
             isNavigating = false;
         }
@@ -382,12 +329,7 @@ async function loadPage(pageName) {
 // PUBLIC API
 // =====================================================
 
-/**
- * Navigiert zu einer Seite
- * @param {string} pageName - Name der Zielseite
- */
 export function navigateTo(pageName) {
-    // Gleiche Seite: Nichts tun
     if (pageName === currentPage && !isNavigating) {
         return;
     }
@@ -395,15 +337,16 @@ export function navigateTo(pageName) {
     void loadPage(pageName);
 }
 
+// Global verfügbar machen
+window.navigateTo = navigateTo;
+
 // =====================================================
 // INITIALIZATION
 // =====================================================
 
-/**
- * Initialisiert das Navigation System
- */
 function initNavigation() {
-    // Navigation Event Delegation
+    console.log('🧭 Initialisiere Navigation System...');
+
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const targetPage = btn.getAttribute('data-page');
@@ -412,7 +355,6 @@ function initNavigation() {
             }
         });
 
-        // Keyboard Support
         btn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -424,19 +366,19 @@ function initNavigation() {
         });
     });
 
-    // Browser Back/Forward Support (falls History API genutzt wird)
     window.addEventListener('popstate', (event) => {
         if (event.state?.page) {
             void loadPage(event.state.page);
         }
     });
 
-    // Initiales Laden - Content-Wrapper startet sichtbar
     contentWrapper.classList.add('page-ready');
     void loadPage(currentPage);
+
+    console.log('✅ Navigation System bereit');
 }
 
-// Auto-Start nach DOM Ready
+// Auto-Start
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initNavigation);
 } else {
