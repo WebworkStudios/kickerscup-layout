@@ -1,0 +1,520 @@
+/* =====================================================
+   KICKERSCUP - STADIUM MODALS & SLIDER
+   CSS für Block-Ausbau und Rasen-Renovation
+   ===================================================== */
+
+/* ========== MODAL OVERLAY ========== */
+.stadium-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 15px;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .stadium-modal {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+}
+
+.stadium-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ========== MODAL CONTAINER ========== */
+.stadium-modal-content {
+    background: var(--dark-secondary);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 16px;
+    padding: 30px 20px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    animation: modalSlideIn 0.4s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-25px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ========== MODAL HEADER ========== */
+.stadium-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--turquoise-border);
+}
+
+.stadium-modal-header h2 {
+    font-size: 24px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 15px var(--turquoise-glow));
+    margin: 0;
+}
+
+.stadium-modal-close {
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    min-width: 40px;
+    min-height: 40px;
+    border: none;
+}
+
+.stadium-modal-close:hover {
+    color: var(--gold-primary);
+    background: rgba(0, 199, 139, 0.2);
+    transform: rotate(90deg);
+}
+
+/* ========== MODAL BODY ========== */
+.stadium-modal-body {
+    margin-bottom: 25px;
+}
+
+/* ========== BLOCK INFO SECTION ========== */
+.block-info-section {
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+}
+
+.block-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.block-info-row:last-child {
+    border-bottom: none;
+}
+
+.block-info-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.block-info-value {
+    font-size: 13px;
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+/* ========== SLIDER SECTION ========== */
+.expansion-slider-section {
+    margin: 25px 0;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.slider-label span:first-child {
+    font-size: 14px;
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.slider-current-value {
+    font-size: 18px;
+    color: var(--gold-primary);
+    font-weight: 700;
+}
+
+/* ========== CUSTOM SLIDER ========== */
+.capacity-slider {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Slider Track */
+.capacity-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(
+            90deg,
+            var(--gold-primary) 0%,
+            var(--gold-primary) var(--slider-progress, 0%),
+            rgba(255, 255, 255, 0.1) var(--slider-progress, 0%),
+            rgba(255, 255, 255, 0.1) 100%
+    );
+    border-radius: 10px;
+}
+
+.capacity-slider::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.capacity-slider::-moz-range-progress {
+    background: var(--gold-primary);
+    height: 8px;
+    border-radius: 10px;
+}
+
+/* Slider Thumb */
+.capacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--turquoise-shadow);
+    border: 3px solid var(--dark-secondary);
+    transition: all 0.3s ease;
+}
+
+.capacity-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--turquoise-shadow);
+    border: 3px solid var(--dark-secondary);
+    transition: all 0.3s ease;
+}
+
+.capacity-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 20px var(--turquoise-glow);
+}
+
+.capacity-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 20px var(--turquoise-glow);
+}
+
+/* Slider Bounds Labels */
+.slider-bounds {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ========== EXPANSION PREVIEW ========== */
+.expansion-preview {
+    background: rgba(0, 199, 139, 0.1);
+    border: 2px solid var(--turquoise-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.expansion-preview h3 {
+    font-size: 16px;
+    color: var(--gold-primary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.preview-row:last-child {
+    border-bottom: none;
+}
+
+.preview-label {
+    font-size: 14px;
+    color: var(--text-white);
+}
+
+.preview-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.preview-value.highlight {
+    font-size: 18px;
+    color: var(--gold-primary);
+    text-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.preview-arrow {
+    margin: 0 10px;
+    color: var(--text-muted);
+}
+
+/* ========== PITCH RENOVATION SECTION ========== */
+.pitch-status-section {
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.pitch-type {
+    font-size: 18px;
+    color: var(--gold-primary);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.pitch-condition-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.pitch-condition-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease, background 0.3s ease;
+    box-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.pitch-condition-fill.excellent {
+    background: linear-gradient(90deg, #68d391, #48bb78);
+}
+
+.pitch-condition-fill.good {
+    background: linear-gradient(90deg, #f6ad55, #ed8936);
+}
+
+.pitch-condition-fill.poor {
+    background: linear-gradient(90deg, #fc8181, #f56565);
+}
+
+.pitch-condition-text {
+    font-size: 14px;
+    color: var(--text-white);
+    margin-top: 5px;
+}
+
+.pitch-degradation-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+/* ========== RENOVATION INFO ========== */
+.renovation-info {
+    background: rgba(0, 199, 139, 0.05);
+    border-left: 4px solid var(--gold-primary);
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 8px;
+}
+
+.renovation-info h4 {
+    font-size: 14px;
+    color: var(--gold-primary);
+    margin-bottom: 10px;
+}
+
+.renovation-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.renovation-info li {
+    font-size: 13px;
+    color: var(--text-white);
+    padding: 5px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.renovation-info li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--gold-primary);
+    font-weight: 700;
+}
+
+/* ========== WARNING BOX ========== */
+.modal-warning {
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.modal-warning-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.modal-warning-text {
+    font-size: 13px;
+    color: var(--text-white);
+    line-height: 1.6;
+}
+
+.modal-warning-text strong {
+    color: var(--gold-primary);
+}
+
+/* ========== MODAL FOOTER ========== */
+.stadium-modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.stadium-modal-footer .btn {
+    flex: 1;
+}
+
+/* ========== EXPANSION WARNING (Saisonpause) ========== */
+.expansion-season-warning {
+    background: rgba(245, 101, 101, 0.1);
+    border: 2px solid rgba(245, 101, 101, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.expansion-season-warning-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.expansion-season-warning-text {
+    font-size: 14px;
+    color: var(--text-white);
+    line-height: 1.6;
+}
+
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* iPhone 12/13/14 Standard (390px - 427px) */
+@media (min-width: 390px) and (max-width: 427px) {
+    .stadium-modal-content {
+        padding: 35px 25px;
+    }
+
+    .stadium-modal-header h2 {
+        font-size: 26px;
+    }
+
+    .slider-current-value {
+        font-size: 20px;
+    }
+
+    .preview-value.highlight {
+        font-size: 20px;
+    }
+}
+
+/* iPhone Pro Max (428px - 767px) */
+@media (min-width: 428px) and (max-width: 767px) {
+    .stadium-modal-content {
+        max-width: 550px;
+        padding: 40px 30px;
+    }
+
+    .stadium-modal-header h2 {
+        font-size: 28px;
+    }
+
+    .slider-current-value {
+        font-size: 22px;
+    }
+
+    .stadium-modal-footer {
+        flex-direction: row;
+    }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .stadium-modal-content {
+        max-width: 600px;
+        padding: 40px;
+    }
+
+    .stadium-modal-header h2 {
+        font-size: 30px;
+    }
+
+    .stadium-modal-footer {
+        flex-direction: row;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .stadium-modal-content {
+        max-width: 600px;
+        padding: 40px;
+    }
+
+    .stadium-modal-footer {
+        flex-direction: row;
+    }
+}

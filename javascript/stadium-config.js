@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - STADIUM CONFIGURATION
+// KICKERSCUP - STADIUM CONFIGURATION (EXTENDED)
 // Zentrale Konfiguration für Stadion-Features
+// ✅ OPTIMIERT: Logen fix in SUED, vereinfachtes Rasen-System
 // =====================================================
 
 /**
@@ -19,8 +20,8 @@ export const CAPACITY_CONFIG = {
         SEATED: 0.60      // 60% = 90.000 Plätze
     },
 
-    // Logen können nur in OST oder WEST platziert werden
-    ALLOWED_BOX_BLOCKS: ['OST', 'WEST'],
+    // Logen sind fest in der SÜDKURVE platziert
+    FIXED_BOX_BLOCK: 'SUED',
 
     // Block-Namen (entsprechend dem Layout)
     BLOCKS: ['NORD', 'OST', 'SUED', 'WEST']
@@ -105,53 +106,30 @@ export const FLOODLIGHT_CONFIG = {
 };
 
 /**
- * Feature: Rasen (3 Zustände, Stadium-Wide)
+ * Feature: Rasen (NUR British Premium - Zustand verschlechtert sich)
  */
 export const PITCH_CONFIG = {
     type: 'stadium-wide',
 
-    states: [
-        {
-            id: 0,
-            name: 'Premium Rasen',
-            description: 'British Premium (perfekte Qualität)',
-            texture: 'british',
-            degradationMultiplier: 0.5,  // Halbe Abnutzung
-            maintenanceCost: 50000,      // Pro Monat
-            renovationTime: 2,           // 2 SW = 14 Tage
-            renovationCost: 150000,
-            color: '#2d5016'  // Sattes Grün
-        },
-        {
-            id: 1,
-            name: 'Standard Rasen',
-            description: 'Normal (gute Qualität)',
-            texture: 'normal',
-            degradationMultiplier: 1.0,  // Normale Abnutzung
-            maintenanceCost: 30000,
-            renovationTime: 1,           // 1 SW = 7 Tage
-            renovationCost: 80000,
-            color: '#3d6b1f'  // Mittelgrün
-        },
-        {
-            id: 2,
-            name: 'Kuhkoppel',
-            description: 'Acker (schlechte Qualität)',
-            texture: 'dirt',
-            degradationMultiplier: 2.0,  // Doppelte Abnutzung
-            maintenanceCost: 10000,
-            renovationTime: 1,           // 1 SW = 7 Tage
-            renovationCost: 50000,
-            color: '#6b5628'  // Braun/Erde
-        }
-    ],
+    // Es gibt nur EINEN Rasen-Typ: British Premium
+    name: 'British Premium',
+    description: 'Perfekte Qualität - verschlechtert sich über Zeit',
+    texture: 'british',
+    color: '#2d5016',  // Sattes Grün
 
     // Rasen-Zustand (0-100%)
     MAX_CONDITION: 100,
     MIN_CONDITION: 0,
 
     // Abnutzung pro Spiel (Basiswert)
-    BASE_WEAR_PER_MATCH: 10
+    BASE_WEAR_PER_MATCH: 10,
+
+    // Renovation bringt zurück auf 100%
+    renovation: {
+        cost: 150000,
+        buildWeeks: 2,  // 2 SW = 14 Tage
+        maintenanceCost: 50000  // Pro Monat
+    }
 };
 
 /**
@@ -187,13 +165,80 @@ export const ADVERTISING_CONFIG = {
 };
 
 /**
+ * Feature: Tribünen-Ausbau (flexibel in Schritten)
+ */
+export const EXPANSION_CONFIG = {
+    // Minimaler Ausbau-Schritt
+    minStep: 500,
+
+    // Maximaler Ausbau-Schritt
+    maxStep: 5000,
+
+    // Kosten pro Platz (Basis)
+    costPerSeat: 250,
+
+    // Bauzeit-Berechnung: 1 SW pro 1.000 Plätze (gerundet)
+    buildWeeksPerThousand: 1,
+    minBuildWeeks: 1,  // Minimum 1 SW auch bei kleinen Ausbauten
+
+    // Block-spezifische Multiplikatoren
+    blockMultipliers: {
+        NORD: 1.0,   // Standard
+        OST: 1.2,    // +20% (Haupttribüne)
+        SUED: 1.5,   // +50% (Südkurve mit Logen)
+        WEST: 1.2    // +20% (Haupttribüne)
+    },
+
+    // Bauzeit-Einschränkung
+    buildSeasonRestriction: {
+        allowedDays: [28, 29, 30, 31],  // Nur Ende des Monats
+        warningMessage: 'Tribünen-Ausbau ist nur während der Saisonpause (Tag 28-31) möglich!'
+    },
+
+    // Ausbau-Stufen für UI-Orientierung (optional)
+    stages: [
+        { id: 0, name: 'Klein', capacity: 5000, buildWeeks: 0 },
+        { id: 1, name: 'Mittel', capacity: 10000, buildWeeks: 7 },
+        { id: 2, name: 'Groß', capacity: 20000, buildWeeks: 14 },
+        { id: 3, name: 'Sehr Groß', capacity: 30000, buildWeeks: 21 },
+        { id: 4, name: 'Maximum', capacity: 37500, buildWeeks: 28 }
+    ]
+};
+
+/**
  * Sponsor-Kategorien und verfügbare Firmen
  */
 export const SPONSOR_CONFIG = {
+    // Vertragslaufzeit in Saisons
+    contractDuration: 1,
+
+    // Liga-Position Multiplikatoren für Vergütung
+    leaguePositionMultipliers: {
+        1: 1.30,   // Platz 1-3: +30%
+        2: 1.30,
+        3: 1.30,
+        4: 1.15,   // Platz 4-8: +15%
+        5: 1.15,
+        6: 1.15,
+        7: 1.15,
+        8: 1.15,
+        9: 1.0,    // Platz 9-14: Standard
+        10: 1.0,
+        11: 1.0,
+        12: 1.0,
+        13: 1.0,
+        14: 1.0,
+        15: 0.85,  // Platz 15-18: -15%
+        16: 0.85,
+        17: 0.85,
+        18: 0.85
+    },
+
     // Kategorien mit verschiedenen Zahlungsbereitschaft
     tiers: {
         international: {
             name: 'International',
+            icon: '🌍',
             multiplier: 3.0,
             color: '#FFD700',
             minCapacity: 80000,  // Erst ab 80k Stadion-Kapazität
@@ -201,6 +246,7 @@ export const SPONSOR_CONFIG = {
         },
         national: {
             name: 'National',
+            icon: '🏴',
             multiplier: 2.0,
             color: '#00c78b',
             minCapacity: 40000,
@@ -208,6 +254,7 @@ export const SPONSOR_CONFIG = {
         },
         regional: {
             name: 'Regional',
+            icon: '🏙️',
             multiplier: 1.0,
             color: '#4a90e2',
             minCapacity: 20000,
@@ -215,6 +262,7 @@ export const SPONSOR_CONFIG = {
         },
         local: {
             name: 'Lokal',
+            icon: '🏘️',
             multiplier: 0.5,
             color: '#888888',
             minCapacity: 0,
@@ -233,7 +281,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Technologie',
             slogan: 'Innovation für alle',
             website: 'www.techgiant-global.com',
-            color: '#0066cc'
+            color: '#0066cc',
+            basePayment: {
+                initial: 500000,
+                perGoal: 15000,
+                perWin: 25000,
+                leagueTitle: 500000,
+                cupTitle: 250000
+            }
         },
         {
             id: 2,
@@ -243,7 +298,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Automobil',
             slogan: 'Mobilität neu gedacht',
             website: 'www.automax-world.com',
-            color: '#cc0000'
+            color: '#cc0000',
+            basePayment: {
+                initial: 450000,
+                perGoal: 12000,
+                perWin: 30000,
+                leagueTitle: 600000,
+                cupTitle: 300000
+            }
         },
         {
             id: 3,
@@ -253,7 +315,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Sport',
             slogan: 'Just do more',
             website: 'www.sportwear-pro.com',
-            color: '#00cc66'
+            color: '#00cc66',
+            basePayment: {
+                initial: 400000,
+                perGoal: 20000,
+                perWin: 20000,
+                leagueTitle: 550000,
+                cupTitle: 275000
+            }
         },
 
         // National (ab 40k Kapazität)
@@ -265,7 +334,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Elektronik',
             slogan: 'Technik zum besten Preis',
             website: 'www.elektro-markt.de',
-            color: '#ff6600'
+            color: '#ff6600',
+            basePayment: {
+                initial: 300000,
+                perGoal: 10000,
+                perWin: 18000,
+                leagueTitle: 400000,
+                cupTitle: 200000
+            }
         },
         {
             id: 5,
@@ -275,7 +351,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Telekommunikation',
             slogan: 'Verbunden mit der Zukunft',
             website: 'www.n-telekom.de',
-            color: '#e20074'
+            color: '#e20074',
+            basePayment: {
+                initial: 350000,
+                perGoal: 8000,
+                perWin: 20000,
+                leagueTitle: 450000,
+                cupTitle: 225000
+            }
         },
         {
             id: 6,
@@ -285,7 +368,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Finanzen',
             slogan: 'Wir machen den Weg frei',
             website: 'www.volksbank.de',
-            color: '#003d7a'
+            color: '#003d7a',
+            basePayment: {
+                initial: 280000,
+                perGoal: 9000,
+                perWin: 17000,
+                leagueTitle: 380000,
+                cupTitle: 190000
+            }
         },
 
         // Regional (ab 20k Kapazität)
@@ -297,7 +387,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Energie',
             slogan: 'Energie für unsere Region',
             website: 'www.stadtwerke-regional.de',
-            color: '#009933'
+            color: '#009933',
+            basePayment: {
+                initial: 150000,
+                perGoal: 5000,
+                perWin: 10000,
+                leagueTitle: 200000,
+                cupTitle: 100000
+            }
         },
         {
             id: 8,
@@ -307,7 +404,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Finanzen',
             slogan: 'Wenn\'s um Geld geht',
             website: 'www.sparkasse-zentral.de',
-            color: '#ff0000'
+            color: '#ff0000',
+            basePayment: {
+                initial: 180000,
+                perGoal: 6000,
+                perWin: 12000,
+                leagueTitle: 250000,
+                cupTitle: 125000
+            }
         },
         {
             id: 9,
@@ -317,7 +421,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Medien',
             slogan: 'Dein Soundtrack',
             website: 'www.radio-regional.de',
-            color: '#ffcc00'
+            color: '#ffcc00',
+            basePayment: {
+                initial: 120000,
+                perGoal: 4000,
+                perWin: 8000,
+                leagueTitle: 150000,
+                cupTitle: 75000
+            }
         },
         {
             id: 10,
@@ -327,7 +438,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Fitness',
             slogan: 'Dein Weg zur Topform',
             website: 'www.fitness-premium.de',
-            color: '#cc3300'
+            color: '#cc3300',
+            basePayment: {
+                initial: 100000,
+                perGoal: 3500,
+                perWin: 7000,
+                leagueTitle: 120000,
+                cupTitle: 60000
+            }
         },
 
         // Lokal (ab 0 Kapazität)
@@ -339,7 +457,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Lebensmittel',
             slogan: 'Frisch gebacken seit 1985',
             website: 'Tel. 12345',
-            color: '#8b4513'
+            color: '#8b4513',
+            basePayment: {
+                initial: 50000,
+                perGoal: 1500,
+                perWin: 3000,
+                leagueTitle: 50000,
+                cupTitle: 25000
+            }
         },
         {
             id: 12,
@@ -349,7 +474,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Handwerk',
             slogan: 'Meisterbetrieb • Alle Marken',
             website: 'www.meyer-kfz.de',
-            color: '#333333'
+            color: '#333333',
+            basePayment: {
+                initial: 60000,
+                perGoal: 2000,
+                perWin: 4000,
+                leagueTitle: 60000,
+                cupTitle: 30000
+            }
         },
         {
             id: 13,
@@ -359,7 +491,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Dienstleistung',
             slogan: 'Ihr Friseur des Vertrauens',
             website: 'Tel. 67890',
-            color: '#ff1493'
+            color: '#ff1493',
+            basePayment: {
+                initial: 40000,
+                perGoal: 1200,
+                perWin: 2500,
+                leagueTitle: 40000,
+                cupTitle: 20000
+            }
         },
         {
             id: 14,
@@ -369,7 +508,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Lebensmittel',
             slogan: 'Qualität aus eigener Schlachtung',
             website: 'Marktplatz 5',
-            color: '#8b0000'
+            color: '#8b0000',
+            basePayment: {
+                initial: 45000,
+                perGoal: 1300,
+                perWin: 2800,
+                leagueTitle: 45000,
+                cupTitle: 22500
+            }
         },
         {
             id: 15,
@@ -379,7 +525,14 @@ export const SPONSOR_CONFIG = {
             industry: 'Gesundheit',
             slogan: 'Ihre Gesundheit ist uns wichtig',
             website: 'www.apotheke-zentrum.de',
-            color: '#dc143c'
+            color: '#dc143c',
+            basePayment: {
+                initial: 55000,
+                perGoal: 1800,
+                perWin: 3500,
+                leagueTitle: 55000,
+                cupTitle: 27500
+            }
         }
     ],
 
@@ -394,30 +547,38 @@ export const INITIAL_STADIUM_STATE = {
     capacity: {
         total: 20000,  // Start: 20.000 Plätze
         boxes: {
-            total: 0,  // Keine Logen am Anfang
-            placement: null  // Wird bei erstem Logenbau festgelegt
+            total: 1000,  // 5% = 1.000 Logen (fix in SUED)
+            placement: 'SUED'  // Fest in Südkurve
         },
-        standing: 10000,  // 50% Stehplätze zu Beginn
-        seated: 10000,    // 50% Sitzplätze zu Beginn
+        standing: 7000,  // 35% Stehplätze zu Beginn
+        seated: 12000,   // 60% Sitzplätze zu Beginn
         distribution: {
             NORD: {
-                standing: 2500,
-                seated: 2500,
+                capacity: 5000,
+                stage: 0,
+                standing: 1750,
+                seated: 3250,
                 boxes: 0
             },
             OST: {
-                standing: 2500,
-                seated: 2500,
+                capacity: 5000,
+                stage: 0,
+                standing: 1750,
+                seated: 3250,
                 boxes: 0
             },
             SUED: {
-                standing: 2500,
-                seated: 2500,
-                boxes: 0
+                capacity: 5000,
+                stage: 0,
+                standing: 1750,
+                seated: 2250,
+                boxes: 1000  // Logen fix hier
             },
             WEST: {
-                standing: 2500,
-                seated: 2500,
+                capacity: 5000,
+                stage: 0,
+                standing: 1750,
+                seated: 3250,
                 boxes: 0
             }
         }
@@ -432,8 +593,7 @@ export const INITIAL_STADIUM_STATE = {
         },
         floodlight: 0,  // 0 = Keine
         pitch: {
-            quality: 1,  // 1 = Normal
-            condition: 100  // 100% = Perfekter Zustand
+            condition: 100  // 100% = Perfekter Zustand (British Premium)
         },
         advertising: {
             NORD: false,
@@ -442,16 +602,27 @@ export const INITIAL_STADIUM_STATE = {
             WEST: false
         },
         sponsors: {
-            NORD: [],  // Array von Sponsor-IDs
-            OST: [],
-            SUED: [],
-            WEST: []
+            NORD: null,  // Sponsor-ID oder null
+            OST: null,
+            SUED: null,
+            WEST: null
         }
     },
 
     construction: {
         queue: [],
         active: 0
+    },
+
+    // Vorsaison-Daten für Sponsor-Prognosen
+    previousSeason: {
+        season: '2023/24',
+        leaguePosition: 9,
+        totalGames: 34,
+        totalGoals: 52,
+        totalWins: 15,
+        leagueTitle: false,
+        cupTitle: false
     },
 
     // Spielkalender (Mock-Daten)
@@ -475,12 +646,6 @@ export const UI_TEXTS = {
         active: '🔨 Im Bau',
         queued: '⏳ In Warteschlange',
         completed: '✅ Abgeschlossen'
-    },
-
-    pitchQuality: {
-        0: 'British Rasen',
-        1: 'Normal',
-        2: 'Kuhkoppel'
     }
 };
 
@@ -508,4 +673,40 @@ export const formatCurrency = (amount) => {
  */
 export const formatCapacity = (number) => {
     return new Intl.NumberFormat('de-DE').format(number);
+};
+
+/**
+ * Utility: Berechnet Kapazitäts-Verteilung (Steh/Sitz/Logen)
+ */
+export const calculateCapacityDistribution = (totalCapacity, hasBoxes) => {
+    const boxRatio = hasBoxes ? CAPACITY_CONFIG.DISTRIBUTION.BOXES : 0;
+    const standingRatio = CAPACITY_CONFIG.DISTRIBUTION.STANDING;
+    const seatedRatio = CAPACITY_CONFIG.DISTRIBUTION.SEATED;
+
+    const boxes = Math.round(totalCapacity * boxRatio);
+    const remaining = totalCapacity - boxes;
+
+    // Verhältnis zwischen Steh-/Sitzplätzen beibehalten
+    const totalRatio = standingRatio + seatedRatio;
+    const standing = Math.round(remaining * (standingRatio / totalRatio));
+    const seated = remaining - standing;
+
+    return { standing, seated, boxes };
+};
+
+/**
+ * Utility: Berechnet Ausbau-Kosten
+ */
+export const calculateExpansionCost = (block, additionalSeats) => {
+    const baseCost = additionalSeats * EXPANSION_CONFIG.costPerSeat;
+    const multiplier = EXPANSION_CONFIG.blockMultipliers[block];
+    return Math.round(baseCost * multiplier);
+};
+
+/**
+ * Utility: Berechnet Bauzeit für Ausbau
+ */
+export const calculateExpansionBuildWeeks = (additionalSeats) => {
+    const weeks = Math.ceil(additionalSeats / 1000) * EXPANSION_CONFIG.buildWeeksPerThousand;
+    return Math.max(weeks, EXPANSION_CONFIG.minBuildWeeks);
 };

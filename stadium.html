@@ -9,7 +9,6 @@
     <div class="calendar-info">
         <span>📅 Aktueller Tag: <strong id="currentDay">12</strong></span>
         <span>🏟️ Spielbetrieb: Tag 1-27</span>
-        <span>🔨 Tribünen-Ausbau: Tag 28-31</span>
     </div>
     <button class="btn btn-secondary btn-sm" data-action="simulateDay">
         ⏭️ Tag simulieren
@@ -29,7 +28,7 @@
     <div class="stat-card glass">
         <div class="stat-icon">🧍</div>
         <div class="stat-content">
-            <div class="stat-label">Stehplätze (35%)</div>
+            <div class="stat-label">Stehplätze</div>
             <div class="stat-value" id="standingCapacity">7.000</div>
         </div>
     </div>
@@ -37,7 +36,7 @@
     <div class="stat-card glass">
         <div class="stat-icon">💺</div>
         <div class="stat-content">
-            <div class="stat-label">Sitzplätze (60%)</div>
+            <div class="stat-label">Sitzplätze</div>
             <div class="stat-value" id="seatedCapacity">12.000</div>
         </div>
     </div>
@@ -45,7 +44,7 @@
     <div class="stat-card glass">
         <div class="stat-icon">⭐</div>
         <div class="stat-content">
-            <div class="stat-label">Logen (5%)</div>
+            <div class="stat-label">Logen (Südkurve)</div>
             <div class="stat-value" id="boxesCapacity">1.000</div>
         </div>
     </div>
@@ -54,30 +53,29 @@
 <!-- Stadion-Visualisierung (2D Top-Down) -->
 <div class="stadium-visualization glass">
     <h2 class="section-title">Stadion-Layout</h2>
+    <p class="stadium-hint">💡 Klicke auf eine Tribüne, um sie auszubauen</p>
 
     <div class="stadium-container">
         <!-- Nord Block -->
-        <div class="stadium-block block-nord" data-block="NORD">
+        <div class="stadium-block block-nord clickable" data-block="NORD" data-action="openBlockExpansion">
             <div class="block-label">NORDKURVE</div>
             <div class="block-capacity" id="blockNORDCapacity">5.000</div>
             <div class="block-icons">
                 <span class="roof-icon" title="Dach">🏗️</span>
-                <span class="boxes-icon" title="Logen">⭐</span>
             </div>
         </div>
 
         <!-- West Block -->
-        <div class="stadium-block block-west" data-block="WEST">
+        <div class="stadium-block block-west clickable" data-block="WEST" data-action="openBlockExpansion">
             <div class="block-label">WEST</div>
             <div class="block-capacity" id="blockWESTCapacity">5.000</div>
             <div class="block-icons">
                 <span class="roof-icon" title="Dach">🏗️</span>
-                <span class="boxes-icon" title="Logen">⭐</span>
             </div>
         </div>
 
         <!-- Spielfeld -->
-        <div class="stadium-pitch pitch-normal">
+        <div class="stadium-pitch pitch-british clickable" data-action="openPitchRenovation">
             <div class="pitch-lines">
                 <!-- Mittelkreis -->
                 <div class="pitch-circle"></div>
@@ -97,23 +95,22 @@
             <!-- Rasen-Anzeige -->
             <div class="pitch-indicator">
                 <span>🌱</span>
-                <span id="pitchQuality">Normal</span>
+                <span id="pitchType">British</span>
                 <span id="pitchCondition">100%</span>
             </div>
         </div>
 
         <!-- Ost Block -->
-        <div class="stadium-block block-ost" data-block="OST">
+        <div class="stadium-block block-ost clickable" data-block="OST" data-action="openBlockExpansion">
             <div class="block-label">OST</div>
             <div class="block-capacity" id="blockOSTCapacity">5.000</div>
             <div class="block-icons">
                 <span class="roof-icon" title="Dach">🏗️</span>
-                <span class="boxes-icon" title="Logen">⭐</span>
             </div>
         </div>
 
         <!-- Süd Block -->
-        <div class="stadium-block block-sued" data-block="SUED">
+        <div class="stadium-block block-sued clickable" data-block="SUED" data-action="openBlockExpansion">
             <div class="block-label">SÜDKURVE</div>
             <div class="block-capacity" id="blockSUEDCapacity">5.000</div>
             <div class="block-icons">
@@ -131,9 +128,6 @@
     </button>
     <button class="feature-tab" data-tab="infrastructure">
         💡 Infrastruktur
-    </button>
-    <button class="feature-tab" data-tab="expansion">
-        📈 Ausbau
     </button>
     <button class="feature-tab" data-tab="sponsors">
         📺 Sponsoren
@@ -259,34 +253,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Logen-Platzierung -->
-    <div class="feature-section glass">
-        <h3>⭐ Logen-Platzierung</h3>
-        <p class="feature-description">
-            5% der Gesamtkapazität können als Logen in OST oder WEST platziert werden (max. 7.500 bei Vollausbau).
-        </p>
-
-        <div class="feature-grid">
-            <div class="feature-item">
-                <div class="feature-header">
-                    <span>Osttribüne</span>
-                </div>
-                <button class="btn btn-secondary btn-sm" data-action="changeBoxPlacement" data-block="OST">
-                    Hierher verlegen
-                </button>
-            </div>
-
-            <div class="feature-item">
-                <div class="feature-header">
-                    <span>Westtribüne</span>
-                </div>
-                <button class="btn btn-secondary btn-sm" data-action="changeBoxPlacement" data-block="WEST">
-                    Hierher verlegen
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Tab Content: Infrastruktur -->
@@ -331,64 +297,6 @@
             🔨 Nächste Stufe bauen
         </button>
     </div>
-
-    <!-- Rasen -->
-    <div class="feature-section glass">
-        <h3>🌱 Rasen</h3>
-        <p class="feature-description">
-            Aktuell: <strong id="pitchQuality2">Normal</strong>, Zustand: <strong id="pitchCondition2">100%</strong>
-        </p>
-
-        <div class="pitch-options">
-            <div class="pitch-option glass">
-                <h4>Premium Rasen</h4>
-                <div class="pitch-details">
-                    <span>🏴󠁧󠁢󠁥󠁮󠁧󠁿 British Premium</span>
-                    <span>Abnutzung: -50%</span>
-                    <span>Wartung: 50.000 €/Monat</span>
-                    <span>Bauzeit: 2 SW</span>
-                </div>
-                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="0">
-                    Umbauen (150.000 €)
-                </button>
-            </div>
-
-            <div class="pitch-option glass">
-                <h4>Standard Rasen</h4>
-                <div class="pitch-details">
-                    <span>🌿 Normal (gute Qualität)</span>
-                    <span>Abnutzung: Standard</span>
-                    <span>Wartung: 30.000 €/Monat</span>
-                    <span>Bauzeit: 1 SW</span>
-                </div>
-                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="1">
-                    Umbauen (80.000 €)
-                </button>
-            </div>
-
-            <div class="pitch-option glass">
-                <h4>Kuhkoppel</h4>
-                <div class="pitch-details">
-                    <span>🌾 Acker (schlechte Qualität)</span>
-                    <span>Abnutzung: +100%</span>
-                    <span>Wartung: 10.000 €/Monat</span>
-                    <span>Bauzeit: 1 SW</span>
-                </div>
-                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="2">
-                    Umbauen (50.000 €)
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Tab Content: Tribünen-Ausbau -->
-<div class="tab-content" id="tabExpansion">
-    <h2 class="section-title">📈 Tribünen-Ausbau</h2>
-
-    <div id="expansionOverviewContainer">
-        <!-- Wird dynamisch von stadium.js befüllt -->
-    </div>
 </div>
 
 <!-- Tab Content: Sponsoren -->
@@ -405,7 +313,6 @@
     <div class="construction-info glass">
         <p>
             ⚠️ Bauarbeiten laufen nur während des Spielbetriebs (Tag 1-27).<br>
-            🔨 Tribünen-Ausbau ist nur während der Saisonpause (Tag 28-31) möglich.<br>
             Maximal 2 parallele Bauprojekte möglich.
         </p>
     </div>

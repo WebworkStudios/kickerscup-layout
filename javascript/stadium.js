@@ -1,6 +1,7 @@
 // =====================================================
-// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (ESM)
-// Stadion-Verwaltung mit Bauzeiten, Features, Sponsoren + TRIBÜNEN-AUSBAU
+// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (ESM) - OPTIMIZED
+// Stadion-Verwaltung mit Block-Click-Modals + Pitch-Renovation
+// ✅ Logen fix in SUED, Expansion via Slider, vereinfachtes Rasen-System
 // =====================================================
 
 import {
@@ -17,9 +18,9 @@ import {
     formatCurrency,
     formatCapacity,
     calculateCapacityDistribution,
-    getNextExpansionStage,
-    calculateExpansionCost
-} from './stadium-config-extended.js';
+    calculateExpansionCost,
+    calculateExpansionBuildWeeks
+} from './stadium-config.js';
 
 // Sponsor-Imports
 import {
@@ -52,6 +53,7 @@ import {
 let stadiumState = null;
 const eventListeners = [];
 let buildTimerInterval = null;
+let currentModal = null;
 
 // Mock current season stats für Sponsor-Übersicht
 const currentSeasonStats = {
@@ -127,14 +129,6 @@ const isGameSeasonActive = () => {
 };
 
 /**
- * Prüft ob Tribünen-Ausbau erlaubt ist (nur Tag 28-31)
- */
-const isExpansionAllowed = () => {
-    const day = stadiumState.currentDay;
-    return EXPANSION_CONFIG.buildSeasonRestriction.allowedDays.includes(day);
-};
-
-/**
  * Aktualisiert Bau-Queue (wird einmal pro Tag aufgerufen)
  */
 const tickBuildTimer = () => {
@@ -201,7 +195,6 @@ const completeConstruction = (project) => {
             break;
 
         case 'pitch_renovation':
-            stadiumState.features.pitch.quality = project.targetQuality;
             stadiumState.features.pitch.condition = 100;
             break;
 
@@ -222,16 +215,15 @@ const completeConstruction = (project) => {
  */
 const applyExpansion = (project) => {
     const block = project.block;
-    const newStage = project.targetStage;
-    const stageConfig = EXPANSION_CONFIG.stages[newStage];
+    const additionalSeats = project.additionalSeats;
 
-    // Update Stage
-    stadiumState.capacity.distribution[block].stage = newStage;
-    stadiumState.capacity.distribution[block].capacity = stageConfig.capacity;
+    // Update Kapazität
+    stadiumState.capacity.distribution[block].capacity += additionalSeats;
 
     // Berechne neue Verteilung für diesen Block
-    const hasBoxes = stadiumState.capacity.boxes.placement === block;
-    const dist = calculateCapacityDistribution(stageConfig.capacity, hasBoxes);
+    const hasBoxes = block === CAPACITY_CONFIG.FIXED_BOX_BLOCK;
+    const newCapacity = stadiumState.capacity.distribution[block].capacity;
+    const dist = calculateCapacityDistribution(newCapacity, hasBoxes);
 
     stadiumState.capacity.distribution[block].standing = dist.standing;
     stadiumState.capacity.distribution[block].seated = dist.seated;
@@ -240,7 +232,7 @@ const applyExpansion = (project) => {
     // Berechne Gesamt-Kapazität neu
     recalculateTotalCapacity();
 
-    console.log(`✅ Tribünen-Ausbau ${UI_TEXTS.blocks[block]} auf ${stageConfig.name} abgeschlossen`);
+    console.log(`✅ Tribünen-Ausbau ${UI_TEXTS.blocks[block]} abgeschlossen (+${formatCapacity(additionalSeats)} Plätze)`);
 };
 
 /**
@@ -279,7 +271,7 @@ const addConstructionProject = (projectData) => {
         name: projectData.name,
         block: projectData.block || null,
         targetStage: projectData.targetStage || null,
-        targetQuality: projectData.targetQuality || null,
+        additionalSeats: projectData.additionalSeats || null,
         startDay: canStartImmediately ? stadiumState.currentDay : null,
         duration: projectData.duration,
         remainingDays: projectData.duration,
@@ -300,59 +292,369 @@ const addConstructionProject = (projectData) => {
 };
 
 // =====================================================
-// TRIBÜNEN-AUSBAU
+// MODAL SYSTEM: BLOCK-EXPANSION
 // =====================================================
 
 /**
- * Baut eine Tribüne aus
+ * Öffnet Block-Expansion Modal mit Slider
  */
-const expandBlock = (block) => {
-    // Prüfe Saisonpause
-    if (!isExpansionAllowed()) {
-        alert(`❌ ${EXPANSION_CONFIG.buildSeasonRestriction.warningMessage}`);
-        return;
-    }
+const openBlockExpansionModal = (block) => {
+    const dist = stadiumState.capacity.distribution[block];
+    const currentCapacity = dist.capacity;
+    const maxCapacity = CAPACITY_CONFIG.MAX_CAPACITY / 4; // 37.500 pro Block
+    const minStep = EXPANSION_CONFIG.minStep;
+    const maxStep = Math.min(
+        EXPANSION_CONFIG.maxStep,
+        maxCapacity - currentCapacity
+    );
 
-    const currentStage = stadiumState.capacity.distribution[block].stage;
-    const nextStage = getNextExpansionStage(currentStage);
-
-    if (!nextStage) {
+    if (currentCapacity >= maxCapacity) {
         alert(`❌ ${UI_TEXTS.blocks[block]} ist bereits maximal ausgebaut!`);
         return;
     }
 
-    const cost = calculateExpansionCost(block, nextStage);
-    const duration = calculateBuildDays(nextStage.buildWeeks);
-    const multiplier = EXPANSION_CONFIG.blockMultipliers[block];
-    const multiplierText = multiplier !== 1.0 ? ` (×${multiplier.toFixed(2)})` : '';
+    // Erstelle Modal
+    const modal = document.createElement('div');
+    modal.className = 'stadium-modal';
+    modal.id = 'blockExpansionModal';
 
-    const currentCap = stadiumState.capacity.distribution[block].capacity;
-    const newCap = nextStage.capacity;
-    const increase = newCap - currentCap;
+    // Initial-Wert für Slider
+    const initialValue = Math.min(1000, maxStep);
 
-    if (!confirm(`Tribünen-Ausbau ${UI_TEXTS.blocks[block]}?\n\n` +
-        `Ausbau: ${nextStage.name}\n` +
-        `Kapazität: ${formatCapacity(currentCap)} → ${formatCapacity(newCap)} (+${formatCapacity(increase)})\n` +
-        `Kosten: ${formatCurrency(cost)}${multiplierText}\n` +
-        `Bauzeit: ${nextStage.buildWeeks} SW (${duration} Tage)\n\n` +
-        `⚠️ Bau startet nach Saisonpause!`)) {
+    modal.innerHTML = `
+        <div class="stadium-modal-content">
+            <div class="stadium-modal-header">
+                <h2>🏗️ ${UI_TEXTS.blocks[block]} ausbauen</h2>
+                <button class="stadium-modal-close" data-action="closeStadiumModal">&times;</button>
+            </div>
+            
+            <div class="stadium-modal-body">
+                <div class="block-info-section">
+                    <div class="block-info-row">
+                        <span class="block-info-label">Aktuelle Kapazität:</span>
+                        <span class="block-info-value">${formatCapacity(currentCapacity)}</span>
+                    </div>
+                    <div class="block-info-row">
+                        <span class="block-info-label">Stehplätze:</span>
+                        <span class="block-info-value">${formatCapacity(dist.standing)}</span>
+                    </div>
+                    <div class="block-info-row">
+                        <span class="block-info-label">Sitzplätze:</span>
+                        <span class="block-info-value">${formatCapacity(dist.seated)}</span>
+                    </div>
+                    ${dist.boxes > 0 ? `
+                        <div class="block-info-row">
+                            <span class="block-info-label">Logen:</span>
+                            <span class="block-info-value">${formatCapacity(dist.boxes)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="expansion-slider-section">
+                    <div class="slider-label">
+                        <span>Ausbau-Umfang:</span>
+                        <span class="slider-current-value" id="sliderValue">+${formatCapacity(initialValue)}</span>
+                    </div>
+                    
+                    <input type="range" 
+                           class="capacity-slider" 
+                           id="capacitySlider"
+                           min="${minStep}" 
+                           max="${maxStep}" 
+                           step="${minStep}"
+                           value="${initialValue}"
+                           style="--slider-progress: ${(initialValue / maxStep) * 100}%">
+                    
+                    <div class="slider-bounds">
+                        <span>Min: ${formatCapacity(minStep)}</span>
+                        <span>Max: ${formatCapacity(maxStep)}</span>
+                    </div>
+                </div>
+                
+                <div class="expansion-preview" id="expansionPreview">
+                    <!-- Wird dynamisch aktualisiert -->
+                </div>
+            </div>
+            
+            <div class="stadium-modal-footer">
+                <button class="btn btn-secondary" data-action="closeStadiumModal">Abbrechen</button>
+                <button class="btn btn-primary" id="confirmExpansionBtn">
+                    🔨 Ausbau starten
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    currentModal = modal;
+
+    // Slider Event
+    const slider = modal.querySelector('#capacitySlider');
+    const updatePreview = () => {
+        const additionalSeats = parseInt(slider.value);
+        updateExpansionPreview(block, currentCapacity, additionalSeats);
+
+        // Update Slider-Progress CSS Variable
+        const progress = ((additionalSeats - minStep) / (maxStep - minStep)) * 100;
+        slider.style.setProperty('--slider-progress', `${progress}%`);
+    };
+
+    slider.addEventListener('input', updatePreview);
+
+    // Confirm Button
+    const confirmBtn = modal.querySelector('#confirmExpansionBtn');
+    confirmBtn.addEventListener('click', () => {
+        const additionalSeats = parseInt(slider.value);
+        confirmBlockExpansion(block, additionalSeats);
+    });
+
+    // Initial Preview
+    updatePreview();
+
+    // Fade-in
+    setTimeout(() => modal.classList.add('active'), 10);
+};
+
+/**
+ * Aktualisiert Expansion-Preview
+ */
+const updateExpansionPreview = (block, currentCapacity, additionalSeats) => {
+    const previewEl = document.getElementById('expansionPreview');
+    const sliderValueEl = document.getElementById('sliderValue');
+
+    if (!previewEl || !sliderValueEl) return;
+
+    const newCapacity = currentCapacity + additionalSeats;
+    const cost = calculateExpansionCost(block, additionalSeats);
+    const buildWeeks = calculateExpansionBuildWeeks(additionalSeats);
+    const buildDays = calculateBuildDays(buildWeeks);
+
+    // Neue Verteilung berechnen
+    const hasBoxes = block === CAPACITY_CONFIG.FIXED_BOX_BLOCK;
+    const newDist = calculateCapacityDistribution(newCapacity, hasBoxes);
+
+    sliderValueEl.textContent = `+${formatCapacity(additionalSeats)}`;
+
+    previewEl.innerHTML = `
+        <h3>📊 Vorschau</h3>
+        
+        <div class="preview-row">
+            <span class="preview-label">Neue Kapazität:</span>
+            <span class="preview-value highlight">
+                ${formatCapacity(currentCapacity)}
+                <span class="preview-arrow">→</span>
+                ${formatCapacity(newCapacity)}
+            </span>
+        </div>
+        
+        <div class="preview-row">
+            <span class="preview-label">Stehplätze:</span>
+            <span class="preview-value">${formatCapacity(newDist.standing)}</span>
+        </div>
+        
+        <div class="preview-row">
+            <span class="preview-label">Sitzplätze:</span>
+            <span class="preview-value">${formatCapacity(newDist.seated)}</span>
+        </div>
+        
+        ${newDist.boxes > 0 ? `
+            <div class="preview-row">
+                <span class="preview-label">Logen:</span>
+                <span class="preview-value">${formatCapacity(newDist.boxes)}</span>
+            </div>
+        ` : ''}
+        
+        <div class="preview-row">
+            <span class="preview-label">Kosten:</span>
+            <span class="preview-value highlight">${formatCurrency(cost)}</span>
+        </div>
+        
+        <div class="preview-row">
+            <span class="preview-label">Bauzeit:</span>
+            <span class="preview-value">${buildWeeks} SW (${buildDays} Tage)</span>
+        </div>
+    `;
+};
+
+/**
+ * Bestätigt Block-Expansion
+ */
+const confirmBlockExpansion = (block, additionalSeats) => {
+    const cost = calculateExpansionCost(block, additionalSeats);
+    const buildWeeks = calculateExpansionBuildWeeks(additionalSeats);
+    const buildDays = calculateBuildDays(buildWeeks);
+
+    if (!confirm(
+        `Tribünen-Ausbau ${UI_TEXTS.blocks[block]} starten?\n\n` +
+        `Ausbau: +${formatCapacity(additionalSeats)} Plätze\n` +
+        `Kosten: ${formatCurrency(cost)}\n` +
+        `Bauzeit: ${buildWeeks} SW (${buildDays} Tage)`
+    )) {
         return;
     }
 
     addConstructionProject({
         type: 'expansion',
-        name: `Tribünen-Ausbau ${UI_TEXTS.blocks[block]} - ${nextStage.name}`,
+        name: `Tribünen-Ausbau ${UI_TEXTS.blocks[block]} (+${formatCapacity(additionalSeats)})`,
         block: block,
-        targetStage: nextStage.id,
-        duration: duration,
+        additionalSeats: additionalSeats,
+        duration: buildDays,
         cost: cost
     });
 
-    alert(`🔨 Tribünen-Ausbau ${UI_TEXTS.blocks[block]} gestartet!\n\nBauzeit: ${duration} Tage`);
+    closeStadiumModal();
+    alert(`🔨 Tribünen-Ausbau ${UI_TEXTS.blocks[block]} gestartet!\n\nBauzeit: ${buildDays} Tage`);
 };
 
 // =====================================================
-// FEATURE-MANAGEMENT
+// MODAL SYSTEM: PITCH-RENOVATION
+// =====================================================
+
+/**
+ * Öffnet Pitch-Renovation Modal
+ */
+const openPitchRenovationModal = () => {
+    const condition = stadiumState.features.pitch.condition;
+    const cost = PITCH_CONFIG.renovation.cost;
+    const buildWeeks = PITCH_CONFIG.renovation.buildWeeks;
+    const buildDays = calculateBuildDays(buildWeeks);
+
+    // Condition-Klasse für Farbe
+    let conditionClass = 'excellent';
+    if (condition < 70) conditionClass = 'good';
+    if (condition < 40) conditionClass = 'poor';
+
+    const modal = document.createElement('div');
+    modal.className = 'stadium-modal';
+    modal.id = 'pitchRenovationModal';
+
+    modal.innerHTML = `
+        <div class="stadium-modal-content">
+            <div class="stadium-modal-header">
+                <h2>🌱 Rasen-Renovation</h2>
+                <button class="stadium-modal-close" data-action="closeStadiumModal">&times;</button>
+            </div>
+            
+            <div class="stadium-modal-body">
+                <div class="pitch-status-section">
+                    <div class="pitch-type">${PITCH_CONFIG.name}</div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                        ${PITCH_CONFIG.description}
+                    </p>
+                    
+                    <div class="pitch-condition-bar">
+                        <div class="pitch-condition-fill ${conditionClass}" style="width: ${condition}%"></div>
+                    </div>
+                    
+                    <div class="pitch-condition-text">
+                        Aktueller Zustand: <strong>${condition}%</strong>
+                    </div>
+                    
+                    <div class="pitch-degradation-info">
+                        ⚠️ Rasen verschlechtert sich um ~${PITCH_CONFIG.BASE_WEAR_PER_MATCH}% pro Spiel<br>
+                        💰 Wartung: ${formatCurrency(PITCH_CONFIG.renovation.maintenanceCost)} pro Monat
+                    </div>
+                </div>
+                
+                ${condition < 100 ? `
+                    <div class="renovation-info">
+                        <h4>🔨 Renovation durchführen:</h4>
+                        <ul>
+                            <li>Zustand wird auf 100% wiederhergestellt</li>
+                            <li>Kosten: ${formatCurrency(cost)}</li>
+                            <li>Bauzeit: ${buildWeeks} SW (${buildDays} Tage)</li>
+                            <li>Während der Bauzeit: Kein Heimspiel möglich</li>
+                        </ul>
+                    </div>
+                ` : `
+                    <div class="renovation-info">
+                        <h4>✅ Rasen in perfektem Zustand!</h4>
+                        <ul>
+                            <li>Keine Renovation notwendig</li>
+                            <li>Regelmäßige Wartung gewährleistet beste Qualität</li>
+                        </ul>
+                    </div>
+                `}
+                
+                ${condition < 40 ? `
+                    <div class="modal-warning">
+                        <span class="modal-warning-icon">⚠️</span>
+                        <div class="modal-warning-text">
+                            <strong>Kritischer Zustand!</strong><br>
+                            Schlechter Rasen erhöht das Verletzungsrisiko und senkt die Team-Performance.
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="stadium-modal-footer">
+                <button class="btn btn-secondary" data-action="closeStadiumModal">Schließen</button>
+                ${condition < 100 ? `
+                    <button class="btn btn-primary" id="confirmRenovationBtn">
+                        🔨 Renovation starten
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    currentModal = modal;
+
+    // Confirm Button
+    const confirmBtn = modal.querySelector('#confirmRenovationBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => confirmPitchRenovation());
+    }
+
+    // Fade-in
+    setTimeout(() => modal.classList.add('active'), 10);
+};
+
+/**
+ * Bestätigt Rasen-Renovation
+ */
+const confirmPitchRenovation = () => {
+    const cost = PITCH_CONFIG.renovation.cost;
+    const buildWeeks = PITCH_CONFIG.renovation.buildWeeks;
+    const buildDays = calculateBuildDays(buildWeeks);
+
+    if (!confirm(
+        `Rasen renovieren?\n\n` +
+        `Kosten: ${formatCurrency(cost)}\n` +
+        `Bauzeit: ${buildWeeks} SW (${buildDays} Tage)\n` +
+        `Zustand: ${stadiumState.features.pitch.condition}% → 100%\n\n` +
+        `⚠️ Während der Bauzeit: Kein Heimspiel möglich!`
+    )) {
+        return;
+    }
+
+    addConstructionProject({
+        type: 'pitch_renovation',
+        name: `Rasen-Renovation (British Premium)`,
+        duration: buildDays,
+        cost: cost
+    });
+
+    closeStadiumModal();
+    alert(`🔨 Rasen-Renovation gestartet!\n\nBauzeit: ${buildDays} Tage`);
+};
+
+/**
+ * Schließt Stadium-Modal
+ */
+const closeStadiumModal = () => {
+    if (currentModal) {
+        currentModal.classList.remove('active');
+        setTimeout(() => {
+            currentModal.remove();
+            currentModal = null;
+        }, 300);
+    }
+};
+
+// =====================================================
+// FEATURE-MANAGEMENT (vereinfacht)
 // =====================================================
 
 /**
@@ -414,36 +716,6 @@ const upgradeFloodlight = () => {
 };
 
 /**
- * Renoviert Rasen
- */
-const renovatePitch = (targetQuality) => {
-    const currentQuality = stadiumState.features.pitch.quality;
-
-    if (currentQuality === targetQuality) {
-        alert('❌ Rasen hat bereits diese Qualität!');
-        return;
-    }
-
-    const qualityConfig = PITCH_CONFIG.states[targetQuality];
-    const cost = qualityConfig.renovationCost;
-    const duration = calculateBuildDays(qualityConfig.renovationTime);
-
-    if (!confirm(`Rasen auf "${qualityConfig.name}" umbauen?\n\nKosten: ${formatCurrency(cost)}\nBauzeit: ${qualityConfig.renovationTime} SW (${duration} Tage)\nWartung: ${formatCurrency(qualityConfig.maintenanceCost)}/Monat`)) {
-        return;
-    }
-
-    addConstructionProject({
-        type: 'pitch_renovation',
-        name: `Rasen: ${qualityConfig.name}`,
-        targetQuality: targetQuality,
-        duration: duration,
-        cost: cost
-    });
-
-    alert(`🔨 Rasen-Umbau gestartet!`);
-};
-
-/**
  * Installiert Werbung auf einem Block
  */
 const installAdvertising = (block) => {
@@ -468,82 +740,6 @@ const installAdvertising = (block) => {
     });
 
     alert(`🔨 Werbeinstallation für ${UI_TEXTS.blocks[block]} gestartet!`);
-};
-
-/**
- * Ändert Logen-Platzierung (nur OST/WEST)
- */
-const changeBoxPlacement = (targetBlock) => {
-    if (!CAPACITY_CONFIG.ALLOWED_BOX_BLOCKS.includes(targetBlock)) {
-        alert('❌ Logen können nur in OST oder WEST platziert werden!');
-        return;
-    }
-
-    const currentBlock = stadiumState.capacity.boxes.placement;
-
-    if (currentBlock === targetBlock) {
-        alert(`❌ Logen sind bereits in ${UI_TEXTS.blocks[targetBlock]}!`);
-        return;
-    }
-
-    // Erste Logenbau
-    if (!currentBlock) {
-        const boxTotal = Math.round(stadiumState.capacity.total * CAPACITY_CONFIG.DISTRIBUTION.BOXES);
-
-        if (!confirm(`Logen erstmalig in ${UI_TEXTS.blocks[targetBlock]} errichten?\n\n` +
-            `7.500 Logenplätze (5% der Gesamtkapazität)\n` +
-            `Reduziert Steh-/Sitzplätze in dieser Tribüne\n\n` +
-            `Hinweis: Logen können später zwischen OST/WEST verschoben werden.`)) {
-            return;
-        }
-
-        stadiumState.capacity.boxes.placement = targetBlock;
-        stadiumState.capacity.boxes.total = boxTotal;
-
-        // Neuberechnung der Verteilung für Target-Block
-        const blockCap = stadiumState.capacity.distribution[targetBlock].capacity;
-        const dist = calculateCapacityDistribution(blockCap, true);
-
-        stadiumState.capacity.distribution[targetBlock].boxes = dist.boxes;
-        stadiumState.capacity.distribution[targetBlock].standing = dist.standing;
-        stadiumState.capacity.distribution[targetBlock].seated = dist.seated;
-
-        recalculateTotalCapacity();
-        saveStadiumState();
-        renderStadiumOverview();
-
-        alert(`✅ Logen erfolgreich in ${UI_TEXTS.blocks[targetBlock]} errichtet!`);
-        return;
-    }
-
-    // Logen verschieben
-    if (!confirm(`Logen von ${UI_TEXTS.blocks[currentBlock]} nach ${UI_TEXTS.blocks[targetBlock]} verlegen?\n\nHinweis: Diese Änderung ist sofort wirksam.`)) {
-        return;
-    }
-
-    // Alte Position: Logen entfernen
-    const oldBlockCap = stadiumState.capacity.distribution[currentBlock].capacity;
-    const oldDist = calculateCapacityDistribution(oldBlockCap, false);
-
-    stadiumState.capacity.distribution[currentBlock].boxes = 0;
-    stadiumState.capacity.distribution[currentBlock].standing = oldDist.standing;
-    stadiumState.capacity.distribution[currentBlock].seated = oldDist.seated;
-
-    // Neue Position: Logen hinzufügen
-    const newBlockCap = stadiumState.capacity.distribution[targetBlock].capacity;
-    const newDist = calculateCapacityDistribution(newBlockCap, true);
-
-    stadiumState.capacity.distribution[targetBlock].boxes = newDist.boxes;
-    stadiumState.capacity.distribution[targetBlock].standing = newDist.standing;
-    stadiumState.capacity.distribution[targetBlock].seated = newDist.seated;
-
-    stadiumState.capacity.boxes.placement = targetBlock;
-
-    recalculateTotalCapacity();
-    saveStadiumState();
-    renderStadiumOverview();
-
-    alert(`✅ Logen erfolgreich nach ${UI_TEXTS.blocks[targetBlock]} verlegt!`);
 };
 
 // =====================================================
@@ -612,9 +808,7 @@ const renderStadiumOverview = () => {
     if (totalCapacity) totalCapacity.textContent = formatCapacity(stadiumState.capacity.total);
     if (standingCapacity) standingCapacity.textContent = formatCapacity(stadiumState.capacity.standing);
     if (seatedCapacity) seatedCapacity.textContent = formatCapacity(stadiumState.capacity.seated);
-    if (boxesCapacity) boxesCapacity.textContent = stadiumState.capacity.boxes.placement
-        ? `${formatCapacity(stadiumState.capacity.boxes.total)} (${UI_TEXTS.blocks[stadiumState.capacity.boxes.placement]})`
-        : '0';
+    if (boxesCapacity) boxesCapacity.textContent = formatCapacity(stadiumState.capacity.boxes.total);
 
     // Block-Details
     CAPACITY_CONFIG.BLOCKS.forEach(block => {
@@ -622,9 +816,7 @@ const renderStadiumOverview = () => {
         const blockCapEl = document.getElementById(`block${block}Capacity`);
 
         if (blockCapEl) {
-            const totalBlock = dist.capacity;
-            const stage = EXPANSION_CONFIG.stages[dist.stage];
-            blockCapEl.textContent = `${formatCapacity(totalBlock)} (${stage.name})`;
+            blockCapEl.textContent = formatCapacity(dist.capacity);
         }
 
         // Roof-Status
@@ -649,26 +841,25 @@ const renderStadiumOverview = () => {
     if (floodlightEl2) floodlightEl2.textContent = stage.name;
 
     // Pitch
-    const pitchQualityEl = document.getElementById('pitchQuality');
-    const pitchQualityEl2 = document.getElementById('pitchQuality2');
+    const pitchTypeEl = document.getElementById('pitchType');
     const pitchConditionEl = document.getElementById('pitchCondition');
-    const pitchConditionEl2 = document.getElementById('pitchCondition2');
 
-    if (pitchQualityEl) {
-        pitchQualityEl.textContent = PITCH_CONFIG.states[stadiumState.features.pitch.quality].name;
-    }
-    if (pitchQualityEl2) {
-        pitchQualityEl2.textContent = PITCH_CONFIG.states[stadiumState.features.pitch.quality].name;
+    if (pitchTypeEl) {
+        pitchTypeEl.textContent = 'British';
     }
 
     if (pitchConditionEl) {
         const condition = stadiumState.features.pitch.condition;
         pitchConditionEl.textContent = `${condition}%`;
-        pitchConditionEl.style.color = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
-    }
-    if (pitchConditionEl2) {
-        const condition = stadiumState.features.pitch.condition;
-        pitchConditionEl2.textContent = `${condition}%`;
+
+        // Farbe basierend auf Zustand
+        if (condition > 70) {
+            pitchConditionEl.style.color = '#68d391';
+        } else if (condition > 40) {
+            pitchConditionEl.style.color = '#f6ad55';
+        } else {
+            pitchConditionEl.style.color = '#fc8181';
+        }
     }
 
     // Stadion-Visualisierung aktualisieren
@@ -689,12 +880,10 @@ const updateStadiumVisualization = () => {
             roofIcon.style.display = stadiumState.features.roofs[block] ? 'block' : 'none';
         }
 
-        // Logen-Icon
+        // Logen-Icon (nur SUED)
         const boxesIcon = blockEl.querySelector('.boxes-icon');
-        if (boxesIcon) {
-            const hasBoxes = stadiumState.capacity.boxes.placement === block &&
-                stadiumState.capacity.boxes.total > 0;
-            boxesIcon.style.display = hasBoxes ? 'block' : 'none';
+        if (boxesIcon && block === CAPACITY_CONFIG.FIXED_BOX_BLOCK) {
+            boxesIcon.style.display = 'block';
         }
 
         // Werbe-Banden-Indikator
@@ -705,17 +894,11 @@ const updateStadiumVisualization = () => {
         }
     });
 
-    // Rasen-Textur aktualisieren
+    // Rasen-Textur (immer British)
     const pitchEl = document.querySelector('.stadium-pitch');
     if (pitchEl) {
-        const quality = stadiumState.features.pitch.quality;
-        const pitchConfig = PITCH_CONFIG.states[quality];
-
-        // Entferne alte Textur-Klassen
-        pitchEl.classList.remove('pitch-british', 'pitch-normal', 'pitch-dirt');
-
-        // Füge neue Textur-Klasse hinzu
-        pitchEl.classList.add(`pitch-${pitchConfig.texture}`);
+        pitchEl.classList.remove('pitch-normal', 'pitch-dirt');
+        pitchEl.classList.add('pitch-british');
     }
 };
 
@@ -785,7 +968,6 @@ const switchFeatureTab = (tabName) => {
     const tabIdMap = {
         'blocks': 'tabBlocks',
         'infrastructure': 'tabInfrastructure',
-        'expansion': 'tabExpansion',
         'sponsors': 'tabSponsors',
         'construction': 'tabConstruction'
     };
@@ -815,85 +997,7 @@ const switchFeatureTab = (tabName) => {
                 container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
             }
         }
-
-        // Wenn Expansion-Tab, rendere Übersicht
-        if (tabName === 'expansion') {
-            renderExpansionOverview();
-        }
     }
-};
-
-/**
- * Rendert Tribünen-Ausbau-Übersicht
- */
-const renderExpansionOverview = () => {
-    const container = document.getElementById('expansionOverviewContainer');
-    if (!container) return;
-
-    const isAllowed = isExpansionAllowed();
-    const warningClass = isAllowed ? '' : 'expansion-warning';
-
-    let html = `
-        <div class="expansion-info ${warningClass}">
-            ${isAllowed ?
-        '<p>✅ Saisonpause aktiv - Tribünen-Ausbau ist möglich!</p>' :
-        `<p>⚠️ ${EXPANSION_CONFIG.buildSeasonRestriction.warningMessage}</p>`
-    }
-        </div>
-        
-        <div class="expansion-blocks-grid">
-    `;
-
-    CAPACITY_CONFIG.BLOCKS.forEach(block => {
-        const dist = stadiumState.capacity.distribution[block];
-        const currentStage = EXPANSION_CONFIG.stages[dist.stage];
-        const nextStage = getNextExpansionStage(dist.stage);
-        const multiplier = EXPANSION_CONFIG.blockMultipliers[block];
-
-        html += `
-            <div class="expansion-block-card glass">
-                <h3>${UI_TEXTS.blocks[block]}</h3>
-                
-                <div class="expansion-current">
-                    <div class="expansion-label">Aktuell:</div>
-                    <div class="expansion-stage">${currentStage.name}</div>
-                    <div class="expansion-capacity">${formatCapacity(currentStage.capacity)} Plätze</div>
-                    <div class="expansion-breakdown">
-                        • ${formatCapacity(dist.standing)} Stehplätze<br>
-                        • ${formatCapacity(dist.seated)} Sitzplätze<br>
-                        ${dist.boxes > 0 ? `• ${formatCapacity(dist.boxes)} Logen<br>` : ''}
-                    </div>
-                </div>
-                
-                ${nextStage ? `
-                    <div class="expansion-arrow">⬇️</div>
-                    
-                    <div class="expansion-next">
-                        <div class="expansion-label">Nächster Ausbau:</div>
-                        <div class="expansion-stage">${nextStage.name}</div>
-                        <div class="expansion-capacity">${formatCapacity(nextStage.capacity)} Plätze (+${formatCapacity(nextStage.capacity - currentStage.capacity)})</div>
-                        <div class="expansion-cost">${formatCurrency(calculateExpansionCost(block, nextStage))}${multiplier !== 1.0 ? ` (×${multiplier.toFixed(2)})` : ''}</div>
-                        <div class="expansion-time">${nextStage.buildWeeks} SW (${calculateBuildDays(nextStage.buildWeeks)} Tage)</div>
-                    </div>
-                    
-                    <button class="btn btn-primary" 
-                            data-action="expandBlock" 
-                            data-block="${block}"
-                            ${!isAllowed ? 'disabled' : ''}>
-                        ${isAllowed ? '🔨 Ausbau starten' : '⏸️ Nur in Saisonpause'}
-                    </button>
-                ` : `
-                    <div class="expansion-maxed">
-                        ✅ Maximal ausgebaut!
-                    </div>
-                `}
-            </div>
-        `;
-    });
-
-    html += '</div>';
-
-    container.innerHTML = html;
 };
 
 // =====================================================
@@ -933,8 +1037,16 @@ const handleDocumentClick = (e) => {
     const sponsorId = target.dataset.sponsorId ? parseInt(target.dataset.sponsorId) : null;
 
     switch (action) {
-        case 'expandBlock':
-            expandBlock(block);
+        case 'openBlockExpansion':
+            openBlockExpansionModal(block);
+            break;
+
+        case 'openPitchRenovation':
+            openPitchRenovationModal();
+            break;
+
+        case 'closeStadiumModal':
+            closeStadiumModal();
             break;
 
         case 'buildRoof':
@@ -945,16 +1057,8 @@ const handleDocumentClick = (e) => {
             upgradeFloodlight();
             break;
 
-        case 'renovatePitch':
-            renovatePitch(parseInt(value));
-            break;
-
         case 'installAdvertising':
             installAdvertising(block);
-            break;
-
-        case 'changeBoxPlacement':
-            changeBoxPlacement(block);
             break;
 
         case 'manageSponsor':
@@ -1001,9 +1105,9 @@ const handleDocumentClick = (e) => {
             break;
 
         case 'backToSelection':
-            const block4 = getCurrentBlock();
+            const block2 = getCurrentBlock();
             closeModal(false); // Don't reset state
-            setTimeout(() => openSponsorSelectionModal(block4, stadiumState), 100);
+            setTimeout(() => openSponsorSelectionModal(block2, stadiumState), 100);
             break;
 
         case 'backToDetails':
@@ -1033,19 +1137,25 @@ const simulateDay = () => {
         stadiumState.currentMonth++;
     }
 
+    // Rasen verschlechtert sich
+    if (stadiumState.currentDay % 7 === 0) { // Jede Woche ca. 1 Spiel
+        const roofCount = Object.values(stadiumState.features.roofs).filter(Boolean).length;
+        const wearReduction = roofCount * ROOF_CONFIG.pitchWearReduction;
+        const actualWear = PITCH_CONFIG.BASE_WEAR_PER_MATCH * (1 - wearReduction);
+
+        stadiumState.features.pitch.condition = Math.max(
+            0,
+            stadiumState.features.pitch.condition - actualWear
+        );
+    }
+
     tickBuildTimer();
     saveStadiumState();
 
     const dayEl = document.getElementById('currentDay');
     if (dayEl) dayEl.textContent = stadiumState.currentDay;
 
-    // Refresh Expansion Tab wenn geöffnet
-    const expansionTab = document.getElementById('tabExpansion');
-    if (expansionTab && expansionTab.classList.contains('active')) {
-        renderExpansionOverview();
-    }
-
-    console.log(`📅 Simuliert: Tag ${stadiumState.currentDay}`);
+    console.log(`📅 Simuliert: Tag ${stadiumState.currentDay}, Rasen: ${stadiumState.features.pitch.condition.toFixed(1)}%`);
 };
 
 // =====================================================
@@ -1056,7 +1166,7 @@ const simulateDay = () => {
  * Initialisiert das Modul
  */
 export function init() {
-    console.log('🎬 Initialisiere Stadium-Modul mit Sponsor-System + Tribünen-Ausbau');
+    console.log('🎬 Initialisiere Stadium-Modul (Optimized)');
 
     loadStadiumState();
     renderStadiumOverview();
@@ -1090,6 +1200,7 @@ export function cleanup() {
     }
 
     // Schließe offene Modals
+    closeStadiumModal();
     closeModal();
 
     stadiumState = null;
