@@ -1,7 +1,7 @@
 // =====================================================
-// KICKERSCUP - STADIUM CONFIGURATION (CONSOLIDATED)
+// KICKERSCUP - STADIUM CONFIGURATION (SAFARI-KOMPATIBEL)
 // Zentrale Konfiguration für Stadion-Features
-// ✅ OPTIMIERT: Konsolidiert, typsicher, mit Validierung
+// ✅ SAFARI-FIX: Robuste Number Formatter mit Fallbacks
 // =====================================================
 
 /**
@@ -154,7 +154,6 @@ export const SPONSOR_CONFIG = Object.freeze({
         local: {name: 'Lokal', icon: '🏘️', multiplier: 0.5, color: '#888888', minCapacity: 0}
     }),
 
-    // Sponsoren als Map für schnelleren ID-Zugriff
     availableSponsors: Object.freeze([
         // International
         {
@@ -403,43 +402,69 @@ export const UI_TEXTS = Object.freeze({
 });
 
 // =====================================================
-// UTILITY FUNCTIONS (Memoized wo sinnvoll)
+// UTILITY FUNCTIONS (SAFARI-KOMPATIBEL)
 // =====================================================
 
-// Intl-Formatter cachen (teuer zu erstellen)
-const currencyFormatter = new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-});
+// Intl-Formatter mit Safari-Fallback
+let currencyFormatter;
+let numberFormatter;
 
-const numberFormatter = new Intl.NumberFormat('de-DE');
+try {
+    currencyFormatter = new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+    numberFormatter = new Intl.NumberFormat('de-DE');
+} catch (error) {
+    console.warn('⚠️ Intl.NumberFormat error (Safari?), using fallback');
+}
 
 /**
- * Formatiert Geldbeträge
+ * Formatiert Geldbeträge (Safari-kompatibel)
  * @param {number} amount
  * @returns {string}
  */
 export const formatCurrency = (amount) => {
-    if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    const num = Number(amount);
+
+    if (!Number.isFinite(num)) {
         console.warn('formatCurrency: Invalid amount', amount);
-        return currencyFormatter.format(0);
+        return '0 €';
     }
-    return currencyFormatter.format(amount);
+
+    try {
+        if (currencyFormatter) return currencyFormatter.format(num);
+    } catch (error) {
+        console.warn('formatCurrency error:', error);
+    }
+
+    // Fallback: Manuelle Formatierung
+    return num.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
 };
 
 /**
- * Formatiert Kapazitätszahlen
+ * Formatiert Kapazitätszahlen (Safari-kompatibel)
  * @param {number} num
  * @returns {string}
  */
 export const formatCapacity = (num) => {
-    if (typeof num !== 'number' || !Number.isFinite(num)) {
+    const value = Number(num);
+
+    if (!Number.isFinite(value)) {
         console.warn('formatCapacity: Invalid number', num);
-        return numberFormatter.format(0);
+        return '0';
     }
-    return numberFormatter.format(num);
+
+    try {
+        if (numberFormatter) return numberFormatter.format(value);
+    } catch (error) {
+        console.warn('formatCapacity error:', error);
+    }
+
+    // Fallback: Manuelle Formatierung
+    return value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 
 /**

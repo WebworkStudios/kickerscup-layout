@@ -450,11 +450,17 @@ const openBlockExpansionModal = (block) => {
 
     // Throttled Slider Update
     const throttledUpdatePreview = throttle(() => {
-        const additionalSeats = parseInt(slider.value, 10);
+        const additionalSeats = Math.floor(Number(slider.value) || 0);
         updateExpansionPreview(block, currentCapacity, additionalSeats, maxStep);
     }, SLIDER_THROTTLE);
 
-    slider.addEventListener('input', throttledUpdatePreview, {signal: eventController.signal});
+    ['input', 'change'].forEach(eventType => {
+        slider.addEventListener(eventType, throttledUpdatePreview, {signal: eventController.signal});
+    });
+
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        slider.addEventListener('touchend', throttledUpdatePreview, {signal: eventController.signal});
+    }
 
     confirmBtn.addEventListener('click', () => {
         confirmBlockExpansion(block, parseInt(slider.value, 10));
