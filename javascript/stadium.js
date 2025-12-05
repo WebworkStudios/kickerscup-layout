@@ -26,6 +26,7 @@ import {
 
 import {
     openSponsorSelectionModal,
+    refreshSponsorSelectionModal,
     showSponsorDetailsModal,
     showConfirmationModal,
     showSuccessModal,
@@ -396,13 +397,13 @@ const manageSponsor = (block) => {
         alert(`❌ Bitte installiere zuerst die Werbebande für ${UI_TEXTS.blocks[block]}!`);
         return;
     }
-    
+
     // Prüfe ob bereits Sponsor vorhanden
     if (hasBlockSponsor(stadiumState, block)) {
         alert(`ℹ️ ${UI_TEXTS.blocks[block]} hat bereits einen Sponsor.\n\nVerträge können während der Saison nicht geändert werden.`);
         return;
     }
-    
+
     // Öffne Sponsor-Auswahl
     openSponsorSelectionModal(block, stadiumState);
 };
@@ -412,14 +413,14 @@ const manageSponsor = (block) => {
  */
 const finalizeSponsorBooking = (sponsorId) => {
     const block = getCurrentBlock();
-    
+
     try {
         const result = bookSponsor(stadiumState, block, sponsorId);
-        
+
         if (result.success) {
             saveStadiumState();
             showSuccessModal(result.sponsor, result.initialPayment);
-            
+
             // Update UI
             setTimeout(() => {
                 renderStadiumOverview();
@@ -449,7 +450,7 @@ const renderStadiumOverview = () => {
     if (totalCapacity) totalCapacity.textContent = formatCapacity(stadiumState.capacity.total);
     if (standingCapacity) standingCapacity.textContent = formatCapacity(stadiumState.capacity.standing);
     if (seatedCapacity) seatedCapacity.textContent = formatCapacity(stadiumState.capacity.seated);
-    if (boxesCapacity) boxesCapacity.textContent = stadiumState.capacity.boxes.placement 
+    if (boxesCapacity) boxesCapacity.textContent = stadiumState.capacity.boxes.placement
         ? `${formatCapacity(stadiumState.capacity.boxes.total)} (${UI_TEXTS.blocks[stadiumState.capacity.boxes.placement]})`
         : '0';
 
@@ -480,7 +481,7 @@ const renderStadiumOverview = () => {
     const floodlightEl = document.getElementById('floodlightStage');
     const floodlightEl2 = document.getElementById('floodlightStage2');
     const stage = FLOODLIGHT_CONFIG.stages[stadiumState.features.floodlight];
-    
+
     if (floodlightEl) floodlightEl.textContent = stage.name;
     if (floodlightEl2) floodlightEl2.textContent = stage.name;
 
@@ -642,7 +643,7 @@ const switchFeatureTab = (tabName) => {
     const targetContent = document.getElementById(tabIdMap[tabName]);
     if (targetContent) {
         targetContent.classList.add('active');
-        
+
         // Wenn Sponsor-Tab, rendere Übersicht
         if (tabName === 'sponsors') {
             const container = document.getElementById('sponsorOverviewContainer');
@@ -669,30 +670,18 @@ const handleDocumentClick = (e) => {
         switchFeatureTab(target.dataset.tab);
         return;
     }
-    
-    // Filter
+
+    // Filter - RE-RENDER MODAL WITHOUT CLOSING
     if (target.dataset.filter) {
         updateFilter(target.dataset.filter, target.value);
-        // Re-render modal content
-        const modal = document.querySelector('.sponsor-modal.active');
-        if (modal) {
-            const block = getCurrentBlock();
-            closeModal();
-            setTimeout(() => openSponsorSelectionModal(block, stadiumState), 100);
-        }
+        refreshSponsorSelectionModal(stadiumState);
         return;
     }
-    
-    // Sortierung
+
+    // Sortierung - RE-RENDER MODAL WITHOUT CLOSING
     if (target.dataset.sort) {
         updateSort(target.value);
-        // Re-render modal content
-        const modal = document.querySelector('.sponsor-modal.active');
-        if (modal) {
-            const block = getCurrentBlock();
-            closeModal();
-            setTimeout(() => openSponsorSelectionModal(block, stadiumState), 100);
-        }
+        refreshSponsorSelectionModal(stadiumState);
         return;
     }
 
@@ -725,43 +714,37 @@ const handleDocumentClick = (e) => {
         case 'manageSponsor':
             manageSponsor(block);
             break;
-            
+
         case 'openSponsorSelection':
             openSponsorSelectionModal(block, stadiumState);
             break;
-            
+
         case 'showSponsorDetails':
             showSponsorDetailsModal(sponsorId, stadiumState);
             break;
-            
+
         case 'confirmBooking':
             showConfirmationModal(sponsorId, stadiumState);
             break;
-            
+
         case 'finalizeBooking':
             finalizeSponsorBooking(sponsorId);
             break;
-            
+
         case 'toggleComparisonMode':
             toggleComparisonMode();
-            // Re-render modal content
-            const block2 = getCurrentBlock();
-            closeModal();
-            setTimeout(() => openSponsorSelectionModal(block2, stadiumState), 100);
+            refreshSponsorSelectionModal(stadiumState);
             break;
-            
+
         case 'toggleComparison':
             const shouldShowComparison = toggleSponsorForComparison(sponsorId);
             if (shouldShowComparison) {
                 showComparisonModal(getSelectedForComparison(), stadiumState);
             } else {
-                // Re-render current modal
-                const block3 = getCurrentBlock();
-                closeModal();
-                setTimeout(() => openSponsorSelectionModal(block3, stadiumState), 100);
+                refreshSponsorSelectionModal(stadiumState);
             }
             break;
-            
+
         case 'closeModal':
         case 'closeModalAndRefresh':
             closeModal();
@@ -770,18 +753,18 @@ const handleDocumentClick = (e) => {
                 switchFeatureTab('sponsors');
             }
             break;
-            
+
         case 'backToSelection':
             const block4 = getCurrentBlock();
-            closeModal();
+            closeModal(false); // Don't reset state
             setTimeout(() => openSponsorSelectionModal(block4, stadiumState), 100);
             break;
-            
+
         case 'backToDetails':
-            closeModal();
+            closeModal(false); // Don't reset state
             setTimeout(() => showSponsorDetailsModal(sponsorId, stadiumState), 100);
             break;
-            
+
         case 'goToSponsorOverview':
             closeModal();
             switchFeatureTab('sponsors');
@@ -829,7 +812,7 @@ export function init() {
 
     // Event Delegation
     addEventListener(document, 'click', handleDocumentClick);
-    
+
     // Change Events für Select-Elemente
     addEventListener(document, 'change', handleDocumentClick);
 
@@ -853,7 +836,7 @@ export function cleanup() {
         clearInterval(buildTimerInterval);
         buildTimerInterval = null;
     }
-    
+
     // Schließe offene Modals
     closeModal();
 

@@ -51,10 +51,10 @@ export function openSponsorSelectionModal(block, stadiumState) {
     currentBlock = block;
     comparisonMode = false;
     selectedForComparison = [];
-    
+
     const modal = createModal('sponsor-selection-modal');
     const content = renderSponsorSelectionContent(stadiumState);
-    
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content">
@@ -66,12 +66,35 @@ export function openSponsorSelectionModal(block, stadiumState) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     currentModal = modal;
-    
+
     // Fade-in Animation
     setTimeout(() => modal.classList.add('active'), 10);
+}
+
+/**
+ * Re-rendert Modal-Content ohne das Modal zu schließen
+ */
+export function refreshSponsorSelectionModal(stadiumState) {
+    if (!currentModal || !currentBlock) {
+        console.warn('Cannot refresh modal: no active modal or currentBlock');
+        return;
+    }
+
+    const content = renderSponsorSelectionContent(stadiumState);
+    const modalContent = currentModal.querySelector('.sponsor-modal-content');
+
+    if (modalContent) {
+        const header = `
+            <div class="sponsor-modal-header">
+                <h2>🎯 Werbebanner buchen - ${UI_TEXTS.blocks[currentBlock]}</h2>
+                <button class="modal-close-btn" data-action="closeModal">&times;</button>
+            </div>
+        `;
+        modalContent.innerHTML = header + content;
+    }
 }
 
 /**
@@ -81,21 +104,21 @@ function renderSponsorSelectionContent(stadiumState) {
     const availableSponsors = getAvailableSponsors(stadiumState.capacity.total);
     const leaguePosition = stadiumState.previousSeason.leaguePosition;
     const previousSeason = stadiumState.previousSeason;
-    
+
     // Filter & Sortierung anwenden
     let filteredSponsors = filterSponsors(availableSponsors, {
         ...currentFilters,
         leaguePosition
     });
-    
+
     filteredSponsors = sortSponsors(filteredSponsors, currentSort, previousSeason, leaguePosition);
-    
+
     const industries = getAvailableIndustries(availableSponsors);
     const posMultiplier = SPONSOR_CONFIG.leaguePositionMultipliers[leaguePosition] || 1.0;
-    const posText = leaguePosition <= 3 ? '(+30%)' : 
-                    leaguePosition <= 8 ? '(+15%)' : 
-                    leaguePosition <= 14 ? '(±0%)' : '(-15%)';
-    
+    const posText = leaguePosition <= 3 ? '(+30%)' :
+        leaguePosition <= 8 ? '(+15%)' :
+            leaguePosition <= 14 ? '(±0%)' : '(-15%)';
+
     return `
         <div class="sponsor-modal-body">
             <div class="sponsor-info-banner">
@@ -168,13 +191,13 @@ function renderSponsorSelectionContent(stadiumState) {
 function renderSponsorCard(sponsor, stadiumState) {
     const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
     const prognosis = calculateSponsorPrognosis(
-        sponsor, 
-        stadiumState.previousSeason, 
+        sponsor,
+        stadiumState.previousSeason,
         stadiumState.previousSeason.leaguePosition
     );
-    
+
     const isSelected = selectedForComparison.includes(sponsor.id);
-    
+
     return `
         <div class="sponsor-card ${comparisonMode ? 'comparison-mode' : ''} ${isSelected ? 'selected' : ''}" 
              data-sponsor-id="${sponsor.id}"
@@ -241,10 +264,10 @@ function renderSponsorCard(sponsor, stadiumState) {
 export function showSponsorDetailsModal(sponsorId, stadiumState) {
     const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
     if (!sponsor) return;
-    
+
     const modal = createModal('sponsor-details-modal');
     const content = renderSponsorDetailsContent(sponsor, stadiumState);
-    
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
@@ -252,15 +275,15 @@ export function showSponsorDetailsModal(sponsorId, stadiumState) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Schließe vorheriges Modal
     if (currentModal) {
         currentModal.remove();
     }
     currentModal = modal;
-    
+
     setTimeout(() => modal.classList.add('active'), 10);
 }
 
@@ -274,9 +297,9 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
         stadiumState.previousSeason,
         stadiumState.previousSeason.leaguePosition
     );
-    
+
     const prevSeason = stadiumState.previousSeason;
-    
+
     return `
         <div class="sponsor-modal-header">
             <div>
@@ -396,15 +419,15 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
 export function showConfirmationModal(sponsorId, stadiumState) {
     const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
     if (!sponsor) return;
-    
+
     const prognosis = calculateSponsorPrognosis(
         sponsor,
         stadiumState.previousSeason,
         stadiumState.previousSeason.leaguePosition
     );
-    
+
     const modal = createModal('sponsor-confirmation-modal');
-    
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
@@ -457,13 +480,13 @@ export function showConfirmationModal(sponsorId, stadiumState) {
             </div>
         </div>
     `;
-    
+
     // Schließe vorheriges Modal
     if (currentModal) {
         currentModal.remove();
     }
     currentModal = modal;
-    
+
     document.body.appendChild(modal);
     setTimeout(() => modal.classList.add('active'), 10);
 }
@@ -473,7 +496,7 @@ export function showConfirmationModal(sponsorId, stadiumState) {
  */
 export function showSuccessModal(sponsor, initialPayment) {
     const modal = createModal('sponsor-success-modal');
-    
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
@@ -514,13 +537,13 @@ export function showSuccessModal(sponsor, initialPayment) {
             </div>
         </div>
     `;
-    
+
     // Schließe vorheriges Modal
     if (currentModal) {
         currentModal.remove();
     }
     currentModal = modal;
-    
+
     document.body.appendChild(modal);
     setTimeout(() => modal.classList.add('active'), 10);
 }
@@ -533,15 +556,15 @@ export function showSuccessModal(sponsor, initialPayment) {
  * Zeigt Vergleichs-Modal
  */
 export function showComparisonModal(sponsorIds, stadiumState) {
-    const sponsors = sponsorIds.map(id => 
+    const sponsors = sponsorIds.map(id =>
         SPONSOR_CONFIG.availableSponsors.find(s => s.id === id)
     ).filter(Boolean);
-    
+
     if (sponsors.length === 0) return;
-    
+
     const modal = createModal('sponsor-comparison-modal');
     const content = renderComparisonContent(sponsors, stadiumState);
-    
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
@@ -549,13 +572,13 @@ export function showComparisonModal(sponsorIds, stadiumState) {
             </div>
         </div>
     `;
-    
+
     // Schließe vorheriges Modal
     if (currentModal) {
         currentModal.remove();
     }
     currentModal = modal;
-    
+
     document.body.appendChild(modal);
     setTimeout(() => modal.classList.add('active'), 10);
 }
@@ -569,10 +592,10 @@ function renderComparisonContent(sponsors, stadiumState) {
         stadiumState.previousSeason,
         stadiumState.previousSeason.leaguePosition
     );
-    
+
     const bestValues = findBestValues(comparisons);
     const recommendation = getSponsorRecommendation(sponsors, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-    
+
     return `
         <div class="sponsor-modal-header">
             <h2>📊 Sponsoren vergleichen (${sponsors.length}/3 ausgewählt)</h2>
@@ -703,9 +726,9 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
     const activeSponsors = getActiveSponsors(stadiumState);
     const totalRevenue = calculateTotalSponsorRevenue(stadiumState, currentSeasonStats);
     const projection = calculateSeasonProjection(stadiumState, currentSeasonStats);
-    
+
     const freeBlocks = CAPACITY_CONFIG.BLOCKS.filter(block => !stadiumState.features.sponsors[block]);
-    
+
     return `
         <h2 class="section-title">📊 Sponsor-Übersicht Saison ${stadiumState.season}</h2>
         
@@ -722,9 +745,9 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
                     <div class="balance-details">
                         <div>• ${currentSeasonStats.goals} Tore gesamt</div>
                         ${activeSponsors.map(({ sponsor, block }) => {
-                            const balance = getSponsorBalance(stadiumState, block);
-                            return `<div>• ${sponsor.name}: ${balance.stats.totalGoals} × ${formatCurrency(balance.payments.goalBonuses / balance.stats.totalGoals || 0)} = ${formatCurrency(balance.payments.goalBonuses)}</div>`;
-                        }).join('')}
+        const balance = getSponsorBalance(stadiumState, block);
+        return `<div>• ${sponsor.name}: ${balance.stats.totalGoals} × ${formatCurrency(balance.payments.goalBonuses / balance.stats.totalGoals || 0)} = ${formatCurrency(balance.payments.goalBonuses)}</div>`;
+    }).join('')}
                         <div class="balance-sum">Summe: ${formatCurrency(totalRevenue.goals)}</div>
                     </div>
                 </div>
@@ -734,9 +757,9 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
                     <div class="balance-details">
                         <div>• ${currentSeasonStats.wins} Siege gesamt</div>
                         ${activeSponsors.map(({ sponsor, block }) => {
-                            const balance = getSponsorBalance(stadiumState, block);
-                            return `<div>• ${sponsor.name}: ${balance.stats.totalWins} × ${formatCurrency(balance.payments.winBonuses / balance.stats.totalWins || 0)} = ${formatCurrency(balance.payments.winBonuses)}</div>`;
-                        }).join('')}
+        const balance = getSponsorBalance(stadiumState, block);
+        return `<div>• ${sponsor.name}: ${balance.stats.totalWins} × ${formatCurrency(balance.payments.winBonuses / balance.stats.totalWins || 0)} = ${formatCurrency(balance.payments.winBonuses)}</div>`;
+    }).join('')}
                         <div class="balance-sum">Summe: ${formatCurrency(totalRevenue.wins)}</div>
                     </div>
                 </div>
@@ -757,11 +780,11 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
             <h3>📺 Aktive Sponsoren (${activeSponsors.length}/4 Tribünen belegt)</h3>
             
             ${activeSponsors.map(({ block, sponsor }) => {
-                const balance = getSponsorBalance(stadiumState, block);
-                const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-                const progress = (balance.totalThisSeason / prognosis.prognosis.expectedTotal * 100).toFixed(0);
-                
-                return `
+        const balance = getSponsorBalance(stadiumState, block);
+        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
+        const progress = (balance.totalThisSeason / prognosis.prognosis.expectedTotal * 100).toFixed(0);
+
+        return `
                     <div class="active-sponsor-card glass">
                         <h4 class="active-sponsor-header">
                             ${UI_TEXTS.blocks[block]}
@@ -799,7 +822,7 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
                         </div>
                     </div>
                 `;
-            }).join('')}
+    }).join('')}
             
             ${freeBlocks.map(block => `
                 <div class="free-sponsor-card glass">
@@ -848,20 +871,20 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
                 </div>
                 
                 ${activeSponsors.map(({ sponsor, block }) => {
-                    const balance = getSponsorBalance(stadiumState, block);
-                    const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-                    const projectedSponsor = balance.payments.initial + 
-                        (projection.projectedTotalGoals * prognosis.adjustedPayment.perGoal) +
-                        (projection.projectedTotalWins * prognosis.adjustedPayment.perWin);
-                    const percentOfPrognosis = (projectedSponsor / prognosis.prognosis.expectedTotal * 100).toFixed(0);
-                    const emoji = percentOfPrognosis >= 100 ? '📈' : percentOfPrognosis >= 90 ? '📊' : '📉';
-                    
-                    return `
+        const balance = getSponsorBalance(stadiumState, block);
+        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
+        const projectedSponsor = balance.payments.initial +
+            (projection.projectedTotalGoals * prognosis.adjustedPayment.perGoal) +
+            (projection.projectedTotalWins * prognosis.adjustedPayment.perWin);
+        const percentOfPrognosis = (projectedSponsor / prognosis.prognosis.expectedTotal * 100).toFixed(0);
+        const emoji = percentOfPrognosis >= 100 ? '📈' : percentOfPrognosis >= 90 ? '📊' : '📉';
+
+        return `
                         <div class="projection-sponsor">
                             • ${sponsor.name}: ~${formatCurrency(projectedSponsor)} ${emoji} (${percentOfPrognosis}% Prognose${percentOfPrognosis > 100 ? '!' : ''})
                         </div>
                     `;
-                }).join('')}
+    }).join('')}
             </div>
         ` : ''}
     `;
@@ -884,7 +907,7 @@ function createModal(id) {
 /**
  * Schließt aktuelles Modal
  */
-export function closeModal() {
+export function closeModal(resetState = true) {
     if (currentModal) {
         currentModal.classList.remove('active');
         setTimeout(() => {
@@ -892,11 +915,13 @@ export function closeModal() {
             currentModal = null;
         }, 300);
     }
-    
-    // Reset state
-    currentBlock = null;
-    comparisonMode = false;
-    selectedForComparison = [];
+
+    // Reset state only if explicitly requested (not during re-renders)
+    if (resetState) {
+        currentBlock = null;
+        comparisonMode = false;
+        selectedForComparison = [];
+    }
 }
 
 /**
@@ -904,7 +929,7 @@ export function closeModal() {
  */
 export function toggleComparisonMode() {
     comparisonMode = !comparisonMode;
-    
+
     if (!comparisonMode) {
         selectedForComparison = [];
     }
@@ -915,7 +940,7 @@ export function toggleComparisonMode() {
  */
 export function toggleSponsorForComparison(sponsorId) {
     const index = selectedForComparison.indexOf(sponsorId);
-    
+
     if (index > -1) {
         selectedForComparison.splice(index, 1);
     } else {
@@ -923,13 +948,11 @@ export function toggleSponsorForComparison(sponsorId) {
             selectedForComparison.push(sponsorId);
         }
     }
-    
+
     // Wenn 3 ausgewählt, zeige Vergleich
-    if (selectedForComparison.length === 3) {
-        return true; // Signal to show comparison
-    }
-    
-    return false;
+    return selectedForComparison.length === 3;
+
+
 }
 
 /**
