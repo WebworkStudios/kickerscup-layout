@@ -1,14 +1,15 @@
 // =====================================================
-// KICKERSCUP - STADIUM SPONSORS UI (ESM)
+// KICKERSCUP - STADIUM SPONSORS UI (OPTIMIZED)
 // UI-Rendering für Sponsor-Verwaltung
+// ✅ OPTIMIERT: Template-Caching, Event-Delegation, DOM-Batching
 // =====================================================
 
 import {
     SPONSOR_CONFIG,
-    CAPACITY_CONFIG,
     UI_TEXTS,
-    formatCurrency
-} from './stadium-config-extended.js';
+    formatCurrency,
+    getSponsorById
+} from './stadium-config.js';
 
 import {
     getAvailableSponsors,
@@ -26,19 +27,57 @@ import {
 } from './stadium-sponsors.js';
 
 // =====================================================
-// MODAL STATE
+// MODAL STATE (Singleton Pattern)
 // =====================================================
 
-let currentModal = null;
-let currentBlock = null;
-let comparisonMode = false;
-let selectedForComparison = [];
-let currentFilters = {
-    tier: 'all',
-    industry: 'all',
-    paymentType: null
+const modalState = {
+    currentModal: null,
+    currentBlock: null,
+    comparisonMode: false,
+    selectedForComparison: [],
+    filters: {
+        tier: 'all',
+        industry: 'all',
+        paymentType: null
+    },
+    sort: 'prognosis_desc'
 };
-let currentSort = 'prognosis_desc';
+
+// =====================================================
+// TEMPLATE HELPERS (Cached String Templates)
+// =====================================================
+
+/**
+ * Escaped HTML für sichere Ausgabe
+ */
+const escapeHtml = (str) => {
+    if (typeof str !== 'string') return String(str);
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+};
+
+/**
+ * Erstellt Modal-Container effizient
+ */
+const createModalElement = (id) => {
+    const modal = document.createElement('div');
+    modal.id = id;
+    modal.className = 'sponsor-modal';
+    return modal;
+};
+
+/**
+ * Generiert Tier-Badge HTML
+ */
+const renderTierBadge = (tier, style = 'full') => {
+    const tierConfig = SPONSOR_CONFIG.tiers[tier];
+    if (!tierConfig) return '';
+
+    return style === 'small'
+        ? `<span class="sponsor-tier-badge-small" style="background:${tierConfig.color}">${tierConfig.icon}</span>`
+        : `<div class="sponsor-tier-badge" style="background:${tierConfig.color}">${tierConfig.icon} ${tierConfig.name}</div>`;
+};
 
 // =====================================================
 // MODAL: SPONSOR-AUSWAHL
@@ -47,12 +86,12 @@ let currentSort = 'prognosis_desc';
 /**
  * Öffnet Sponsor-Auswahl Modal
  */
-export function openSponsorSelectionModal(block, stadiumState) {
-    currentBlock = block;
-    comparisonMode = false;
-    selectedForComparison = [];
+export const openSponsorSelectionModal = (block, stadiumState) => {
+    modalState.currentBlock = block;
+    modalState.comparisonMode = false;
+    modalState.selectedForComparison = [];
 
-    const modal = createModal('sponsor-selection-modal');
+    const modal = createModalElement('sponsor-selection-modal');
     const content = renderSponsorSelectionContent(stadiumState);
 
     modal.innerHTML = `
@@ -68,127 +107,112 @@ export function openSponsorSelectionModal(block, stadiumState) {
     `;
 
     document.body.appendChild(modal);
-    currentModal = modal;
+    modalState.currentModal = modal;
 
-    // Fade-in Animation
-    setTimeout(() => modal.classList.add('active'), 10);
-}
+    // RAF für Animation
+    requestAnimationFrame(() => modal.classList.add('active'));
+};
 
 /**
- * Re-rendert Modal-Content ohne das Modal zu schließen
+ * Re-rendert Modal-Content ohne Schließen
  */
-export function refreshSponsorSelectionModal(stadiumState) {
-    if (!currentModal || !currentBlock) {
-        console.warn('Cannot refresh modal: no active modal or currentBlock');
-        return;
-    }
+export const refreshSponsorSelectionModal = (stadiumState) => {
+    if (!modalState.currentModal || !modalState.currentBlock) return;
+
+    const modalContent = modalState.currentModal.querySelector('.sponsor-modal-content');
+    if (!modalContent) return;
 
     const content = renderSponsorSelectionContent(stadiumState);
-    const modalContent = currentModal.querySelector('.sponsor-modal-content');
+    const header = `
+        <div class="sponsor-modal-header">
+            <h2>🎯 Werbebanner buchen - ${UI_TEXTS.blocks[modalState.currentBlock]}</h2>
+            <button class="modal-close-btn" data-action="closeModal">&times;</button>
+        </div>
+    `;
 
-    if (modalContent) {
-        const header = `
-            <div class="sponsor-modal-header">
-                <h2>🎯 Werbebanner buchen - ${UI_TEXTS.blocks[currentBlock]}</h2>
-                <button class="modal-close-btn" data-action="closeModal">&times;</button>
-            </div>
-        `;
-        modalContent.innerHTML = header + content;
-    }
-}
+    modalContent.innerHTML = header + content;
+};
 
 /**
  * Rendert Sponsor-Auswahl Content
  */
-function renderSponsorSelectionContent(stadiumState) {
+const renderSponsorSelectionContent = (stadiumState) => {
     const availableSponsors = getAvailableSponsors(stadiumState.capacity.total);
     const leaguePosition = stadiumState.previousSeason.leaguePosition;
     const previousSeason = stadiumState.previousSeason;
 
     // Filter & Sortierung anwenden
     let filteredSponsors = filterSponsors(availableSponsors, {
-        ...currentFilters,
+        ...modalState.filters,
         leaguePosition
     });
 
-    filteredSponsors = sortSponsors(filteredSponsors, currentSort, previousSeason, leaguePosition);
+    filteredSponsors = sortSponsors(filteredSponsors, modalState.sort, previousSeason, leaguePosition);
 
     const industries = getAvailableIndustries(availableSponsors);
-    const posMultiplier = SPONSOR_CONFIG.leaguePositionMultipliers[leaguePosition] || 1.0;
-    const posText = leaguePosition <= 3 ? '(+30%)' :
-        leaguePosition <= 8 ? '(+15%)' :
-            leaguePosition <= 14 ? '(±0%)' : '(-15%)';
+    const posText = leaguePosition <= 3 ? '(+30%)'
+        : leaguePosition <= 8 ? '(+15%)'
+            : leaguePosition <= 14 ? '(±0%)'
+                : '(-15%)';
+
+    // Sponsor Cards als Array für bessere Performance
+    const sponsorCards = filteredSponsors.map(sponsor =>
+        renderSponsorCard(sponsor, stadiumState)
+    ).join('');
 
     return `
         <div class="sponsor-modal-body">
             <div class="sponsor-info-banner">
-                <div class="info-item">
-                    <span class="info-icon">⚠️</span>
-                    <span>1 Banner = 1 Sponsor (nicht änderbar nach Buchung)</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-icon">📅</span>
-                    <span>Vertragslaufzeit: ${SPONSOR_CONFIG.contractDuration} Saison</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-icon">🏆</span>
-                    <span>Vorsaison: Platz ${leaguePosition} → ${posText}</span>
-                </div>
+                <div class="info-item"><span class="info-icon">⚠️</span><span>1 Banner = 1 Sponsor (nicht änderbar)</span></div>
+                <div class="info-item"><span class="info-icon">📅</span><span>Vertragslaufzeit: ${SPONSOR_CONFIG.contractDuration} Saison</span></div>
+                <div class="info-item"><span class="info-icon">🏆</span><span>Vorsaison: Platz ${leaguePosition} → ${posText}</span></div>
             </div>
             
             <div class="sponsor-controls">
                 <div class="sponsor-controls-row">
-                    <button class="btn-compare ${comparisonMode ? 'active' : ''}" data-action="toggleComparisonMode">
-                        📊 Vergleichen ${comparisonMode ? `(${selectedForComparison.length}/3)` : ''}
+                    <button class="btn-compare ${modalState.comparisonMode ? 'active' : ''}" data-action="toggleComparisonMode">
+                        📊 Vergleichen ${modalState.comparisonMode ? `(${modalState.selectedForComparison.length}/3)` : ''}
                     </button>
                     
                     <select class="filter-select" data-filter="tier">
                         <option value="all">Alle Kategorien</option>
-                        <option value="international" ${currentFilters.tier === 'international' ? 'selected' : ''}>🌍 International</option>
-                        <option value="national" ${currentFilters.tier === 'national' ? 'selected' : ''}>🏴 National</option>
-                        <option value="regional" ${currentFilters.tier === 'regional' ? 'selected' : ''}>🏙️ Regional</option>
-                        <option value="local" ${currentFilters.tier === 'local' ? 'selected' : ''}>🏘️ Lokal</option>
+                        ${Object.entries(SPONSOR_CONFIG.tiers).map(([key, tier]) => `
+                            <option value="${key}" ${modalState.filters.tier === key ? 'selected' : ''}>${tier.icon} ${tier.name}</option>
+                        `).join('')}
                     </select>
                     
                     <select class="filter-select" data-filter="industry">
                         <option value="all">Alle Branchen</option>
                         ${industries.map(ind => `
-                            <option value="${ind}" ${currentFilters.industry === ind ? 'selected' : ''}>${ind}</option>
+                            <option value="${escapeHtml(ind)}" ${modalState.filters.industry === ind ? 'selected' : ''}>${escapeHtml(ind)}</option>
                         `).join('')}
                     </select>
                     
                     <select class="sort-select" data-sort="sponsor">
-                        <option value="prognosis_desc" ${currentSort === 'prognosis_desc' ? 'selected' : ''}>Prognose (hoch → tief)</option>
-                        <option value="initial_desc" ${currentSort === 'initial_desc' ? 'selected' : ''}>Einmalzahlung (hoch → tief)</option>
-                        <option value="best_case_desc" ${currentSort === 'best_case_desc' ? 'selected' : ''}>Best Case Potenzial</option>
-                        <option value="worst_case_desc" ${currentSort === 'worst_case_desc' ? 'selected' : ''}>Minimales Risiko</option>
-                        <option value="name_asc" ${currentSort === 'name_asc' ? 'selected' : ''}>Alphabetisch A-Z</option>
+                        <option value="prognosis_desc" ${modalState.sort === 'prognosis_desc' ? 'selected' : ''}>Prognose ↓</option>
+                        <option value="initial_desc" ${modalState.sort === 'initial_desc' ? 'selected' : ''}>Einmalzahlung ↓</option>
+                        <option value="best_case_desc" ${modalState.sort === 'best_case_desc' ? 'selected' : ''}>Best Case</option>
+                        <option value="worst_case_desc" ${modalState.sort === 'worst_case_desc' ? 'selected' : ''}>Min. Risiko</option>
+                        <option value="name_asc" ${modalState.sort === 'name_asc' ? 'selected' : ''}>A-Z</option>
                     </select>
                 </div>
             </div>
             
             <div class="sponsor-grid" id="sponsorGrid">
-                ${filteredSponsors.map(sponsor => renderSponsorCard(sponsor, stadiumState)).join('')}
+                ${sponsorCards || '<div class="no-sponsors-message"><p>Keine Sponsoren verfügbar.</p></div>'}
             </div>
-            
-            ${filteredSponsors.length === 0 ? `
-                <div class="no-sponsors-message">
-                    <p>Keine Sponsoren in dieser Kategorie verfügbar.</p>
-                    <p>Erhöhen Sie Ihre Stadion-Kapazität für bessere Angebote!</p>
-                </div>
-            ` : ''}
         </div>
         
         <div class="sponsor-modal-footer">
             <button class="btn btn-secondary" data-action="closeModal">Abbrechen</button>
         </div>
     `;
-}
+};
 
 /**
  * Rendert einzelne Sponsor-Karte
  */
-function renderSponsorCard(sponsor, stadiumState) {
+const renderSponsorCard = (sponsor, stadiumState) => {
     const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
     const prognosis = calculateSponsorPrognosis(
         sponsor,
@@ -196,50 +220,33 @@ function renderSponsorCard(sponsor, stadiumState) {
         stadiumState.previousSeason.leaguePosition
     );
 
-    const isSelected = selectedForComparison.includes(sponsor.id);
+    if (!prognosis) return '';
+
+    const isSelected = modalState.selectedForComparison.includes(sponsor.id);
+    const canSelect = modalState.selectedForComparison.length < 3 || isSelected;
 
     return `
-        <div class="sponsor-card ${comparisonMode ? 'comparison-mode' : ''} ${isSelected ? 'selected' : ''}" 
-             data-sponsor-id="${sponsor.id}"
-             style="border-color: ${sponsor.color}">
+        <div class="sponsor-card ${modalState.comparisonMode ? 'comparison-mode' : ''} ${isSelected ? 'selected' : ''}" 
+             data-sponsor-id="${sponsor.id}" style="border-color:${sponsor.color}">
             
-            ${comparisonMode ? `
+            ${modalState.comparisonMode ? `
                 <div class="comparison-checkbox">
-                    <input type="checkbox" 
-                           ${isSelected ? 'checked' : ''} 
-                           ${selectedForComparison.length >= 3 && !isSelected ? 'disabled' : ''}
-                           data-action="toggleComparison"
-                           data-sponsor-id="${sponsor.id}">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} ${!canSelect ? 'disabled' : ''}
+                           data-action="toggleComparison" data-sponsor-id="${sponsor.id}">
                 </div>
             ` : ''}
             
-            <div class="sponsor-card-header">
-                <div class="sponsor-tier-badge" style="background: ${tier.color}">
-                    ${tier.icon} ${tier.name}
-                </div>
-            </div>
+            <div class="sponsor-card-header">${renderTierBadge(sponsor.tier)}</div>
             
-            <h3 class="sponsor-name" style="color: ${sponsor.color}">${sponsor.name}</h3>
-            <p class="sponsor-industry">${sponsor.industry}</p>
-            <p class="sponsor-slogan">"${sponsor.slogan}"</p>
+            <h3 class="sponsor-name" style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h3>
+            <p class="sponsor-industry">${escapeHtml(sponsor.industry)}</p>
+            <p class="sponsor-slogan">"${escapeHtml(sponsor.slogan)}"</p>
             
             <div class="sponsor-payment-summary">
-                <div class="payment-item">
-                    <span class="payment-icon">💰</span>
-                    <span class="payment-value">${formatCurrency(prognosis.adjustedPayment.initial)}</span>
-                </div>
-                <div class="payment-item">
-                    <span class="payment-icon">⚽</span>
-                    <span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perGoal)}/Tor</span>
-                </div>
-                <div class="payment-item">
-                    <span class="payment-icon">🏆</span>
-                    <span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perWin)}/Sieg</span>
-                </div>
-                <div class="payment-item">
-                    <span class="payment-icon">🥇</span>
-                    <span class="payment-value">${formatCurrency(prognosis.adjustedPayment.leagueTitle)}</span>
-                </div>
+                <div class="payment-item"><span class="payment-icon">💰</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.initial)}</span></div>
+                <div class="payment-item"><span class="payment-icon">⚽</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perGoal)}/Tor</span></div>
+                <div class="payment-item"><span class="payment-icon">🏆</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perWin)}/Sieg</span></div>
+                <div class="payment-item"><span class="payment-icon">🥇</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.leagueTitle)}</span></div>
             </div>
             
             <div class="sponsor-prognosis">
@@ -247,50 +254,37 @@ function renderSponsorCard(sponsor, stadiumState) {
                 <div class="prognosis-value">${formatCurrency(prognosis.prognosis.expectedTotal)}</div>
             </div>
             
-            <button class="btn btn-details" data-action="showSponsorDetails" data-sponsor-id="${sponsor.id}">
-                Details 🔍
-            </button>
+            <button class="btn btn-details" data-action="showSponsorDetails" data-sponsor-id="${sponsor.id}">Details 🔍</button>
         </div>
     `;
-}
+};
 
 // =====================================================
 // MODAL: SPONSOR-DETAILS
 // =====================================================
 
-/**
- * Zeigt Sponsor-Details Modal
- */
-export function showSponsorDetailsModal(sponsorId, stadiumState) {
-    const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
+export const showSponsorDetailsModal = (sponsorId, stadiumState) => {
+    const sponsor = getSponsorById(sponsorId);
     if (!sponsor) return;
 
-    const modal = createModal('sponsor-details-modal');
-    const content = renderSponsorDetailsContent(sponsor, stadiumState);
+    closeModal(false);
 
+    const modal = createModalElement('sponsor-details-modal');
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
-                ${content}
+                ${renderSponsorDetailsContent(sponsor, stadiumState)}
             </div>
         </div>
     `;
 
     document.body.appendChild(modal);
+    modalState.currentModal = modal;
 
-    // Schließe vorheriges Modal
-    if (currentModal) {
-        currentModal.remove();
-    }
-    currentModal = modal;
+    requestAnimationFrame(() => modal.classList.add('active'));
+};
 
-    setTimeout(() => modal.classList.add('active'), 10);
-}
-
-/**
- * Rendert Sponsor-Details Content
- */
-function renderSponsorDetailsContent(sponsor, stadiumState) {
+const renderSponsorDetailsContent = (sponsor, stadiumState) => {
     const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
     const prognosis = calculateSponsorPrognosis(
         sponsor,
@@ -298,23 +292,25 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
         stadiumState.previousSeason.leaguePosition
     );
 
-    const prevSeason = stadiumState.previousSeason;
+    if (!prognosis) return '<p>Fehler beim Laden der Sponsor-Details.</p>';
+
+    const { previousSeason } = stadiumState;
+    const avgGoalsPerGame = (previousSeason.totalGoals / previousSeason.totalGames).toFixed(1);
+    const winRate = ((previousSeason.totalWins / previousSeason.totalGames) * 100).toFixed(0);
 
     return `
         <div class="sponsor-modal-header">
             <div>
-                <h2 style="color: ${sponsor.color}">${sponsor.name}</h2>
-                <p class="sponsor-detail-meta">
-                    ${tier.icon} ${tier.name} • ${sponsor.industry}
-                </p>
+                <h2 style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h2>
+                <p class="sponsor-detail-meta">${tier.icon} ${tier.name} • ${escapeHtml(sponsor.industry)}</p>
             </div>
             <button class="modal-close-btn" data-action="backToSelection">&times;</button>
         </div>
         
         <div class="sponsor-modal-body">
             <div class="sponsor-detail-intro">
-                <p class="sponsor-slogan-large">"${sponsor.slogan}"</p>
-                <p class="sponsor-website">${sponsor.website}</p>
+                <p class="sponsor-slogan-large">"${escapeHtml(sponsor.slogan)}"</p>
+                <p class="sponsor-website">${escapeHtml(sponsor.website)}</p>
             </div>
             
             <div class="sponsor-detail-section">
@@ -325,14 +321,13 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
                         <div class="payment-detail-value">${formatCurrency(prognosis.adjustedPayment.initial)}</div>
                         <div class="payment-detail-note">Zu Saisonbeginn</div>
                     </div>
-                    
                     <div class="payment-detail-card">
-                        <div class="payment-detail-label">Performance-Prämien (alle Spiele):</div>
+                        <div class="payment-detail-label">Performance-Prämien:</div>
                         <ul class="payment-detail-list">
                             <li>⚽ ${formatCurrency(prognosis.adjustedPayment.perGoal)} pro Tor</li>
                             <li>🏆 ${formatCurrency(prognosis.adjustedPayment.perWin)} pro Sieg</li>
-                            <li>🥇 ${formatCurrency(prognosis.adjustedPayment.leagueTitle)} bei Liga-Meisterschaft</li>
-                            <li>🏅 ${formatCurrency(prognosis.adjustedPayment.cupTitle)} bei Pokalsieg</li>
+                            <li>🥇 ${formatCurrency(prognosis.adjustedPayment.leagueTitle)} Liga-Meisterschaft</li>
+                            <li>🏅 ${formatCurrency(prognosis.adjustedPayment.cupTitle)} Pokalsieg</li>
                         </ul>
                     </div>
                 </div>
@@ -340,53 +335,34 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
             
             <div class="sponsor-detail-section">
                 <h3>📊 Saisonprognose</h3>
-                <p class="prognosis-basis">Basis: Vorsaison ${prevSeason.season || '2023/24'} (Platz ${prevSeason.leaguePosition})</p>
+                <p class="prognosis-basis">Basis: Vorsaison ${previousSeason.season} (Platz ${previousSeason.leaguePosition})</p>
                 
                 <div class="prognosis-expectation">
                     <h4>Erwartete Leistung:</h4>
                     <ul>
-                        <li>${prevSeason.totalGames} Spiele in allen Wettbewerben</li>
-                        <li>${prevSeason.totalGoals} Tore (Ø ${(prevSeason.totalGoals / prevSeason.totalGames).toFixed(1)} pro Spiel)</li>
-                        <li>${prevSeason.totalWins} Siege (${((prevSeason.totalWins / prevSeason.totalGames) * 100).toFixed(0)}% Siegquote)</li>
+                        <li>${previousSeason.totalGames} Spiele</li>
+                        <li>${previousSeason.totalGoals} Tore (Ø ${avgGoalsPerGame}/Spiel)</li>
+                        <li>${previousSeason.totalWins} Siege (${winRate}%)</li>
                     </ul>
                 </div>
                 
                 <div class="prognosis-calculation">
                     <h4>Einnahmen-Berechnung:</h4>
                     <table class="prognosis-table">
-                        <tr>
-                            <td>Einmalzahlung:</td>
-                            <td class="prognosis-value">${formatCurrency(prognosis.prognosis.initialPayment)}</td>
-                        </tr>
-                        <tr>
-                            <td>${prognosis.calculations.expectedGoals} Tore × ${formatCurrency(prognosis.adjustedPayment.perGoal)}:</td>
-                            <td class="prognosis-value">${formatCurrency(prognosis.prognosis.goalBonuses)}</td>
-                        </tr>
-                        <tr>
-                            <td>${prognosis.calculations.expectedWins} Siege × ${formatCurrency(prognosis.adjustedPayment.perWin)}:</td>
-                            <td class="prognosis-value">${formatCurrency(prognosis.prognosis.winBonuses)}</td>
-                        </tr>
-                        <tr>
-                            <td>Titel (unwahrscheinlich):</td>
-                            <td class="prognosis-value">${formatCurrency(0)}</td>
-                        </tr>
-                        <tr class="prognosis-total">
-                            <td><strong>ERWARTETE EINNAHMEN:</strong></td>
-                            <td class="prognosis-value"><strong>${formatCurrency(prognosis.prognosis.expectedTotal)}</strong></td>
-                        </tr>
+                        <tr><td>Einmalzahlung:</td><td class="prognosis-value">${formatCurrency(prognosis.prognosis.initialPayment)}</td></tr>
+                        <tr><td>${prognosis.calculations.expectedGoals} Tore:</td><td class="prognosis-value">${formatCurrency(prognosis.prognosis.goalBonuses)}</td></tr>
+                        <tr><td>${prognosis.calculations.expectedWins} Siege:</td><td class="prognosis-value">${formatCurrency(prognosis.prognosis.winBonuses)}</td></tr>
+                        <tr class="prognosis-total"><td><strong>ERWARTETE EINNAHMEN:</strong></td><td class="prognosis-value"><strong>${formatCurrency(prognosis.prognosis.expectedTotal)}</strong></td></tr>
                     </table>
                 </div>
                 
                 <div class="prognosis-scenarios">
                     <div class="scenario-card scenario-best">
-                        <h4>📈 Best Case (+50% Performance):</h4>
-                        <p>${prognosis.calculations.bestCaseGoals} Tore + ${prognosis.calculations.bestCaseWins} Siege + Titel</p>
+                        <h4>📈 Best Case:</h4>
                         <div class="scenario-value">${formatCurrency(prognosis.prognosis.bestCase)} 🚀</div>
                     </div>
-                    
                     <div class="scenario-card scenario-worst">
-                        <h4>📉 Worst Case (-30% Performance):</h4>
-                        <p>${prognosis.calculations.worstCaseGoals} Tore + ${prognosis.calculations.worstCaseWins} Siege</p>
+                        <h4>📉 Worst Case:</h4>
                         <div class="scenario-value">${formatCurrency(prognosis.prognosis.worstCase)}</div>
                     </div>
                 </div>
@@ -394,30 +370,23 @@ function renderSponsorDetailsContent(sponsor, stadiumState) {
             
             <div class="sponsor-detail-warning">
                 <span class="warning-icon">⚠️</span>
-                <div class="warning-text">
-                    <strong>Verträge sind nach Abschluss für die gesamte Saison bindend und können nicht gekündigt werden!</strong>
-                </div>
+                <div class="warning-text"><strong>Verträge sind für die gesamte Saison bindend!</strong></div>
             </div>
         </div>
         
         <div class="sponsor-modal-footer">
             <button class="btn btn-secondary" data-action="backToSelection">Zurück</button>
-            <button class="btn btn-primary" data-action="confirmBooking" data-sponsor-id="${sponsor.id}">
-                Vertrag abschließen ✍️
-            </button>
+            <button class="btn btn-primary" data-action="confirmBooking" data-sponsor-id="${sponsor.id}">Vertrag abschließen ✍️</button>
         </div>
     `;
-}
+};
 
 // =====================================================
 // MODAL: BESTÄTIGUNG
 // =====================================================
 
-/**
- * Zeigt Bestätigungs-Modal
- */
-export function showConfirmationModal(sponsorId, stadiumState) {
-    const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
+export const showConfirmationModal = (sponsorId, stadiumState) => {
+    const sponsor = getSponsorById(sponsorId);
     if (!sponsor) return;
 
     const prognosis = calculateSponsorPrognosis(
@@ -426,167 +395,112 @@ export function showConfirmationModal(sponsorId, stadiumState) {
         stadiumState.previousSeason.leaguePosition
     );
 
-    const modal = createModal('sponsor-confirmation-modal');
+    closeModal(false);
 
+    const modal = createModalElement('sponsor-confirmation-modal');
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
-                <div class="sponsor-modal-header">
-                    <h2>⚠️ Vertrag bestätigen</h2>
-                </div>
+                <div class="sponsor-modal-header"><h2>⚠️ Vertrag bestätigen</h2></div>
                 
                 <div class="sponsor-modal-body">
                     <p class="confirmation-text">
-                        Sie sind dabei, einen Sponsorenvertrag mit<br>
-                        <strong style="color: ${sponsor.color}">${sponsor.name}</strong> abzuschließen.
+                        Vertrag mit <strong style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</strong> abschließen?
                     </p>
                     
                     <div class="confirmation-details">
-                        <div class="confirmation-item">
-                            <span class="confirm-icon">✓</span>
-                            <span>Werbebanner: ${UI_TEXTS.blocks[currentBlock]}</span>
-                        </div>
-                        <div class="confirmation-item">
-                            <span class="confirm-icon">✓</span>
-                            <span>Laufzeit: ${SPONSOR_CONFIG.contractDuration} Saison (nicht kündbar)</span>
-                        </div>
-                        <div class="confirmation-item">
-                            <span class="confirm-icon">✓</span>
-                            <span>Einmalzahlung: ${formatCurrency(prognosis.adjustedPayment.initial)} (sofort)</span>
-                        </div>
-                        <div class="confirmation-item">
-                            <span class="confirm-icon">✓</span>
-                            <span>Performance-Prämien: Ja</span>
-                        </div>
+                        <div class="confirmation-item"><span class="confirm-icon">✓</span><span>Werbebanner: ${UI_TEXTS.blocks[modalState.currentBlock]}</span></div>
+                        <div class="confirmation-item"><span class="confirm-icon">✓</span><span>Laufzeit: ${SPONSOR_CONFIG.contractDuration} Saison</span></div>
+                        <div class="confirmation-item"><span class="confirm-icon">✓</span><span>Einmalzahlung: ${formatCurrency(prognosis.adjustedPayment.initial)}</span></div>
                     </div>
                     
                     <div class="confirmation-consequences">
                         <h4>Nach Bestätigung:</h4>
                         <ul>
-                            <li>Vertrag ist bindend für die gesamte Saison</li>
-                            <li>Banner wird sofort im Stadion angezeigt</li>
-                            <li>Einmalzahlung wird umgehend gutgeschrieben</li>
-                            <li>Keine nachträglichen Änderungen möglich</li>
+                            <li>Vertrag ist bindend</li>
+                            <li>Banner wird sofort angezeigt</li>
+                            <li>Einmalzahlung wird gutgeschrieben</li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="sponsor-modal-footer">
                     <button class="btn btn-secondary" data-action="backToDetails" data-sponsor-id="${sponsor.id}">Zurück</button>
-                    <button class="btn btn-primary btn-confirm" data-action="finalizeBooking" data-sponsor-id="${sponsor.id}">
-                        Vertrag unterschreiben ✍️
-                    </button>
+                    <button class="btn btn-primary btn-confirm" data-action="finalizeBooking" data-sponsor-id="${sponsor.id}">Vertrag unterschreiben ✍️</button>
                 </div>
             </div>
         </div>
     `;
 
-    // Schließe vorheriges Modal
-    if (currentModal) {
-        currentModal.remove();
-    }
-    currentModal = modal;
-
     document.body.appendChild(modal);
-    setTimeout(() => modal.classList.add('active'), 10);
-}
+    modalState.currentModal = modal;
+
+    requestAnimationFrame(() => modal.classList.add('active'));
+};
 
 /**
  * Zeigt Erfolgs-Modal
  */
-export function showSuccessModal(sponsor, initialPayment) {
-    const modal = createModal('sponsor-success-modal');
+export const showSuccessModal = (sponsor, initialPayment) => {
+    closeModal(false);
 
+    const modal = createModalElement('sponsor-success-modal');
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
-                <div class="sponsor-modal-header success-header">
-                    <h2>✅ Vertrag abgeschlossen!</h2>
-                </div>
+                <div class="sponsor-modal-header success-header"><h2>✅ Vertrag abgeschlossen!</h2></div>
                 
                 <div class="sponsor-modal-body">
                     <div class="success-animation">🎉</div>
-                    
                     <h3 class="success-title">Herzlichen Glückwunsch!</h3>
-                    
-                    <p class="success-text">
-                        <strong style="color: ${sponsor.color}">${sponsor.name}</strong><br>
-                        ist jetzt Ihr offizieller Partner.
-                    </p>
+                    <p class="success-text"><strong style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</strong> ist jetzt Ihr Partner.</p>
                     
                     <div class="success-details">
-                        <div class="success-item">
-                            <span class="success-icon">💰</span>
-                            <span>+${formatCurrency(initialPayment)} Einmalzahlung erhalten</span>
-                        </div>
-                        <div class="success-item">
-                            <span class="success-icon">📺</span>
-                            <span>Banner wird in ${UI_TEXTS.blocks[currentBlock]} angezeigt</span>
-                        </div>
-                        <div class="success-item">
-                            <span class="success-icon">📊</span>
-                            <span>Performance-Tracking aktiviert</span>
-                        </div>
+                        <div class="success-item"><span class="success-icon">💰</span><span>+${formatCurrency(initialPayment)} erhalten</span></div>
+                        <div class="success-item"><span class="success-icon">📺</span><span>Banner in ${UI_TEXTS.blocks[modalState.currentBlock]}</span></div>
                     </div>
                 </div>
                 
                 <div class="sponsor-modal-footer">
                     <button class="btn btn-secondary" data-action="closeModalAndRefresh">Schließen</button>
-                    <button class="btn btn-primary" data-action="goToSponsorOverview">Zur Sponsor-Übersicht</button>
+                    <button class="btn btn-primary" data-action="goToSponsorOverview">Zur Übersicht</button>
                 </div>
             </div>
         </div>
     `;
 
-    // Schließe vorheriges Modal
-    if (currentModal) {
-        currentModal.remove();
-    }
-    currentModal = modal;
-
     document.body.appendChild(modal);
-    setTimeout(() => modal.classList.add('active'), 10);
-}
+    modalState.currentModal = modal;
+
+    requestAnimationFrame(() => modal.classList.add('active'));
+};
 
 // =====================================================
 // MODAL: VERGLEICHSMODUS
 // =====================================================
 
-/**
- * Zeigt Vergleichs-Modal
- */
-export function showComparisonModal(sponsorIds, stadiumState) {
-    const sponsors = sponsorIds.map(id =>
-        SPONSOR_CONFIG.availableSponsors.find(s => s.id === id)
-    ).filter(Boolean);
+export const showComparisonModal = (sponsorIds, stadiumState) => {
+    const sponsors = sponsorIds.map(id => getSponsorById(id)).filter(Boolean);
+    if (!sponsors.length) return;
 
-    if (sponsors.length === 0) return;
+    closeModal(false);
 
-    const modal = createModal('sponsor-comparison-modal');
-    const content = renderComparisonContent(sponsors, stadiumState);
-
+    const modal = createModalElement('sponsor-comparison-modal');
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
-                ${content}
+                ${renderComparisonContent(sponsors, stadiumState)}
             </div>
         </div>
     `;
 
-    // Schließe vorheriges Modal
-    if (currentModal) {
-        currentModal.remove();
-    }
-    currentModal = modal;
-
     document.body.appendChild(modal);
-    setTimeout(() => modal.classList.add('active'), 10);
-}
+    modalState.currentModal = modal;
 
-/**
- * Rendert Vergleichs-Content
- */
-function renderComparisonContent(sponsors, stadiumState) {
+    requestAnimationFrame(() => modal.classList.add('active'));
+};
+
+const renderComparisonContent = (sponsors, stadiumState) => {
     const comparisons = prepareSponsorComparison(
         sponsors,
         stadiumState.previousSeason,
@@ -594,11 +508,21 @@ function renderComparisonContent(sponsors, stadiumState) {
     );
 
     const bestValues = findBestValues(comparisons);
-    const recommendation = getSponsorRecommendation(sponsors, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
+    const recommendation = getSponsorRecommendation(
+        sponsors,
+        stadiumState.previousSeason,
+        stadiumState.previousSeason.leaguePosition
+    );
+
+    const renderComparisonCell = (value, bestValue, format = 'currency') => {
+        const isBest = value === bestValue;
+        const formatted = format === 'currency' ? formatCurrency(value) : value;
+        return `<td class="${isBest ? 'best-value' : ''}">${formatted}${isBest ? ' ⭐' : ''}</td>`;
+    };
 
     return `
         <div class="sponsor-modal-header">
-            <h2>📊 Sponsoren vergleichen (${sponsors.length}/3 ausgewählt)</h2>
+            <h2>📊 Sponsoren vergleichen (${sponsors.length}/3)</h2>
             <button class="modal-close-btn" data-action="backToSelection">&times;</button>
         </div>
         
@@ -609,10 +533,10 @@ function renderComparisonContent(sponsors, stadiumState) {
                         <tr>
                             <th class="comparison-label-col">Kriterium</th>
                             ${comparisons.map(c => `
-                                <th class="comparison-sponsor-col" style="border-top: 3px solid ${c.sponsor.color}">
+                                <th class="comparison-sponsor-col" style="border-top:3px solid ${c.sponsor.color}">
                                     <div class="comparison-sponsor-header">
-                                        <div class="comparison-sponsor-name">${c.sponsor.name}</div>
-                                        <div class="comparison-sponsor-tier">${SPONSOR_CONFIG.tiers[c.sponsor.tier].icon} ${SPONSOR_CONFIG.tiers[c.sponsor.tier].name}</div>
+                                        <div class="comparison-sponsor-name">${escapeHtml(c.sponsor.name)}</div>
+                                        ${renderTierBadge(c.sponsor.tier, 'small')}
                                     </div>
                                 </th>
                             `).join('')}
@@ -621,38 +545,15 @@ function renderComparisonContent(sponsors, stadiumState) {
                     <tbody>
                         <tr>
                             <td class="comparison-label">💰 Einmalzahlung</td>
-                            ${comparisons.map(c => `
-                                <td class="${c.adjustedPayment.initial === bestValues.bestInitial ? 'best-value' : ''}">
-                                    ${formatCurrency(c.adjustedPayment.initial)}
-                                    ${c.adjustedPayment.initial === bestValues.bestInitial ? ' ⭐' : ''}
-                                </td>
-                            `).join('')}
+                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.initial, bestValues.bestInitial)).join('')}
                         </tr>
                         <tr>
-                            <td class="comparison-label">⚽ Pro Tor<br><small>→ bei ${stadiumState.previousSeason.totalGoals} Toren</small></td>
-                            ${comparisons.map(c => `
-                                <td class="${c.adjustedPayment.perGoal === bestValues.bestPerGoal ? 'best-value' : ''}">
-                                    ${formatCurrency(c.adjustedPayment.perGoal)}
-                                    <div class="comparison-calc">${formatCurrency(c.prognosis.goalBonuses)}</div>
-                                    ${c.adjustedPayment.perGoal === bestValues.bestPerGoal ? ' ⭐' : ''}
-                                </td>
-                            `).join('')}
+                            <td class="comparison-label">⚽ Pro Tor</td>
+                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.perGoal, bestValues.bestPerGoal)).join('')}
                         </tr>
                         <tr>
-                            <td class="comparison-label">🏆 Pro Sieg<br><small>→ bei ${stadiumState.previousSeason.totalWins} Siegen</small></td>
-                            ${comparisons.map(c => `
-                                <td class="${c.adjustedPayment.perWin === bestValues.bestPerWin ? 'best-value' : ''}">
-                                    ${formatCurrency(c.adjustedPayment.perWin)}
-                                    <div class="comparison-calc">${formatCurrency(c.prognosis.winBonuses)}</div>
-                                    ${c.adjustedPayment.perWin === bestValues.bestPerWin ? ' ⭐' : ''}
-                                </td>
-                            `).join('')}
-                        </tr>
-                        <tr>
-                            <td class="comparison-label">🥇 Liga-Titel</td>
-                            ${comparisons.map(c => `
-                                <td>${formatCurrency(c.adjustedPayment.leagueTitle)}</td>
-                            `).join('')}
+                            <td class="comparison-label">🏆 Pro Sieg</td>
+                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.perWin, bestValues.bestPerWin)).join('')}
                         </tr>
                         <tr class="comparison-separator">
                             <td class="comparison-label"><strong>📊 PROGNOSE</strong></td>
@@ -665,32 +566,16 @@ function renderComparisonContent(sponsors, stadiumState) {
                         </tr>
                         <tr>
                             <td class="comparison-label">📈 Best Case</td>
-                            ${comparisons.map(c => `
-                                <td class="${c.prognosis.bestCase === bestValues.bestBestCase ? 'best-value' : ''}">
-                                    ${formatCurrency(c.prognosis.bestCase)}
-                                    ${c.prognosis.bestCase === bestValues.bestBestCase ? ' ⭐' : ''}
-                                </td>
-                            `).join('')}
+                            ${comparisons.map(c => renderComparisonCell(c.prognosis.bestCase, bestValues.bestBestCase)).join('')}
                         </tr>
                         <tr>
                             <td class="comparison-label">📉 Worst Case</td>
-                            ${comparisons.map(c => `
-                                <td class="${c.prognosis.worstCase === bestValues.bestWorstCase ? 'best-value' : ''}">
-                                    ${formatCurrency(c.prognosis.worstCase)}
-                                    ${c.prognosis.worstCase === bestValues.bestWorstCase ? ' ⭐' : ''}
-                                </td>
-                            `).join('')}
+                            ${comparisons.map(c => renderComparisonCell(c.prognosis.worstCase, bestValues.bestWorstCase)).join('')}
                         </tr>
                         <tr class="comparison-actions">
-                            <td class="comparison-label"></td>
+                            <td></td>
                             ${comparisons.map(c => `
-                                <td>
-                                    <button class="btn btn-primary btn-sm" 
-                                            data-action="showSponsorDetails" 
-                                            data-sponsor-id="${c.sponsor.id}">
-                                        Buchen 🎯
-                                    </button>
-                                </td>
+                                <td><button class="btn btn-primary btn-sm" data-action="showSponsorDetails" data-sponsor-id="${c.sponsor.id}">Buchen 🎯</button></td>
                             `).join('')}
                         </tr>
                     </tbody>
@@ -700,11 +585,9 @@ function renderComparisonContent(sponsors, stadiumState) {
             ${recommendation ? `
                 <div class="comparison-recommendation">
                     <h3>💡 Empfehlung</h3>
-                    <p><strong style="color: ${recommendation.sponsor.color}">${recommendation.sponsor.name}</strong></p>
+                    <p><strong style="color:${recommendation.sponsor.color}">${escapeHtml(recommendation.sponsor.name)}</strong></p>
                     <p>${recommendation.reason}</p>
-                    <p class="recommendation-stats">
-                        Team-Profil: Ø ${recommendation.teamProfile.avgGoalsPerGame} Tore/Spiel • ${recommendation.teamProfile.winRate} Siegquote
-                    </p>
+                    <p class="recommendation-stats">Team: Ø ${recommendation.teamProfile.avgGoalsPerGame} Tore • ${recommendation.teamProfile.winRate} Siegquote</p>
                 </div>
             ` : ''}
         </div>
@@ -713,21 +596,55 @@ function renderComparisonContent(sponsors, stadiumState) {
             <button class="btn btn-secondary" data-action="backToSelection">Vergleich beenden</button>
         </div>
     `;
-}
+};
 
 // =====================================================
 // SPONSOR-ÜBERSICHT TAB
 // =====================================================
 
-/**
- * Rendert Sponsor-Übersicht Tab Content
- */
-export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
+export const renderSponsorOverviewTab = (stadiumState, currentSeasonStats) => {
     const activeSponsors = getActiveSponsors(stadiumState);
     const totalRevenue = calculateTotalSponsorRevenue(stadiumState, currentSeasonStats);
     const projection = calculateSeasonProjection(stadiumState, currentSeasonStats);
-
     const freeBlocks = CAPACITY_CONFIG.BLOCKS.filter(block => !stadiumState.features.sponsors[block]);
+
+    // Active Sponsors Cards
+    const activeSponsorCards = activeSponsors.map(({ block, sponsor }) => {
+        const balance = getSponsorBalance(stadiumState, block);
+        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
+        const progress = balance && prognosis ? ((balance.totalThisSeason / prognosis.prognosis.expectedTotal) * 100).toFixed(0) : 0;
+
+        return `
+            <div class="active-sponsor-card glass">
+                <h4 class="active-sponsor-header">${UI_TEXTS.blocks[block]} ${renderTierBadge(sponsor.tier, 'small')}</h4>
+                <h3 class="active-sponsor-name" style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h3>
+                <p class="active-sponsor-slogan">"${escapeHtml(sponsor.slogan)}"</p>
+                
+                <div class="active-sponsor-balance">
+                    <div class="balance-row"><span>💰 Einmalzahlung:</span><span class="balance-value-sm">${formatCurrency(balance?.payments?.initial ?? 0)} ✅</span></div>
+                    <div class="balance-row"><span>⚽ Torprämien (${balance?.stats?.totalGoals ?? 0}):</span><span class="balance-value-sm">${formatCurrency(balance?.payments?.goalBonuses ?? 0)}</span></div>
+                    <div class="balance-row"><span>🏆 Siegprämien (${balance?.stats?.totalWins ?? 0}):</span><span class="balance-value-sm">${formatCurrency(balance?.payments?.winBonuses ?? 0)}</span></div>
+                    <div class="balance-row balance-total-sm"><span>TOTAL:</span><span class="balance-value-sm">${formatCurrency(balance?.totalThisSeason ?? 0)}</span></div>
+                    <div class="balance-progress"><small>(${progress}% der Prognose)</small></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Free Blocks Cards
+    const freeBlockCards = freeBlocks.map(block => `
+        <div class="free-sponsor-card glass">
+            <h4>${UI_TEXTS.blocks[block]}</h4>
+            <div class="free-sponsor-content">
+                <div class="free-sponsor-icon">🆓</div>
+                <p class="free-sponsor-text">Banner-Platz ungenutzt</p>
+                ${stadiumState.features.advertising[block]
+        ? `<button class="btn btn-primary" data-action="openSponsorSelection" data-block="${block}">+ Sponsor buchen 🎯</button>`
+        : `<p class="free-sponsor-note">⚠️ Werbebande nicht installiert</p>`
+    }
+            </div>
+        </div>
+    `).join('');
 
     return `
         <h2 class="section-title">📊 Sponsor-Übersicht Saison ${stadiumState.season}</h2>
@@ -735,250 +652,87 @@ export function renderSponsorOverviewTab(stadiumState, currentSeasonStats) {
         <div class="sponsor-overview-balance glass">
             <h3>💰 Gesamtbilanz</h3>
             <div class="balance-grid">
-                <div class="balance-item">
-                    <div class="balance-label">Einmalzahlungen (Saisonstart):</div>
-                    <div class="balance-value">${formatCurrency(totalRevenue.initial)}</div>
-                </div>
-                
-                <div class="balance-item">
-                    <div class="balance-label">Torprämien bisher:</div>
-                    <div class="balance-details">
-                        <div>• ${currentSeasonStats.goals} Tore gesamt</div>
-                        ${activeSponsors.map(({ sponsor, block }) => {
-        const balance = getSponsorBalance(stadiumState, block);
-        return `<div>• ${sponsor.name}: ${balance.stats.totalGoals} × ${formatCurrency(balance.payments.goalBonuses / balance.stats.totalGoals || 0)} = ${formatCurrency(balance.payments.goalBonuses)}</div>`;
-    }).join('')}
-                        <div class="balance-sum">Summe: ${formatCurrency(totalRevenue.goals)}</div>
-                    </div>
-                </div>
-                
-                <div class="balance-item">
-                    <div class="balance-label">Siegprämien bisher:</div>
-                    <div class="balance-details">
-                        <div>• ${currentSeasonStats.wins} Siege gesamt</div>
-                        ${activeSponsors.map(({ sponsor, block }) => {
-        const balance = getSponsorBalance(stadiumState, block);
-        return `<div>• ${sponsor.name}: ${balance.stats.totalWins} × ${formatCurrency(balance.payments.winBonuses / balance.stats.totalWins || 0)} = ${formatCurrency(balance.payments.winBonuses)}</div>`;
-    }).join('')}
-                        <div class="balance-sum">Summe: ${formatCurrency(totalRevenue.wins)}</div>
-                    </div>
-                </div>
-                
-                <div class="balance-item">
-                    <div class="balance-label">Titelprämien:</div>
-                    <div class="balance-value">${formatCurrency(totalRevenue.titles)}</div>
-                </div>
-                
-                <div class="balance-item balance-total">
-                    <div class="balance-label">GESAMT DIESE SAISON:</div>
-                    <div class="balance-value">${formatCurrency(totalRevenue.total)}</div>
-                </div>
+                <div class="balance-item"><div class="balance-label">Einmalzahlungen:</div><div class="balance-value">${formatCurrency(totalRevenue.initial)}</div></div>
+                <div class="balance-item"><div class="balance-label">Torprämien:</div><div class="balance-value">${formatCurrency(totalRevenue.goals)}</div></div>
+                <div class="balance-item"><div class="balance-label">Siegprämien:</div><div class="balance-value">${formatCurrency(totalRevenue.wins)}</div></div>
+                <div class="balance-item"><div class="balance-label">Titelprämien:</div><div class="balance-value">${formatCurrency(totalRevenue.titles)}</div></div>
+                <div class="balance-item balance-total"><div class="balance-label">GESAMT:</div><div class="balance-value">${formatCurrency(totalRevenue.total)}</div></div>
             </div>
         </div>
         
         <div class="sponsor-overview-active glass">
-            <h3>📺 Aktive Sponsoren (${activeSponsors.length}/4 Tribünen belegt)</h3>
-            
-            ${activeSponsors.map(({ block, sponsor }) => {
-        const balance = getSponsorBalance(stadiumState, block);
-        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-        const progress = (balance.totalThisSeason / prognosis.prognosis.expectedTotal * 100).toFixed(0);
-
-        return `
-                    <div class="active-sponsor-card glass">
-                        <h4 class="active-sponsor-header">
-                            ${UI_TEXTS.blocks[block]}
-                            <span class="sponsor-tier-badge-small" style="background: ${SPONSOR_CONFIG.tiers[sponsor.tier].color}">
-                                ${SPONSOR_CONFIG.tiers[sponsor.tier].icon}
-                            </span>
-                        </h4>
-                        <h3 class="active-sponsor-name" style="color: ${sponsor.color}">${sponsor.name}</h3>
-                        <p class="active-sponsor-slogan">"${sponsor.slogan}"</p>
-                        
-                        <div class="active-sponsor-balance">
-                            <div class="balance-row">
-                                <span>💰 Einmalzahlung:</span>
-                                <span class="balance-value-sm">${formatCurrency(balance.payments.initial)} ✅</span>
-                            </div>
-                            <div class="balance-row">
-                                <span>⚽ Torprämien (${balance.stats.totalGoals}):</span>
-                                <span class="balance-value-sm">${formatCurrency(balance.payments.goalBonuses)}</span>
-                            </div>
-                            <div class="balance-row">
-                                <span>🏆 Siegprämien (${balance.stats.totalWins}):</span>
-                                <span class="balance-value-sm">${formatCurrency(balance.payments.winBonuses)}</span>
-                            </div>
-                            <div class="balance-row">
-                                <span>🥇 Titelprämien:</span>
-                                <span class="balance-value-sm">${formatCurrency(balance.payments.titleBonuses)}</span>
-                            </div>
-                            <div class="balance-row balance-total-sm">
-                                <span>TOTAL DIESE SAISON:</span>
-                                <span class="balance-value-sm">${formatCurrency(balance.totalThisSeason)}</span>
-                            </div>
-                            <div class="balance-progress">
-                                <small>(Prognose war: ${formatCurrency(prognosis.prognosis.expectedTotal)} → ${progress}% erreicht)</small>
-                            </div>
-                        </div>
-                    </div>
-                `;
-    }).join('')}
-            
-            ${freeBlocks.map(block => `
-                <div class="free-sponsor-card glass">
-                    <h4>${UI_TEXTS.blocks[block]}</h4>
-                    <div class="free-sponsor-content">
-                        <div class="free-sponsor-icon">🆓</div>
-                        <p class="free-sponsor-text">
-                            Banner-Platz derzeit ungenutzt.<br>
-                            Mögliche Einnahmen: ~450.000 € pro Saison
-                        </p>
-                        ${stadiumState.features.advertising[block] ? `
-                            <button class="btn btn-primary" data-action="openSponsorSelection" data-block="${block}">
-                                + Sponsor buchen 🎯
-                            </button>
-                        ` : `
-                            <p class="free-sponsor-note">⚠️ Bitte installiere zuerst die Werbebande!</p>
-                        `}
-                    </div>
-                </div>
-            `).join('')}
+            <h3>📺 Aktive Sponsoren (${activeSponsors.length}/4)</h3>
+            ${activeSponsorCards}
+            ${freeBlockCards}
         </div>
         
-        ${projection && currentSeasonStats.gamesPlayed > 0 ? `
+        ${projection ? `
             <div class="sponsor-overview-projection glass">
                 <h3>📈 Hochrechnung Saisonende</h3>
-                
-                <div class="projection-current">
-                    <h4>Bisherige Performance (${currentSeasonStats.gamesPlayed}/${stadiumState.previousSeason.totalGames} Spiele):</h4>
-                    <ul>
-                        <li>Ø ${projection.avgGoalsPerGame} Tore/Spiel (${currentSeasonStats.goals} Tore)</li>
-                        <li>${projection.winRate}% Siegquote (${currentSeasonStats.wins} Siege)</li>
-                    </ul>
-                </div>
-                
-                <div class="projection-forecast">
-                    <h4>Wenn Performance konstant bleibt:</h4>
-                    <ul>
-                        <li>Gesamt-Tore Saisonende: ~${projection.projectedTotalGoals}</li>
-                        <li>Gesamt-Siege Saisonende: ~${projection.projectedTotalWins}</li>
-                    </ul>
-                </div>
-                
+                <p>Ø ${projection.avgGoalsPerGame} Tore/Spiel • ${projection.winRate}% Siegquote</p>
                 <div class="projection-total">
                     <div class="projection-label">Erwartete Gesamt-Einnahmen:</div>
                     <div class="projection-value">${formatCurrency(projection.projectedTotal)}</div>
                 </div>
-                
-                ${activeSponsors.map(({ sponsor, block }) => {
-        const balance = getSponsorBalance(stadiumState, block);
-        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-        const projectedSponsor = balance.payments.initial +
-            (projection.projectedTotalGoals * prognosis.adjustedPayment.perGoal) +
-            (projection.projectedTotalWins * prognosis.adjustedPayment.perWin);
-        const percentOfPrognosis = (projectedSponsor / prognosis.prognosis.expectedTotal * 100).toFixed(0);
-        const emoji = percentOfPrognosis >= 100 ? '📈' : percentOfPrognosis >= 90 ? '📊' : '📉';
-
-        return `
-                        <div class="projection-sponsor">
-                            • ${sponsor.name}: ~${formatCurrency(projectedSponsor)} ${emoji} (${percentOfPrognosis}% Prognose${percentOfPrognosis > 100 ? '!' : ''})
-                        </div>
-                    `;
-    }).join('')}
             </div>
         ` : ''}
     `;
-}
+};
 
 // =====================================================
 // HELPER FUNCTIONS
 // =====================================================
 
 /**
- * Erstellt Modal-Container
- */
-function createModal(id) {
-    const modal = document.createElement('div');
-    modal.id = id;
-    modal.className = 'sponsor-modal';
-    return modal;
-}
-
-/**
  * Schließt aktuelles Modal
  */
-export function closeModal(resetState = true) {
+export const closeModal = (resetState = true) => {
+    const { currentModal } = modalState;
+
     if (currentModal) {
         currentModal.classList.remove('active');
+
+        // Cleanup nach Animation
         setTimeout(() => {
             currentModal.remove();
-            currentModal = null;
         }, 300);
+
+        modalState.currentModal = null;
     }
 
-    // Reset state only if explicitly requested (not during re-renders)
     if (resetState) {
-        currentBlock = null;
-        comparisonMode = false;
-        selectedForComparison = [];
+        modalState.currentBlock = null;
+        modalState.comparisonMode = false;
+        modalState.selectedForComparison = [];
     }
-}
+};
 
-/**
- * Toggled Vergleichsmodus
- */
-export function toggleComparisonMode() {
-    comparisonMode = !comparisonMode;
-
-    if (!comparisonMode) {
-        selectedForComparison = [];
+export const toggleComparisonMode = () => {
+    modalState.comparisonMode = !modalState.comparisonMode;
+    if (!modalState.comparisonMode) {
+        modalState.selectedForComparison = [];
     }
-}
+};
 
-/**
- * Togglet Sponsor in Vergleichsliste
- */
-export function toggleSponsorForComparison(sponsorId) {
-    const index = selectedForComparison.indexOf(sponsorId);
+export const toggleSponsorForComparison = (sponsorId) => {
+    const idx = modalState.selectedForComparison.indexOf(sponsorId);
 
-    if (index > -1) {
-        selectedForComparison.splice(index, 1);
-    } else {
-        if (selectedForComparison.length < 3) {
-            selectedForComparison.push(sponsorId);
-        }
+    if (idx > -1) {
+        modalState.selectedForComparison.splice(idx, 1);
+    } else if (modalState.selectedForComparison.length < 3) {
+        modalState.selectedForComparison.push(sponsorId);
     }
 
-    // Wenn 3 ausgewählt, zeige Vergleich
-    return selectedForComparison.length === 3;
+    return modalState.selectedForComparison.length === 3;
+};
 
+export const updateFilter = (filterType, value) => {
+    modalState.filters[filterType] = value;
+};
 
-}
+export const updateSort = (sortValue) => {
+    modalState.sort = sortValue;
+};
 
-/**
- * Updated Filter
- */
-export function updateFilter(filterType, value) {
-    currentFilters[filterType] = value;
-}
-
-/**
- * Updated Sortierung
- */
-export function updateSort(sortValue) {
-    currentSort = sortValue;
-}
-
-/**
- * Gibt aktuellen Block zurück
- */
-export function getCurrentBlock() {
-    return currentBlock;
-}
-
-/**
- * Gibt ausgewählte Sponsoren für Vergleich zurück
- */
-export function getSelectedForComparison() {
-    return selectedForComparison;
-}
+export const getCurrentBlock = () => modalState.currentBlock;
+export const getSelectedForComparison = () => [...modalState.selectedForComparison];

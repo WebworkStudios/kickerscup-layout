@@ -42,7 +42,7 @@ const moduleRegistry = {
         module: null
     },
     stadium: {
-        scripts: ['./stadium-config-extended.js', './stadium-sponsors.js', './stadium-sponsors-ui.js', './stadium.js'],
+        scripts: ['./stadium-config.js', './stadium-sponsors.js', './stadium-sponsors-ui.js', './stadium.js'],
         css: ['css/stadium.css', 'css/stadium-sponsors.css', 'css/stadium-modals.css', 'css/stadium-css-additions.css'],
         cssElements: [],
         module: null
