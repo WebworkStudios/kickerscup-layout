@@ -1,6 +1,6 @@
 // =====================================================
 // KICKERSCUP - STADIUM MANAGEMENT SYSTEM (ESM)
-// Stadion-Verwaltung mit Bauzeiten und Features + SPONSOREN
+// Stadion-Verwaltung mit Bauzeiten, Features, Sponsoren + TRIBÜNEN-AUSBAU
 // =====================================================
 
 import {
@@ -10,11 +10,15 @@ import {
     FLOODLIGHT_CONFIG,
     PITCH_CONFIG,
     ADVERTISING_CONFIG,
+    EXPANSION_CONFIG,
     INITIAL_STADIUM_STATE,
     UI_TEXTS,
     calculateBuildDays,
     formatCurrency,
-    formatCapacity
+    formatCapacity,
+    calculateCapacityDistribution,
+    getNextExpansionStage,
+    calculateExpansionCost
 } from './stadium-config-extended.js';
 
 // Sponsor-Imports
@@ -123,6 +127,14 @@ const isGameSeasonActive = () => {
 };
 
 /**
+ * Prüft ob Tribünen-Ausbau erlaubt ist (nur Tag 28-31)
+ */
+const isExpansionAllowed = () => {
+    const day = stadiumState.currentDay;
+    return EXPANSION_CONFIG.buildSeasonRestriction.allowedDays.includes(day);
+};
+
+/**
  * Aktualisiert Bau-Queue (wird einmal pro Tag aufgerufen)
  */
 const tickBuildTimer = () => {
@@ -196,9 +208,62 @@ const completeConstruction = (project) => {
         case 'advertising':
             stadiumState.features.advertising[project.block] = true;
             break;
+
+        case 'expansion':
+            applyExpansion(project);
+            break;
     }
 
     alert(`✅ Bauprojekt abgeschlossen!\n\n${project.name} ist nun verfügbar.`);
+};
+
+/**
+ * Wendet Tribünen-Ausbau an (nach Bauabschluss)
+ */
+const applyExpansion = (project) => {
+    const block = project.block;
+    const newStage = project.targetStage;
+    const stageConfig = EXPANSION_CONFIG.stages[newStage];
+
+    // Update Stage
+    stadiumState.capacity.distribution[block].stage = newStage;
+    stadiumState.capacity.distribution[block].capacity = stageConfig.capacity;
+
+    // Berechne neue Verteilung für diesen Block
+    const hasBoxes = stadiumState.capacity.boxes.placement === block;
+    const dist = calculateCapacityDistribution(stageConfig.capacity, hasBoxes);
+
+    stadiumState.capacity.distribution[block].standing = dist.standing;
+    stadiumState.capacity.distribution[block].seated = dist.seated;
+    stadiumState.capacity.distribution[block].boxes = dist.boxes;
+
+    // Berechne Gesamt-Kapazität neu
+    recalculateTotalCapacity();
+
+    console.log(`✅ Tribünen-Ausbau ${UI_TEXTS.blocks[block]} auf ${stageConfig.name} abgeschlossen`);
+};
+
+/**
+ * Berechnet Gesamt-Kapazität neu
+ */
+const recalculateTotalCapacity = () => {
+    let totalCapacity = 0;
+    let totalStanding = 0;
+    let totalSeated = 0;
+    let totalBoxes = 0;
+
+    CAPACITY_CONFIG.BLOCKS.forEach(block => {
+        const dist = stadiumState.capacity.distribution[block];
+        totalCapacity += dist.capacity;
+        totalStanding += dist.standing;
+        totalSeated += dist.seated;
+        totalBoxes += dist.boxes || 0;
+    });
+
+    stadiumState.capacity.total = totalCapacity;
+    stadiumState.capacity.standing = totalStanding;
+    stadiumState.capacity.seated = totalSeated;
+    stadiumState.capacity.boxes.total = totalBoxes;
 };
 
 /**
@@ -232,6 +297,58 @@ const addConstructionProject = (projectData) => {
     renderConstructionQueue();
 
     console.log(`📋 Bauprojekt hinzugefügt: ${project.name} (${project.status})`);
+};
+
+// =====================================================
+// TRIBÜNEN-AUSBAU
+// =====================================================
+
+/**
+ * Baut eine Tribüne aus
+ */
+const expandBlock = (block) => {
+    // Prüfe Saisonpause
+    if (!isExpansionAllowed()) {
+        alert(`❌ ${EXPANSION_CONFIG.buildSeasonRestriction.warningMessage}`);
+        return;
+    }
+
+    const currentStage = stadiumState.capacity.distribution[block].stage;
+    const nextStage = getNextExpansionStage(currentStage);
+
+    if (!nextStage) {
+        alert(`❌ ${UI_TEXTS.blocks[block]} ist bereits maximal ausgebaut!`);
+        return;
+    }
+
+    const cost = calculateExpansionCost(block, nextStage);
+    const duration = calculateBuildDays(nextStage.buildWeeks);
+    const multiplier = EXPANSION_CONFIG.blockMultipliers[block];
+    const multiplierText = multiplier !== 1.0 ? ` (×${multiplier.toFixed(2)})` : '';
+
+    const currentCap = stadiumState.capacity.distribution[block].capacity;
+    const newCap = nextStage.capacity;
+    const increase = newCap - currentCap;
+
+    if (!confirm(`Tribünen-Ausbau ${UI_TEXTS.blocks[block]}?\n\n` +
+        `Ausbau: ${nextStage.name}\n` +
+        `Kapazität: ${formatCapacity(currentCap)} → ${formatCapacity(newCap)} (+${formatCapacity(increase)})\n` +
+        `Kosten: ${formatCurrency(cost)}${multiplierText}\n` +
+        `Bauzeit: ${nextStage.buildWeeks} SW (${duration} Tage)\n\n` +
+        `⚠️ Bau startet nach Saisonpause!`)) {
+        return;
+    }
+
+    addConstructionProject({
+        type: 'expansion',
+        name: `Tribünen-Ausbau ${UI_TEXTS.blocks[block]} - ${nextStage.name}`,
+        block: block,
+        targetStage: nextStage.id,
+        duration: duration,
+        cost: cost
+    });
+
+    alert(`🔨 Tribünen-Ausbau ${UI_TEXTS.blocks[block]} gestartet!\n\nBauzeit: ${duration} Tage`);
 };
 
 // =====================================================
@@ -369,15 +486,60 @@ const changeBoxPlacement = (targetBlock) => {
         return;
     }
 
+    // Erste Logenbau
+    if (!currentBlock) {
+        const boxTotal = Math.round(stadiumState.capacity.total * CAPACITY_CONFIG.DISTRIBUTION.BOXES);
+
+        if (!confirm(`Logen erstmalig in ${UI_TEXTS.blocks[targetBlock]} errichten?\n\n` +
+            `7.500 Logenplätze (5% der Gesamtkapazität)\n` +
+            `Reduziert Steh-/Sitzplätze in dieser Tribüne\n\n` +
+            `Hinweis: Logen können später zwischen OST/WEST verschoben werden.`)) {
+            return;
+        }
+
+        stadiumState.capacity.boxes.placement = targetBlock;
+        stadiumState.capacity.boxes.total = boxTotal;
+
+        // Neuberechnung der Verteilung für Target-Block
+        const blockCap = stadiumState.capacity.distribution[targetBlock].capacity;
+        const dist = calculateCapacityDistribution(blockCap, true);
+
+        stadiumState.capacity.distribution[targetBlock].boxes = dist.boxes;
+        stadiumState.capacity.distribution[targetBlock].standing = dist.standing;
+        stadiumState.capacity.distribution[targetBlock].seated = dist.seated;
+
+        recalculateTotalCapacity();
+        saveStadiumState();
+        renderStadiumOverview();
+
+        alert(`✅ Logen erfolgreich in ${UI_TEXTS.blocks[targetBlock]} errichtet!`);
+        return;
+    }
+
+    // Logen verschieben
     if (!confirm(`Logen von ${UI_TEXTS.blocks[currentBlock]} nach ${UI_TEXTS.blocks[targetBlock]} verlegen?\n\nHinweis: Diese Änderung ist sofort wirksam.`)) {
         return;
     }
 
-    // Aktualisiere Distribution
+    // Alte Position: Logen entfernen
+    const oldBlockCap = stadiumState.capacity.distribution[currentBlock].capacity;
+    const oldDist = calculateCapacityDistribution(oldBlockCap, false);
+
     stadiumState.capacity.distribution[currentBlock].boxes = 0;
-    stadiumState.capacity.distribution[targetBlock].boxes = 7500;
+    stadiumState.capacity.distribution[currentBlock].standing = oldDist.standing;
+    stadiumState.capacity.distribution[currentBlock].seated = oldDist.seated;
+
+    // Neue Position: Logen hinzufügen
+    const newBlockCap = stadiumState.capacity.distribution[targetBlock].capacity;
+    const newDist = calculateCapacityDistribution(newBlockCap, true);
+
+    stadiumState.capacity.distribution[targetBlock].boxes = newDist.boxes;
+    stadiumState.capacity.distribution[targetBlock].standing = newDist.standing;
+    stadiumState.capacity.distribution[targetBlock].seated = newDist.seated;
+
     stadiumState.capacity.boxes.placement = targetBlock;
 
+    recalculateTotalCapacity();
     saveStadiumState();
     renderStadiumOverview();
 
@@ -460,8 +622,9 @@ const renderStadiumOverview = () => {
         const blockCapEl = document.getElementById(`block${block}Capacity`);
 
         if (blockCapEl) {
-            const totalBlock = dist.standing + dist.seated + (dist.boxes || 0);
-            blockCapEl.textContent = formatCapacity(totalBlock);
+            const totalBlock = dist.capacity;
+            const stage = EXPANSION_CONFIG.stages[dist.stage];
+            blockCapEl.textContent = `${formatCapacity(totalBlock)} (${stage.name})`;
         }
 
         // Roof-Status
@@ -622,6 +785,7 @@ const switchFeatureTab = (tabName) => {
     const tabIdMap = {
         'blocks': 'tabBlocks',
         'infrastructure': 'tabInfrastructure',
+        'expansion': 'tabExpansion',
         'sponsors': 'tabSponsors',
         'construction': 'tabConstruction'
     };
@@ -651,7 +815,85 @@ const switchFeatureTab = (tabName) => {
                 container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
             }
         }
+
+        // Wenn Expansion-Tab, rendere Übersicht
+        if (tabName === 'expansion') {
+            renderExpansionOverview();
+        }
     }
+};
+
+/**
+ * Rendert Tribünen-Ausbau-Übersicht
+ */
+const renderExpansionOverview = () => {
+    const container = document.getElementById('expansionOverviewContainer');
+    if (!container) return;
+
+    const isAllowed = isExpansionAllowed();
+    const warningClass = isAllowed ? '' : 'expansion-warning';
+
+    let html = `
+        <div class="expansion-info ${warningClass}">
+            ${isAllowed ?
+        '<p>✅ Saisonpause aktiv - Tribünen-Ausbau ist möglich!</p>' :
+        `<p>⚠️ ${EXPANSION_CONFIG.buildSeasonRestriction.warningMessage}</p>`
+    }
+        </div>
+        
+        <div class="expansion-blocks-grid">
+    `;
+
+    CAPACITY_CONFIG.BLOCKS.forEach(block => {
+        const dist = stadiumState.capacity.distribution[block];
+        const currentStage = EXPANSION_CONFIG.stages[dist.stage];
+        const nextStage = getNextExpansionStage(dist.stage);
+        const multiplier = EXPANSION_CONFIG.blockMultipliers[block];
+
+        html += `
+            <div class="expansion-block-card glass">
+                <h3>${UI_TEXTS.blocks[block]}</h3>
+                
+                <div class="expansion-current">
+                    <div class="expansion-label">Aktuell:</div>
+                    <div class="expansion-stage">${currentStage.name}</div>
+                    <div class="expansion-capacity">${formatCapacity(currentStage.capacity)} Plätze</div>
+                    <div class="expansion-breakdown">
+                        • ${formatCapacity(dist.standing)} Stehplätze<br>
+                        • ${formatCapacity(dist.seated)} Sitzplätze<br>
+                        ${dist.boxes > 0 ? `• ${formatCapacity(dist.boxes)} Logen<br>` : ''}
+                    </div>
+                </div>
+                
+                ${nextStage ? `
+                    <div class="expansion-arrow">⬇️</div>
+                    
+                    <div class="expansion-next">
+                        <div class="expansion-label">Nächster Ausbau:</div>
+                        <div class="expansion-stage">${nextStage.name}</div>
+                        <div class="expansion-capacity">${formatCapacity(nextStage.capacity)} Plätze (+${formatCapacity(nextStage.capacity - currentStage.capacity)})</div>
+                        <div class="expansion-cost">${formatCurrency(calculateExpansionCost(block, nextStage))}${multiplier !== 1.0 ? ` (×${multiplier.toFixed(2)})` : ''}</div>
+                        <div class="expansion-time">${nextStage.buildWeeks} SW (${calculateBuildDays(nextStage.buildWeeks)} Tage)</div>
+                    </div>
+                    
+                    <button class="btn btn-primary" 
+                            data-action="expandBlock" 
+                            data-block="${block}"
+                            ${!isAllowed ? 'disabled' : ''}>
+                        ${isAllowed ? '🔨 Ausbau starten' : '⏸️ Nur in Saisonpause'}
+                    </button>
+                ` : `
+                    <div class="expansion-maxed">
+                        ✅ Maximal ausgebaut!
+                    </div>
+                `}
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    container.innerHTML = html;
 };
 
 // =====================================================
@@ -691,6 +933,10 @@ const handleDocumentClick = (e) => {
     const sponsorId = target.dataset.sponsorId ? parseInt(target.dataset.sponsorId) : null;
 
     switch (action) {
+        case 'expandBlock':
+            expandBlock(block);
+            break;
+
         case 'buildRoof':
             buildRoof(block);
             break;
@@ -793,6 +1039,12 @@ const simulateDay = () => {
     const dayEl = document.getElementById('currentDay');
     if (dayEl) dayEl.textContent = stadiumState.currentDay;
 
+    // Refresh Expansion Tab wenn geöffnet
+    const expansionTab = document.getElementById('tabExpansion');
+    if (expansionTab && expansionTab.classList.contains('active')) {
+        renderExpansionOverview();
+    }
+
     console.log(`📅 Simuliert: Tag ${stadiumState.currentDay}`);
 };
 
@@ -804,7 +1056,7 @@ const simulateDay = () => {
  * Initialisiert das Modul
  */
 export function init() {
-    console.log('🎬 Initialisiere Stadium-Modul mit Sponsor-System');
+    console.log('🎬 Initialisiere Stadium-Modul mit Sponsor-System + Tribünen-Ausbau');
 
     loadStadiumState();
     renderStadiumOverview();

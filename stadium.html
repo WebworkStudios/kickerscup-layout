@@ -9,6 +9,7 @@
     <div class="calendar-info">
         <span>📅 Aktueller Tag: <strong id="currentDay">12</strong></span>
         <span>🏟️ Spielbetrieb: Tag 1-27</span>
+        <span>🔨 Tribünen-Ausbau: Tag 28-31</span>
     </div>
     <button class="btn btn-secondary btn-sm" data-action="simulateDay">
         ⏭️ Tag simulieren
@@ -28,24 +29,24 @@
     <div class="stat-card glass">
         <div class="stat-icon">🧍</div>
         <div class="stat-content">
-            <div class="stat-label">Stehplätze</div>
-            <div class="stat-value" id="standingCapacity">10.000</div>
+            <div class="stat-label">Stehplätze (35%)</div>
+            <div class="stat-value" id="standingCapacity">7.000</div>
         </div>
     </div>
 
     <div class="stat-card glass">
         <div class="stat-icon">💺</div>
         <div class="stat-content">
-            <div class="stat-label">Sitzplätze</div>
-            <div class="stat-value" id="seatedCapacity">10.000</div>
+            <div class="stat-label">Sitzplätze (60%)</div>
+            <div class="stat-value" id="seatedCapacity">12.000</div>
         </div>
     </div>
 
     <div class="stat-card glass">
         <div class="stat-icon">⭐</div>
         <div class="stat-content">
-            <div class="stat-label">Logen</div>
-            <div class="stat-value" id="boxesCapacity">0</div>
+            <div class="stat-label">Logen (5%)</div>
+            <div class="stat-value" id="boxesCapacity">1.000</div>
         </div>
     </div>
 </div>
@@ -130,6 +131,9 @@
     </button>
     <button class="feature-tab" data-tab="infrastructure">
         💡 Infrastruktur
+    </button>
+    <button class="feature-tab" data-tab="expansion">
+        📈 Ausbau
     </button>
     <button class="feature-tab" data-tab="sponsors">
         📺 Sponsoren
@@ -260,7 +264,7 @@
     <div class="feature-section glass">
         <h3>⭐ Logen-Platzierung</h3>
         <p class="feature-description">
-            7.500 Logenplätze können in OST oder WEST platziert werden. Sofortige Änderung möglich.
+            5% der Gesamtkapazität können als Logen in OST oder WEST platziert werden (max. 7.500 bei Vollausbau).
         </p>
 
         <div class="feature-grid">
@@ -378,6 +382,15 @@
     </div>
 </div>
 
+<!-- Tab Content: Tribünen-Ausbau -->
+<div class="tab-content" id="tabExpansion">
+    <h2 class="section-title">📈 Tribünen-Ausbau</h2>
+
+    <div id="expansionOverviewContainer">
+        <!-- Wird dynamisch von stadium.js befüllt -->
+    </div>
+</div>
+
 <!-- Tab Content: Sponsoren -->
 <div class="tab-content" id="tabSponsors">
     <div id="sponsorOverviewContainer">
@@ -392,6 +405,7 @@
     <div class="construction-info glass">
         <p>
             ⚠️ Bauarbeiten laufen nur während des Spielbetriebs (Tag 1-27).<br>
+            🔨 Tribünen-Ausbau ist nur während der Saisonpause (Tag 28-31) möglich.<br>
             Maximal 2 parallele Bauprojekte möglich.
         </p>
     </div>

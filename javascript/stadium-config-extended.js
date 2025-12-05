@@ -1,6 +1,6 @@
 // =====================================================
 // KICKERSCUP - STADIUM CONFIGURATION (EXTENDED)
-// Zentrale Konfiguration für Stadion-Features + SPONSOREN
+// Zentrale Konfiguration für Stadion-Features + Sponsoren + Tribünen-Ausbau
 // =====================================================
 
 /**
@@ -27,6 +27,86 @@ export const CAPACITY_CONFIG = {
 };
 
 /**
+ * Tribünen-Ausbau-System
+ * Schrittweiser Ausbau von 20k bis 150k Plätzen
+ */
+export const EXPANSION_CONFIG = {
+    // Ausbaustufen pro Block (4 Blöcke × 7 Stufen = 28 Ausbauschritte gesamt)
+    stages: [
+        {
+            id: 0,
+            capacity: 5000,      // Start: 5.000 pro Block = 20.000 gesamt
+            name: 'Basis',
+            cost: 0,
+            buildWeeks: 0,
+            description: 'Ursprüngliche Tribüne'
+        },
+        {
+            id: 1,
+            capacity: 10000,     // +5.000 = 10.000 pro Block = 40.000 gesamt
+            name: 'Stufe 1',
+            cost: 800000,
+            buildWeeks: 4,
+            description: 'Erste Erweiterung'
+        },
+        {
+            id: 2,
+            capacity: 15000,     // +5.000 = 15.000 pro Block = 60.000 gesamt
+            name: 'Stufe 2',
+            cost: 1200000,
+            buildWeeks: 5,
+            description: 'Mittlere Erweiterung'
+        },
+        {
+            id: 3,
+            capacity: 20000,     // +5.000 = 20.000 pro Block = 80.000 gesamt
+            name: 'Stufe 3',
+            cost: 1800000,
+            buildWeeks: 6,
+            description: 'Große Erweiterung'
+        },
+        {
+            id: 4,
+            capacity: 27500,     // +7.500 = 27.500 pro Block = 110.000 gesamt
+            name: 'Stufe 4',
+            cost: 2500000,
+            buildWeeks: 7,
+            description: 'Premium-Erweiterung'
+        },
+        {
+            id: 5,
+            capacity: 32500,     // +5.000 = 32.500 pro Block = 130.000 gesamt
+            name: 'Stufe 5',
+            cost: 3200000,
+            buildWeeks: 8,
+            description: 'Elite-Erweiterung'
+        },
+        {
+            id: 6,
+            capacity: 37500,     // +5.000 = 37.500 pro Block = 150.000 gesamt (MAX)
+            name: 'Maximum',
+            cost: 4000000,
+            buildWeeks: 10,
+            description: 'Maximaler Ausbau'
+        }
+    ],
+
+    // Block-spezifische Besonderheiten
+    blockMultipliers: {
+        NORD: 1.0,      // Standard-Kurve
+        OST: 1.15,      // Haupttribüne (teurer wegen Infrastruktur)
+        SUED: 1.0,      // Standard-Kurve
+        WEST: 1.1       // Gegengerade (leicht teurer)
+    },
+
+    // Ausbau nur während Saisonpause (Tag 28-31)
+    buildSeasonRestriction: {
+        allowedDays: [28, 29, 30, 31],
+        warningMessage: 'Tribünen-Ausbau ist nur während der Saisonpause (Tag 28-31) möglich!'
+    }
+};
+
+/**
  * Spielbetrieb und Bauzeiten
  */
 export const TIMING_CONFIG = {
@@ -42,6 +122,9 @@ export const TIMING_CONFIG = {
     // Maximale parallele Bauprojekte
     MAX_PARALLEL_BUILDS: 2
 };
+
+// Extrahiere Konstante für Wiederverwendung
+const DAYS_PER_WEEK = TIMING_CONFIG.DAYS_PER_BUILD_WEEK;
 
 /**
  * Feature: Block-Dächer (4 separate Einheiten)
@@ -155,80 +238,105 @@ export const PITCH_CONFIG = {
 };
 
 /**
- * Feature: Werbung (4 Banden - 1 Banner pro Tribüne)
+ * Feature: Werbung (4 Banden mit realistischen Werbebannern)
  */
 export const ADVERTISING_CONFIG = {
     type: 'block-specific',
+
+    // Banden-Platzierung: Längsseiten (OST/WEST) und Kurven (NORD/SUED)
+    blocks: ['NORD', 'OST', 'SUED', 'WEST'],
+    bannerTypes: {
+        NORD: 'curve',      // Kurze Seite (Kurven-Bande)
+        OST: 'longside',    // Lange Seite (Längs-Bande)
+        SUED: 'curve',      // Kurze Seite (Kurven-Bande)
+        WEST: 'longside'    // Lange Seite (Längs-Bande)
+    },
 
     // Installation
     buildWeeks: 1,  // 1 SW = 7 Tage
     cost: 50000,
 
-    // Wartungskosten pro Bande/Monat
-    maintenanceCost: 1000
+    // Wartungskosten pro Feld/Monat
+    maintenanceCost: 1000,
+
+    // Banner-Slots pro Bande (rotierend während des Spiels)
+    bannersPerBlock: {
+        longside: 3,  // Längsseiten: 3 rotierende Banner
+        curve: 2      // Kurven: 2 rotierende Banner
+    },
+
+    // Rotation: Banner wechseln alle X Sekunden (im Spiel)
+    rotationInterval: 30  // Sekunden
 };
 
 /**
  * Sponsor-Kategorien und verfügbare Firmen
  */
 export const SPONSOR_CONFIG = {
-    // Kategorien mit verschiedenen Zahlungsbereitschaft
-    tiers: {
-        international: {
-            name: 'International',
-            color: '#FFD700',
-            icon: '🌍',
-            minCapacity: 80000,  // Erst ab 80k Stadion-Kapazität
-            description: 'Weltweite Premium-Marken'
-        },
-        national: {
-            name: 'National',
-            color: '#00c78b',
-            icon: '🏴',
-            minCapacity: 40000,
-            description: 'Führende nationale Unternehmen'
-        },
-        regional: {
-            name: 'Regional',
-            color: '#4a90e2',
-            icon: '🏙️',
-            minCapacity: 20000,
-            description: 'Regionale Marktführer'
-        },
-        local: {
-            name: 'Lokal',
-            color: '#888888',
-            icon: '🏘️',
-            minCapacity: 0,
-            description: 'Lokale Betriebe'
-        }
-    },
+    // Vertragslaufzeit
+    contractDuration: 1,  // 1 Saison
 
-    // Liga-Position Multiplikatoren (aus Vorsaison)
+    // Liga-Position beeinflusst Sponsor-Vergütung
     leaguePositionMultipliers: {
-        1: 1.30,   // Meister: +30%
-        2: 1.30,   // Vizemeister: +30%
-        3: 1.30,   // Platz 3: +30%
+        1: 1.30,   // Platz 1-3: +30%
+        2: 1.30,
+        3: 1.30,
         4: 1.15,   // Platz 4-8: +15%
         5: 1.15,
         6: 1.15,
         7: 1.15,
         8: 1.15,
-        9: 1.00,   // Platz 9-14: Standard
-        10: 1.00,
-        11: 1.00,
-        12: 1.00,
-        13: 1.00,
-        14: 1.00,
-        15: 0.85,  // Platz 15-18: -15%
+        9: 1.0,    // Platz 9-14: ±0%
+        10: 1.0,
+        11: 1.0,
+        12: 1.0,
+        13: 1.0,
+        14: 1.0,
+        15: 0.85,  // Platz 15+: -15%
         16: 0.85,
         17: 0.85,
         18: 0.85
     },
 
+    // Kategorien mit verschiedenen Zahlungsbereitschaft
+    tiers: {
+        international: {
+            name: 'International',
+            icon: '🌍',
+            multiplier: 3.0,
+            color: '#FFD700',
+            minCapacity: 80000,  // Erst ab 80k Stadion-Kapazität
+            examples: ['Amazon', 'Nike', 'Coca-Cola']
+        },
+        national: {
+            name: 'National',
+            icon: '🏴',
+            multiplier: 2.0,
+            color: '#00c78b',
+            minCapacity: 40000,
+            examples: ['MediaMarkt', 'Telekom', 'Volksbank']
+        },
+        regional: {
+            name: 'Regional',
+            icon: '🏙️',
+            multiplier: 1.0,
+            color: '#4a90e2',
+            minCapacity: 20000,
+            examples: ['Stadtwerke', 'Sparkasse', 'Regional-Radio']
+        },
+        local: {
+            name: 'Lokal',
+            icon: '🏘️',
+            multiplier: 0.5,
+            color: '#888888',
+            minCapacity: 0,
+            examples: ['Bäckerei', 'Autowerkstatt', 'Friseur']
+        }
+    },
+
     // Verfügbare Sponsoren mit realistischen Namen und Branchen
     availableSponsors: [
-        // ========== INTERNATIONAL (ab 80k Kapazität) ==========
+        // International (ab 80k Kapazität)
         {
             id: 1,
             name: 'TechGiant Global',
@@ -238,13 +346,12 @@ export const SPONSOR_CONFIG = {
             slogan: 'Innovation für alle',
             website: 'www.techgiant-global.com',
             color: '#0066cc',
-            // Basis-Vergütung (wird mit Liga-Position multipliziert)
             basePayment: {
-                initial: 250000,        // Einmalzahlung
-                perGoal: 8000,          // Pro Tor (alle Spiele)
-                perWin: 15000,          // Pro Sieg (alle Spiele)
-                leagueTitle: 1000000,   // Liga-Meisterschaft
-                cupTitle: 750000        // Pokalsieg
+                initial: 500000,
+                perGoal: 15000,
+                perWin: 25000,
+                leagueTitle: 1000000,
+                cupTitle: 500000
             }
         },
         {
@@ -257,10 +364,10 @@ export const SPONSOR_CONFIG = {
             website: 'www.automax-world.com',
             color: '#cc0000',
             basePayment: {
-                initial: 200000,
-                perGoal: 6000,
-                perWin: 20000,
-                leagueTitle: 800000,
+                initial: 600000,
+                perGoal: 12000,
+                perWin: 30000,
+                leagueTitle: 1200000,
                 cupTitle: 600000
             }
         },
@@ -274,15 +381,15 @@ export const SPONSOR_CONFIG = {
             website: 'www.sportwear-pro.com',
             color: '#00cc66',
             basePayment: {
-                initial: 300000,
-                perGoal: 10000,
-                perWin: 12000,
-                leagueTitle: 1200000,
-                cupTitle: 800000
+                initial: 450000,
+                perGoal: 18000,
+                perWin: 22000,
+                leagueTitle: 1500000,
+                cupTitle: 750000
             }
         },
 
-        // ========== NATIONAL (ab 40k Kapazität) ==========
+        // National (ab 40k Kapazität)
         {
             id: 4,
             name: 'Elektro-Markt',
@@ -293,11 +400,11 @@ export const SPONSOR_CONFIG = {
             website: 'www.elektro-markt.de',
             color: '#ff6600',
             basePayment: {
-                initial: 150000,
-                perGoal: 5000,
-                perWin: 50000,          // Hoch! Fokus auf Siege
-                leagueTitle: 500000,
-                cupTitle: 400000
+                initial: 300000,
+                perGoal: 10000,
+                perWin: 18000,
+                leagueTitle: 600000,
+                cupTitle: 300000
             }
         },
         {
@@ -310,11 +417,11 @@ export const SPONSOR_CONFIG = {
             website: 'www.n-telekom.de',
             color: '#e20074',
             basePayment: {
-                initial: 180000,
-                perGoal: 7000,
-                perWin: 25000,
-                leagueTitle: 600000,
-                cupTitle: 450000
+                initial: 350000,
+                perGoal: 8000,
+                perWin: 20000,
+                leagueTitle: 700000,
+                cupTitle: 350000
             }
         },
         {
@@ -327,34 +434,17 @@ export const SPONSOR_CONFIG = {
             website: 'www.volksbank.de',
             color: '#003d7a',
             basePayment: {
-                initial: 200000,
-                perGoal: 4000,
-                perWin: 30000,
-                leagueTitle: 700000,
-                cupTitle: 500000
-            }
-        },
-        {
-            id: 7,
-            name: 'BierBrauerei König',
-            shortName: 'BIER KÖNIG',
-            tier: 'national',
-            industry: 'Getränke',
-            slogan: 'Das Bier der Champions',
-            website: 'www.bier-koenig.de',
-            color: '#f39c12',
-            basePayment: {
-                initial: 120000,
-                perGoal: 8000,          // Hoch! Tore = Feiern = Bier
-                perWin: 20000,
-                leagueTitle: 400000,
-                cupTitle: 300000
+                initial: 320000,
+                perGoal: 9000,
+                perWin: 19000,
+                leagueTitle: 650000,
+                cupTitle: 325000
             }
         },
 
-        // ========== REGIONAL (ab 20k Kapazität) ==========
+        // Regional (ab 20k Kapazität)
         {
-            id: 8,
+            id: 7,
             name: 'Stadtwerke Regional',
             shortName: 'STADTWERKE',
             tier: 'regional',
@@ -363,15 +453,15 @@ export const SPONSOR_CONFIG = {
             website: 'www.stadtwerke-regional.de',
             color: '#009933',
             basePayment: {
-                initial: 80000,
-                perGoal: 3000,
+                initial: 150000,
+                perGoal: 5000,
                 perWin: 10000,
-                leagueTitle: 200000,
+                leagueTitle: 300000,
                 cupTitle: 150000
             }
         },
         {
-            id: 9,
+            id: 8,
             name: 'Sparkasse Zentral',
             shortName: 'SPARKASSE',
             tier: 'regional',
@@ -380,15 +470,15 @@ export const SPONSOR_CONFIG = {
             website: 'www.sparkasse-zentral.de',
             color: '#ff0000',
             basePayment: {
-                initial: 100000,
-                perGoal: 2500,
-                perWin: 15000,
-                leagueTitle: 250000,
-                cupTitle: 180000
+                initial: 180000,
+                perGoal: 4500,
+                perWin: 11000,
+                leagueTitle: 350000,
+                cupTitle: 175000
             }
         },
         {
-            id: 10,
+            id: 9,
             name: 'Radio Regional 98.5',
             shortName: 'RADIO 98.5',
             tier: 'regional',
@@ -397,15 +487,15 @@ export const SPONSOR_CONFIG = {
             website: 'www.radio-regional.de',
             color: '#ffcc00',
             basePayment: {
-                initial: 60000,
-                perGoal: 4000,
-                perWin: 8000,
-                leagueTitle: 150000,
-                cupTitle: 100000
+                initial: 120000,
+                perGoal: 6000,
+                perWin: 9000,
+                leagueTitle: 250000,
+                cupTitle: 125000
             }
         },
         {
-            id: 11,
+            id: 10,
             name: 'Fitness-Studio Premium',
             shortName: 'FITNESS+',
             tier: 'regional',
@@ -414,51 +504,34 @@ export const SPONSOR_CONFIG = {
             website: 'www.fitness-premium.de',
             color: '#cc3300',
             basePayment: {
-                initial: 50000,
-                perGoal: 3500,
-                perWin: 12000,
-                leagueTitle: 180000,
-                cupTitle: 120000
-            }
-        },
-        {
-            id: 12,
-            name: 'Möbelhaus Comfort',
-            shortName: 'COMFORT',
-            tier: 'regional',
-            industry: 'Möbel',
-            slogan: 'Wohnträume werden wahr',
-            website: 'www.comfort-moebel.de',
-            color: '#8b4513',
-            basePayment: {
-                initial: 70000,
-                perGoal: 2000,
-                perWin: 9000,
-                leagueTitle: 160000,
-                cupTitle: 110000
+                initial: 140000,
+                perGoal: 5500,
+                perWin: 9500,
+                leagueTitle: 280000,
+                cupTitle: 140000
             }
         },
 
-        // ========== LOKAL (ab 0 Kapazität) ==========
+        // Lokal (ab 0 Kapazität)
         {
-            id: 13,
+            id: 11,
             name: 'Bäckerei Schmidt',
             shortName: 'BÄCKEREI SCHMIDT',
             tier: 'local',
             industry: 'Lebensmittel',
             slogan: 'Frisch gebacken seit 1985',
             website: 'Tel. 12345',
-            color: '#d2691e',
+            color: '#8b4513',
             basePayment: {
-                initial: 20000,
-                perGoal: 1000,
-                perWin: 3000,
-                leagueTitle: 50000,
-                cupTitle: 30000
+                initial: 50000,
+                perGoal: 2000,
+                perWin: 4000,
+                leagueTitle: 100000,
+                cupTitle: 50000
             }
         },
         {
-            id: 14,
+            id: 12,
             name: 'Autowerkstatt Meyer',
             shortName: 'KFZ MEYER',
             tier: 'local',
@@ -467,15 +540,15 @@ export const SPONSOR_CONFIG = {
             website: 'www.meyer-kfz.de',
             color: '#333333',
             basePayment: {
-                initial: 25000,
-                perGoal: 800,
-                perWin: 4000,
-                leagueTitle: 60000,
-                cupTitle: 40000
+                initial: 60000,
+                perGoal: 2500,
+                perWin: 4500,
+                leagueTitle: 120000,
+                cupTitle: 60000
             }
         },
         {
-            id: 15,
+            id: 13,
             name: 'Friseur Styling',
             shortName: 'HAIR & STYLE',
             tier: 'local',
@@ -484,15 +557,15 @@ export const SPONSOR_CONFIG = {
             website: 'Tel. 67890',
             color: '#ff1493',
             basePayment: {
-                initial: 15000,
-                perGoal: 500,
-                perWin: 2000,
-                leagueTitle: 40000,
-                cupTitle: 25000
+                initial: 45000,
+                perGoal: 1800,
+                perWin: 3800,
+                leagueTitle: 90000,
+                cupTitle: 45000
             }
         },
         {
-            id: 16,
+            id: 14,
             name: 'Metzgerei Wagner',
             shortName: 'METZGEREI WAGNER',
             tier: 'local',
@@ -501,15 +574,15 @@ export const SPONSOR_CONFIG = {
             website: 'Marktplatz 5',
             color: '#8b0000',
             basePayment: {
-                initial: 18000,
-                perGoal: 600,
-                perWin: 2500,
-                leagueTitle: 45000,
-                cupTitle: 28000
+                initial: 55000,
+                perGoal: 2200,
+                perWin: 4200,
+                leagueTitle: 110000,
+                cupTitle: 55000
             }
         },
         {
-            id: 17,
+            id: 15,
             name: 'Apotheke Zentrum',
             shortName: 'APOTHEKE',
             tier: 'local',
@@ -518,34 +591,17 @@ export const SPONSOR_CONFIG = {
             website: 'www.apotheke-zentrum.de',
             color: '#dc143c',
             basePayment: {
-                initial: 22000,
-                perGoal: 700,
-                perWin: 3500,
-                leagueTitle: 55000,
-                cupTitle: 35000
-            }
-        },
-        {
-            id: 18,
-            name: 'Blumenladen Flora',
-            shortName: 'FLORA',
-            tier: 'local',
-            industry: 'Einzelhandel',
-            slogan: 'Blumen für jeden Anlass',
-            website: 'Tel. 11223',
-            color: '#ff69b4',
-            basePayment: {
-                initial: 12000,
-                perGoal: 400,
-                perWin: 1500,
-                leagueTitle: 35000,
-                cupTitle: 20000
+                initial: 65000,
+                perGoal: 2300,
+                perWin: 4300,
+                leagueTitle: 130000,
+                cupTitle: 65000
             }
         }
     ],
 
-    // Vertragslaufzeit
-    contractDuration: 1  // Saisons
+    // Basis-Einnahmen pro Banner pro Heimspiel
+    baseRevenuePerBanner: 5000
 };
 
 /**
@@ -562,21 +618,29 @@ export const INITIAL_STADIUM_STATE = {
         seated: 10000,    // 50% Sitzplätze zu Beginn
         distribution: {
             NORD: {
+                stage: 0,       // Ausbaustufe
+                capacity: 5000,
                 standing: 2500,
                 seated: 2500,
                 boxes: 0
             },
             OST: {
+                stage: 0,
+                capacity: 5000,
                 standing: 2500,
                 seated: 2500,
                 boxes: 0
             },
             SUED: {
+                stage: 0,
+                capacity: 5000,
                 standing: 2500,
                 seated: 2500,
                 boxes: 0
             },
             WEST: {
+                stage: 0,
+                capacity: 5000,
                 standing: 2500,
                 seated: 2500,
                 boxes: 0
@@ -615,20 +679,21 @@ export const INITIAL_STADIUM_STATE = {
         active: 0
     },
 
+    // Vorsaison-Daten (für Sponsor-Berechnungen)
+    previousSeason: {
+        season: '2023/24',
+        leaguePosition: 9,
+        totalGames: 34,
+        totalGoals: 45,
+        totalWins: 15,
+        leagueTitle: false,
+        cupTitle: false
+    },
+
     // Spielkalender (Mock-Daten)
     currentDay: 12,
     currentMonth: 8,
-    season: '2024/25',
-
-    // Vorsaison-Daten für Sponsor-Prognose
-    previousSeason: {
-        leaguePosition: 5,      // Platz 5 letzte Saison
-        totalGames: 34,         // Gesamt-Spiele
-        totalGoals: 68,         // Gesamt-Tore
-        totalWins: 18,          // Gesamt-Siege
-        leagueTitle: false,     // Keine Meisterschaft
-        cupTitle: false         // Kein Pokalsieg
-    }
+    season: '2024/25'
 };
 
 /**
@@ -659,7 +724,7 @@ export const UI_TEXTS = {
  * Utility: Berechnet Bauzeit in Tagen
  */
 export const calculateBuildDays = (weeks) => {
-    return weeks * TIMING_CONFIG.DAYS_PER_BUILD_WEEK;
+    return weeks * DAYS_PER_WEEK;
 };
 
 /**
@@ -679,4 +744,41 @@ export const formatCurrency = (amount) => {
  */
 export const formatCapacity = (number) => {
     return new Intl.NumberFormat('de-DE').format(number);
+};
+
+/**
+ * Utility: Berechnet Kapazitäts-Verteilung für eine Ausbaustufe
+ */
+export const calculateCapacityDistribution = (totalCapacity, hasBoxes = false) => {
+    const dist = CAPACITY_CONFIG.DISTRIBUTION;
+
+    if (hasBoxes) {
+        const boxes = Math.round(totalCapacity * dist.BOXES);
+        const standing = Math.round((totalCapacity - boxes) * (dist.STANDING / (dist.STANDING + dist.SEATED)));
+        const seated = totalCapacity - boxes - standing;
+        return { boxes, standing, seated };
+    }
+
+    const standing = Math.round(totalCapacity * (dist.STANDING / (dist.STANDING + dist.SEATED)));
+    const seated = totalCapacity - standing;
+    return { boxes: 0, standing, seated };
+};
+
+/**
+ * Utility: Gibt nächste verfügbare Ausbaustufe für einen Block zurück
+ */
+export const getNextExpansionStage = (currentStage) => {
+    if (currentStage >= EXPANSION_CONFIG.stages.length - 1) {
+        return null; // Max erreicht
+    }
+
+    return EXPANSION_CONFIG.stages[currentStage + 1];
+};
+
+/**
+ * Utility: Berechnet Gesamtkosten für Tribünen-Ausbau
+ */
+export const calculateExpansionCost = (block, stageConfig) => {
+    const multiplier = EXPANSION_CONFIG.blockMultipliers[block] || 1.0;
+    return Math.round(stageConfig.cost * multiplier);
 };
