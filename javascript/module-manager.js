@@ -42,7 +42,7 @@ const moduleRegistry = {
         module: null
     },
     stadium: {
-        scripts: ['./stadium.js'],
+        scripts: ['./stadium-config.js', './stadium.js'],
         css: ['css/stadium.css'],
         cssElements: [],
         module: null

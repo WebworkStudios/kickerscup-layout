@@ -1,0 +1,393 @@
+<!-- STADION-VERWALTUNG PAGE -->
+<div class="stadium-header">
+    <h1 class="stadium-title">STADION-VERWALTUNG</h1>
+    <p class="stadium-subtitle">Baue dein Stadion aus und maximiere deine Einnahmen</p>
+</div>
+
+<!-- Spielkalender (Testing) -->
+<div class="game-calendar glass">
+    <div class="calendar-info">
+        <span>📅 Aktueller Tag: <strong id="currentDay">12</strong></span>
+        <span>🏟️ Spielbetrieb: Tag 1-27</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" data-action="simulateDay">
+        ⏭️ Tag simulieren
+    </button>
+</div>
+
+<!-- Stadion-Übersicht Stats -->
+<div class="stadium-stats">
+    <div class="stat-card glass">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <div class="stat-label">Gesamtkapazität</div>
+            <div class="stat-value" id="totalCapacity">20.000</div>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon">🧍</div>
+        <div class="stat-content">
+            <div class="stat-label">Stehplätze</div>
+            <div class="stat-value" id="standingCapacity">10.000</div>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon">💺</div>
+        <div class="stat-content">
+            <div class="stat-label">Sitzplätze</div>
+            <div class="stat-value" id="seatedCapacity">10.000</div>
+        </div>
+    </div>
+
+    <div class="stat-card glass">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+            <div class="stat-label">Logen</div>
+            <div class="stat-value" id="boxesCapacity">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Stadion-Visualisierung (2D Top-Down) -->
+<div class="stadium-visualization glass">
+    <h2 class="section-title">Stadion-Layout</h2>
+
+    <div class="stadium-container">
+        <!-- Nord Block -->
+        <div class="stadium-block block-nord" data-block="NORD">
+            <div class="block-label">NORDKURVE</div>
+            <div class="block-capacity" id="blockNORDCapacity">5.000</div>
+            <div class="block-icons">
+                <span class="roof-icon" title="Dach">🏗️</span>
+                <span class="boxes-icon" title="Logen">⭐</span>
+            </div>
+        </div>
+
+        <!-- West Block -->
+        <div class="stadium-block block-west" data-block="WEST">
+            <div class="block-label">WEST</div>
+            <div class="block-capacity" id="blockWESTCapacity">5.000</div>
+            <div class="block-icons">
+                <span class="roof-icon" title="Dach">🏗️</span>
+                <span class="boxes-icon" title="Logen">⭐</span>
+            </div>
+        </div>
+
+        <!-- Spielfeld -->
+        <div class="stadium-pitch pitch-normal">
+            <div class="pitch-lines">
+                <!-- Mittelkreis -->
+                <div class="pitch-circle"></div>
+                <!-- Mittellinie -->
+                <div class="pitch-center-line"></div>
+                <!-- Strafräume -->
+                <div class="pitch-penalty-left"></div>
+                <div class="pitch-penalty-right"></div>
+            </div>
+
+            <!-- Flutlicht-Anzeige -->
+            <div class="floodlight-indicator">
+                <span>💡</span>
+                <span id="floodlightStage">Keine</span>
+            </div>
+
+            <!-- Rasen-Anzeige -->
+            <div class="pitch-indicator">
+                <span>🌱</span>
+                <span id="pitchQuality">Normal</span>
+                <span id="pitchCondition">100%</span>
+            </div>
+        </div>
+
+        <!-- Ost Block -->
+        <div class="stadium-block block-ost" data-block="OST">
+            <div class="block-label">OST</div>
+            <div class="block-capacity" id="blockOSTCapacity">5.000</div>
+            <div class="block-icons">
+                <span class="roof-icon" title="Dach">🏗️</span>
+                <span class="boxes-icon" title="Logen">⭐</span>
+            </div>
+        </div>
+
+        <!-- Süd Block -->
+        <div class="stadium-block block-sued" data-block="SUED">
+            <div class="block-label">SÜDKURVE</div>
+            <div class="block-capacity" id="blockSUEDCapacity">5.000</div>
+            <div class="block-icons">
+                <span class="roof-icon" title="Dach">🏗️</span>
+                <span class="boxes-icon" title="Logen">⭐</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature-Management Tabs -->
+<div class="feature-tabs glass">
+    <button class="feature-tab active" data-tab="blocks">
+        🏗️ Blöcke
+    </button>
+    <button class="feature-tab" data-tab="infrastructure">
+        💡 Infrastruktur
+    </button>
+    <button class="feature-tab" data-tab="construction">
+        🔨 Bauprojekte
+    </button>
+</div>
+
+<!-- Tab Content: Blöcke -->
+<div class="tab-content active" id="tabBlocks">
+    <h2 class="section-title">Block-Features</h2>
+
+    <!-- Dächer -->
+    <div class="feature-section glass">
+        <h3>🏗️ Dächer</h3>
+        <p class="feature-description">
+            Reduziert Rasenabnutzung um 10% pro Dach. Kosten: 500.000 €, Bauzeit: 3 SW (21 Tage)
+        </p>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Nordkurve</span>
+                    <span class="feature-status" id="blockNORDRoof">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="buildRoof" data-block="NORD">
+                    Dach bauen
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Osttribüne</span>
+                    <span class="feature-status" id="blockOSTRoof">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="buildRoof" data-block="OST">
+                    Dach bauen
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Südkurve</span>
+                    <span class="feature-status" id="blockSUEDRoof">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="buildRoof" data-block="SUED">
+                    Dach bauen
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Westtribüne</span>
+                    <span class="feature-status" id="blockWESTRoof">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="buildRoof" data-block="WEST">
+                    Dach bauen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Werbung -->
+    <div class="feature-section glass">
+        <h3>📺 Werbebanden</h3>
+        <p class="feature-description">
+            Installation: 50.000 €, Bauzeit: 1 SW (7 Tage)<br>
+            <small>Große Werbebanner wie im echten Stadion - Später Amazon, Nike, Coca-Cola!</small><br>
+            <small>Längsseiten: 3 Banner-Plätze • Kurven: 2 Banner-Plätze</small>
+        </p>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Nordkurve</span>
+                    <span class="feature-status" id="blockNORDAd">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="NORD">
+                    Installieren
+                </button>
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="NORD">
+                    📺 Sponsoren verwalten
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Osttribüne</span>
+                    <span class="feature-status" id="blockOSTAd">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="OST">
+                    Installieren
+                </button>
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="OST">
+                    📺 Sponsoren verwalten
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Südkurve</span>
+                    <span class="feature-status" id="blockSUEDAd">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="SUED">
+                    Installieren
+                </button>
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="SUED">
+                    📺 Sponsoren verwalten
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Westtribüne</span>
+                    <span class="feature-status" id="blockWESTAd">❌ Nein</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="WEST">
+                    Installieren
+                </button>
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="WEST">
+                    📺 Sponsoren verwalten
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logen-Platzierung -->
+    <div class="feature-section glass">
+        <h3>⭐ Logen-Platzierung</h3>
+        <p class="feature-description">
+            7.500 Logenplätze können in OST oder WEST platziert werden. Sofortige Änderung möglich.
+        </p>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Osttribüne</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" data-action="changeBoxPlacement" data-block="OST">
+                    Hierher verlegen
+                </button>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-header">
+                    <span>Westtribüne</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" data-action="changeBoxPlacement" data-block="WEST">
+                    Hierher verlegen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Content: Infrastruktur -->
+<div class="tab-content" id="tabInfrastructure">
+    <h2 class="section-title">Stadion-Infrastruktur</h2>
+
+    <!-- Flutlicht -->
+    <div class="feature-section glass">
+        <h3>💡 Flutlicht</h3>
+        <p class="feature-description">
+            Erhöht TV-Einnahmen. Aktuell: <strong id="floodlightStage2">Keine</strong>
+        </p>
+
+        <div class="upgrade-path">
+            <div class="upgrade-stage">
+                <div class="stage-name">Klein</div>
+                <div class="stage-bonus">+15% TV</div>
+                <div class="stage-cost">200.000 €</div>
+                <div class="stage-time">2 SW</div>
+            </div>
+
+            <div class="upgrade-arrow">→</div>
+
+            <div class="upgrade-stage">
+                <div class="stage-name">Mittel</div>
+                <div class="stage-bonus">+30% TV</div>
+                <div class="stage-cost">400.000 €</div>
+                <div class="stage-time">3 SW</div>
+            </div>
+
+            <div class="upgrade-arrow">→</div>
+
+            <div class="upgrade-stage">
+                <div class="stage-name">Groß</div>
+                <div class="stage-bonus">+50% TV</div>
+                <div class="stage-cost">800.000 €</div>
+                <div class="stage-time">4 SW</div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" data-action="upgradeFloodlight">
+            🔨 Nächste Stufe bauen
+        </button>
+    </div>
+
+    <!-- Rasen -->
+    <div class="feature-section glass">
+        <h3>🌱 Rasen</h3>
+        <p class="feature-description">
+            Aktuell: <strong id="pitchQuality2">Normal</strong>, Zustand: <strong id="pitchCondition2">100%</strong>
+        </p>
+
+        <div class="pitch-options">
+            <div class="pitch-option glass">
+                <h4>Premium Rasen</h4>
+                <div class="pitch-details">
+                    <span>🏴󠁧󠁢󠁥󠁮󠁧󠁿 British Premium</span>
+                    <span>Abnutzung: -50%</span>
+                    <span>Wartung: 50.000 €/Monat</span>
+                    <span>Bauzeit: 2 SW</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="0">
+                    Umbauen (150.000 €)
+                </button>
+            </div>
+
+            <div class="pitch-option glass">
+                <h4>Standard Rasen</h4>
+                <div class="pitch-details">
+                    <span>🌿 Normal (gute Qualität)</span>
+                    <span>Abnutzung: Standard</span>
+                    <span>Wartung: 30.000 €/Monat</span>
+                    <span>Bauzeit: 1 SW</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="1">
+                    Umbauen (80.000 €)
+                </button>
+            </div>
+
+            <div class="pitch-option glass">
+                <h4>Kuhkoppel</h4>
+                <div class="pitch-details">
+                    <span>🌾 Acker (schlechte Qualität)</span>
+                    <span>Abnutzung: +100%</span>
+                    <span>Wartung: 10.000 €/Monat</span>
+                    <span>Bauzeit: 1 SW</span>
+                </div>
+                <button class="btn btn-primary btn-sm" data-action="renovatePitch" data-value="2">
+                    Umbauen (50.000 €)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Content: Bauprojekte -->
+<div class="tab-content" id="tabConstruction">
+    <h2 class="section-title">Laufende Bauprojekte</h2>
+
+    <div class="construction-info glass">
+        <p>
+            ⚠️ Bauarbeiten laufen nur während des Spielbetriebs (Tag 1-27).<br>
+            Maximal 2 parallele Bauprojekte möglich.
+        </p>
+    </div>
+
+    <div class="construction-queue-container" id="constructionQueue">
+        <p class="no-construction">Keine laufenden Bauprojekte</p>
+    </div>
+</div>

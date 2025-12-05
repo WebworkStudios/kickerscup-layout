@@ -54,7 +54,7 @@ const pages = {
         module: 'tactics'
     },
     stadium: {
-        html: 'pages/stadium.html',
+        html: 'stadium.html',
         module: 'stadium'
     },
     league: {

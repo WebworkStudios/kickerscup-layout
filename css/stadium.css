@@ -1,0 +1,1059 @@
+/* =====================================================
+   KICKERSCUP - STADIUM STYLESHEET (375px MINIMUM)
+   Stadion-Verwaltung & 2D-Visualisierung
+   Minimum Supported Viewport: 375px (iPhone SE 2020)
+   ===================================================== */
+
+/* ========== STADIUM HEADER ========== */
+.stadium-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.stadium-title {
+    font-size: 32px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 15px var(--turquoise-glow));
+}
+
+.stadium-subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+/* ========== GAME CALENDAR ========== */
+.game-calendar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.calendar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-white);
+}
+
+.calendar-info strong {
+    color: var(--gold-primary);
+    font-size: 16px;
+}
+
+.btn-sm {
+    padding: 10px 16px;
+    font-size: 12px;
+    min-height: 40px;
+}
+
+/* ========== STADIUM STATS ========== */
+.stadium-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--platinum));
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px var(--turquoise-glow);
+}
+
+.stat-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    font-family: 'Rajdhani', sans-serif;
+    text-shadow: 0 0 15px var(--turquoise-glow);
+}
+
+/* ========== STADIUM VISUALIZATION (2D TOP-DOWN) ========== */
+.stadium-visualization {
+    padding: 25px 20px;
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 20px;
+    color: var(--gold-primary);
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.stadium-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-rows: 1fr 3fr 1fr;
+    gap: 8px;
+    padding: 10px;
+}
+
+/* Stadium Blocks */
+.stadium-block {
+    background: rgba(0, 199, 139, 0.1);
+    border: 2px solid var(--turquoise-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stadium-block:hover {
+    background: rgba(0, 199, 139, 0.2);
+    border-color: var(--gold-primary);
+    transform: scale(1.02);
+}
+
+/* Werbebanden - Längsseiten (OST/WEST) */
+.stadium-block.has-advertising.banner-longside {
+    box-shadow: 0 0 20px rgba(0, 199, 139, 0.5),
+    inset 0 0 15px rgba(0, 199, 139, 0.2);
+}
+
+.stadium-block.has-advertising.banner-longside::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 2px dashed var(--gold-primary);
+    border-radius: 6px;
+    opacity: 0.6;
+    animation: bannerPulse 2s ease-in-out infinite;
+}
+
+/* Werbebanden - Kurven (NORD/SUED) */
+.stadium-block.has-advertising.banner-curve {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+    inset 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.stadium-block.has-advertising.banner-curve::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 2px dotted var(--gold-primary);
+    border-radius: 6px;
+    opacity: 0.6;
+    animation: bannerPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes bannerPulse {
+    0%, 100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ========== REALISTISCHE WERBEBANDEN ========== */
+.advertising-board {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    height: 30%;
+    z-index: 5;
+    display: flex;
+    align-items: stretch;
+}
+
+.advertising-banner {
+    flex: 1;
+    background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+    border-radius: 3px;
+    box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.advertising-banner.empty {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+}
+
+.banner-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.banner-name {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.banner-slogan {
+    font-size: 6px;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 2px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.banner-website {
+    font-size: 5px;
+    font-weight: 700;
+    opacity: 0.8;
+    line-height: 1;
+}
+
+.banner-placeholder {
+    font-size: 8px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2px;
+}
+
+.banner-info {
+    font-size: 6px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.banner-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 8px;
+    z-index: 10;
+}
+
+/* Animation für Banner-Wechsel */
+.advertising-banner {
+    animation: bannerSlide 30s ease-in-out infinite;
+}
+
+@keyframes bannerSlide {
+    0%, 25% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    27%, 30% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    32%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Hover-Effekt für Interaktivität */
+.advertising-board:hover .advertising-banner {
+    animation-play-state: paused;
+    transform: scale(1.02);
+    box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.5),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.block-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.block-capacity {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-white);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.block-icons {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 4px;
+}
+
+.roof-icon,
+.boxes-icon {
+    font-size: 14px;
+    display: none;
+}
+
+/* Block Positioning */
+.block-nord {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.block-west {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.block-ost {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.block-sued {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+/* Stadium Pitch (Spielfeld) */
+.stadium-pitch {
+    grid-column: 2;
+    grid-row: 2;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.5s ease;
+}
+
+/* Rasen-Texturen */
+.stadium-pitch.pitch-british {
+    background: linear-gradient(135deg, #2d5016 0%, #1f3d0f 100%);
+    /* Premium-Rasen: Sattes Grün mit subtilen Streifen */
+}
+
+.stadium-pitch.pitch-british::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 8%,
+            rgba(0, 0, 0, 0.03) 8%,
+            rgba(0, 0, 0, 0.03) 10%
+    );
+}
+
+.stadium-pitch.pitch-normal {
+    background: linear-gradient(135deg, #3d6b1f 0%, #2d5016 100%);
+    /* Standard-Rasen: Mittelgrün */
+}
+
+.stadium-pitch.pitch-normal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 10%,
+            rgba(0, 0, 0, 0.05) 10%,
+            rgba(0, 0, 0, 0.05) 12%
+    );
+}
+
+.stadium-pitch.pitch-dirt {
+    background: linear-gradient(135deg, #6b5628 0%, #4a3d1c 100%);
+    /* Kuhkoppel: Braun/Erde mit Flecken */
+}
+
+.stadium-pitch.pitch-dirt::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+            radial-gradient(ellipse at 30% 40%, rgba(90, 70, 30, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 60%, rgba(70, 55, 25, 0.3) 0%, transparent 40%),
+            radial-gradient(ellipse at 50% 80%, rgba(80, 65, 28, 0.35) 0%, transparent 45%);
+    /* Schlamm-/Erdflecken */
+}
+
+.pitch-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.pitch-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    aspect-ratio: 1;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+}
+
+.pitch-center-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.pitch-penalty-left,
+.pitch-penalty-right {
+    position: absolute;
+    width: 20%;
+    height: 35%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.pitch-penalty-left {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    border-left: none;
+}
+
+.pitch-penalty-right {
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    border-right: none;
+}
+
+/* Pitch Indicators */
+.floodlight-indicator,
+.pitch-indicator {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    font-size: 10px;
+    color: white;
+    font-weight: 600;
+    z-index: 10;
+}
+
+.floodlight-indicator {
+    top: 10px;
+    left: 10px;
+}
+
+.pitch-indicator {
+    bottom: 10px;
+    right: 10px;
+}
+
+.floodlight-indicator span:first-child,
+.pitch-indicator span:first-child {
+    font-size: 16px;
+}
+
+/* ========== FEATURE TABS ========== */
+.feature-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+}
+
+.feature-tab {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.feature-tab:hover {
+    background: rgba(0, 199, 139, 0.1);
+    color: var(--text-white);
+}
+
+.feature-tab.active {
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    color: var(--dark-primary);
+    box-shadow: 0 4px 15px var(--turquoise-shadow);
+}
+
+/* ========== TAB CONTENT ========== */
+.tab-content {
+    display: none;
+    animation: tabFadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== FEATURE SECTIONS ========== */
+.feature-section {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+}
+
+.feature-section h3 {
+    font-size: 18px;
+    color: var(--gold-primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-description {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+/* ========== FEATURE GRID ========== */
+.feature-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.feature-item {
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.feature-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.feature-status {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ========== UPGRADE PATH ========== */
+.upgrade-path {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.upgrade-stage {
+    background: rgba(0, 199, 139, 0.05);
+    border: 1px solid var(--turquoise-border);
+    border-radius: 8px;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.stage-name {
+    grid-column: span 2;
+    font-weight: 700;
+    color: var(--gold-primary);
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.stage-bonus,
+.stage-cost,
+.stage-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.upgrade-arrow {
+    text-align: center;
+    color: var(--gold-primary);
+    font-size: 24px;
+    font-weight: 700;
+    display: none;
+}
+
+/* ========== PITCH OPTIONS ========== */
+.pitch-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.pitch-option {
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.pitch-option h4 {
+    font-size: 16px;
+    color: var(--gold-primary);
+    margin-bottom: 10px;
+}
+
+.pitch-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ========== CONSTRUCTION QUEUE ========== */
+.construction-info {
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--gold-primary);
+}
+
+.construction-info p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.construction-queue-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.no-construction {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.construction-card {
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--turquoise-border);
+}
+
+.construction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.construction-header h4 {
+    font-size: 16px;
+    color: var(--gold-primary);
+    margin: 0;
+}
+
+.construction-status {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.construction-status.active {
+    background: rgba(0, 199, 139, 0.2);
+    color: var(--gold-primary);
+}
+
+.construction-status.queued {
+    background: rgba(255, 165, 0, 0.2);
+    color: #f6ad55;
+}
+
+.construction-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.detail-row span:first-child {
+    color: var(--text-muted);
+}
+
+.detail-row span:last-child {
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-primary), var(--platinum));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px var(--turquoise-glow);
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
+    color: var(--dark-primary);
+    box-shadow: 0 5px 20px var(--turquoise-shadow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--turquoise-glow);
+}
+
+.btn-secondary {
+    background: rgba(0, 199, 139, 0.1);
+    color: var(--gold-primary);
+    border: 2px solid var(--turquoise-border);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 199, 139, 0.2);
+    border-color: var(--gold-primary);
+}
+
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* iPhone 12/13/14 Standard (390px - 427px) */
+@media (min-width: 390px) and (max-width: 427px) {
+    .stadium-title {
+        font-size: 36px;
+        letter-spacing: 3px;
+    }
+
+    .stadium-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .stat-icon {
+        font-size: 36px;
+    }
+
+    .stat-value {
+        font-size: 26px;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .block-label {
+        font-size: 11px;
+    }
+
+    .block-capacity {
+        font-size: 15px;
+    }
+}
+
+/* iPhone Pro Max (428px - 767px) */
+@media (min-width: 428px) and (max-width: 767px) {
+    .stadium-title {
+        font-size: 40px;
+        letter-spacing: 3px;
+    }
+
+    .stadium-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .stat-icon {
+        font-size: 40px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+
+    .stadium-container {
+        max-width: 700px;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pitch-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .block-label {
+        font-size: 12px;
+    }
+
+    .block-capacity {
+        font-size: 16px;
+    }
+
+    .upgrade-arrow {
+        display: block;
+    }
+
+    .upgrade-path {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+/* Tablet Portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .stadium-title {
+        font-size: 44px;
+        letter-spacing: 4px;
+    }
+
+    .stadium-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    .stat-value {
+        font-size: 30px;
+    }
+
+    .stadium-container {
+        max-width: 800px;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pitch-options {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .block-label {
+        font-size: 13px;
+    }
+
+    .block-capacity {
+        font-size: 18px;
+    }
+
+    .upgrade-arrow {
+        display: block;
+    }
+
+    .upgrade-path {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+    .stadium-title {
+        font-size: 48px;
+        letter-spacing: 4px;
+    }
+
+    .stadium-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    .stadium-container {
+        max-width: 900px;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .pitch-options {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .block-label {
+        font-size: 14px;
+    }
+
+    .block-capacity {
+        font-size: 20px;
+    }
+
+    .construction-queue-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .upgrade-arrow {
+        display: block;
+    }
+
+    .upgrade-path {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .upgrade-stage {
+        grid-template-columns: 1fr;
+    }
+
+    .stage-name {
+        grid-column: span 1;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.hidden {
+    display: none !important;
+}
