@@ -1115,16 +1115,16 @@
     .sponsor-modal-content {
         max-width: 95%;
     }
-    
+
     .sponsor-grid {
         gap: 16px;
     }
-    
+
     .sponsor-payment-summary {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
-    
+
     .prognosis-scenarios {
         gap: 14px;
     }
@@ -1135,32 +1135,32 @@
     .sponsor-modal-header h2 {
         font-size: 24px;
     }
-    
+
     .sponsor-controls-row {
         flex-direction: row;
         flex-wrap: wrap;
     }
-    
+
     .btn-compare {
         flex: 1;
         min-width: 160px;
     }
-    
+
     .filter-select,
     .sort-select {
         flex: 1;
         min-width: 140px;
     }
-    
+
     .sponsor-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 18px;
     }
-    
+
     .payment-details-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .prognosis-scenarios {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1171,29 +1171,29 @@
     .sponsor-modal-content {
         max-width: 750px;
     }
-    
+
     .sponsor-modal-header h2 {
         font-size: 26px;
     }
-    
+
     .sponsor-controls-row {
         flex-direction: row;
         flex-wrap: wrap;
     }
-    
+
     .sponsor-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .payment-details-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .prognosis-scenarios {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .balance-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1204,40 +1204,40 @@
     .sponsor-modal-content {
         max-width: 800px;
     }
-    
+
     .sponsor-modal-wide {
         max-width: 1000px;
     }
-    
+
     .sponsor-modal-header h2 {
         font-size: 28px;
     }
-    
+
     .sponsor-controls-row {
         flex-direction: row;
         align-items: center;
     }
-    
+
     .sponsor-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
     }
-    
+
     .payment-details-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .prognosis-scenarios {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .balance-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .comparison-table {
         min-width: 800px;
     }

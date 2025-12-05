@@ -221,9 +221,8 @@
     flex: 1;
     background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
     border-radius: 3px;
-    box-shadow:
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
     overflow: hidden;
     position: relative;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -250,7 +249,7 @@
     font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     margin-bottom: 2px;
     line-height: 1;
 }
@@ -320,9 +319,8 @@
 .advertising-board:hover .advertising-banner {
     animation-play-state: paused;
     transform: scale(1.02);
-    box-shadow:
-            0 4px 12px rgba(0, 0, 0, 0.5),
-            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
     cursor: pointer;
 }
 
@@ -443,10 +441,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background:
-            radial-gradient(ellipse at 30% 40%, rgba(90, 70, 30, 0.4) 0%, transparent 50%),
-            radial-gradient(ellipse at 70% 60%, rgba(70, 55, 25, 0.3) 0%, transparent 40%),
-            radial-gradient(ellipse at 50% 80%, rgba(80, 65, 28, 0.35) 0%, transparent 45%);
+    background: radial-gradient(ellipse at 30% 40%, rgba(90, 70, 30, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(70, 55, 25, 0.3) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(80, 65, 28, 0.35) 0%, transparent 45%);
     /* Schlamm-/Erdflecken */
 }
 
@@ -1056,4 +1053,78 @@
 /* ========== UTILITY CLASSES ========== */
 .hidden {
     display: none !important;
+}
+
+
+/* GPU Acceleration für Modals */
+.stadium-modal {
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+.stadium-modal-content {
+    will-change: transform, opacity;
+}
+
+/* Content-Visibility für versteckte Tabs */
+.tab-content:not(.active) {
+    content-visibility: hidden;
+    contain-intrinsic-size: 0 500px;
+}
+
+/* Layout Containment */
+.stadium-visualization {
+    contain: layout style;
+}
+
+.stadium-block {
+    contain: layout style paint;
+}
+
+.stat-card,
+.feature-item,
+.construction-card {
+    contain: layout style paint;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 120px;
+}
+
+/* Slider Optimierung */
+.capacity-slider {
+    touch-action: pan-x;
+    user-select: none;
+}
+
+.capacity-slider::-webkit-slider-thumb {
+    will-change: transform;
+}
+
+/* Progress Bars */
+.progress-bar-fill,
+.pitch-condition-fill {
+    will-change: width;
+}
+
+/* Touch Response */
+.btn,
+.feature-tab,
+.stadium-block.clickable {
+    touch-action: manipulation;
+}
+
+/* Zahlen-Rendering */
+.stat-value,
+.block-capacity {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .stadium-modal,
+    .stadium-modal-content,
+    .stadium-block,
+    .stat-card {
+        will-change: auto;
+        transition: none !important;
+    }
 }

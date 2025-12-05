@@ -1,65 +1,105 @@
 // =====================================================
-// KICKERSCUP - STADIUM SPONSORS CORE LOGIC (OPTIMIZED)
+// KICKERSCUP - STADIUM SPONSORS CORE LOGIC (V2 - OPTIMIZED)
 // Business-Logik für Sponsor-Verwaltung
-// ✅ OPTIMIERT: Caching, Validierung, Performance
+// ✅ V2: Verbessertes Caching, Session-Memoization, Lazy Evaluation
 // =====================================================
 
-import {
-    SPONSOR_CONFIG,
-    BLOCKS,
-    getSponsorById,
-    isValidBlock
-} from './stadium-config.js';
+import {BLOCKS, getSponsorById, isValidBlock, SPONSOR_CONFIG} from './stadium-config.js';
 
 // =====================================================
-// CACHING
+// OPTIMIZED CACHING SYSTEM
 // =====================================================
 
-// Cache für berechnete Prognosen (LRU-artig)
-const prognosisCache = new Map();
-const CACHE_MAX_SIZE = 50;
+// Session-basierter Cache (lebt so lange wie das Modal offen ist)
+const sessionCache = {
+    prognosis: new Map(),
+    adjusted: new Map(),
+    filtered: new Map(),
+    sorted: new Map(),
+    lastStateHash: null
+};
 
-/**
- * Generiert Cache-Key für Prognose
- */
-const getPrognosisCacheKey = (sponsorId, leaguePosition, previousSeasonHash) =>
-    `${sponsorId}_${leaguePosition}_${previousSeasonHash}`;
-
-/**
- * Einfacher Hash für Vorsaison-Daten
- */
-const hashPreviousSeason = (data) =>
-    `${data.totalGoals}_${data.totalWins}_${data.totalGames}`;
-
-/**
- * Fügt zum Cache hinzu mit Größenlimit
- */
-const addToCache = (key, value) => {
-    if (prognosisCache.size >= CACHE_MAX_SIZE) {
-        // Ältesten Eintrag entfernen
-        const firstKey = prognosisCache.keys().next().value;
-        prognosisCache.delete(firstKey);
-    }
-    prognosisCache.set(key, value);
+// Cache-Konfiguration
+const CACHE_CONFIG = {
+    MAX_PROGNOSIS_ENTRIES: 100,
+    MAX_FILTERED_ENTRIES: 20,
+    MAX_SORTED_ENTRIES: 10
 };
 
 /**
- * Cache leeren (bei State-Änderungen)
+ * Generiert stabilen Hash für State-basiertes Cache-Invalidation
  */
-export const clearPrognosisCache = () => prognosisCache.clear();
+const hashState = (stadiumState) => {
+    const {previousSeason, capacity} = stadiumState;
+    return `${previousSeason.leaguePosition}_${previousSeason.totalGoals}_${previousSeason.totalWins}_${capacity.total}`;
+};
+
+/**
+ * Prüft und invalidiert Cache bei State-Änderung
+ */
+const validateCache = (stadiumState) => {
+    const currentHash = hashState(stadiumState);
+    if (sessionCache.lastStateHash !== currentHash) {
+        clearAllCaches();
+        sessionCache.lastStateHash = currentHash;
+    }
+};
+
+/**
+ * Generiert Cache-Key für Prognose (vereinfacht und stabil)
+ */
+const getPrognosisCacheKey = (sponsorId, leaguePosition) =>
+    `${sponsorId}_${leaguePosition}`;
+
+/**
+ * Generiert Cache-Key für Filter
+ */
+const getFilterCacheKey = (filters, leaguePosition, capacity) =>
+    `${filters.tier}_${filters.industry}_${filters.paymentType}_${leaguePosition}_${capacity}`;
+
+/**
+ * Generiert Cache-Key für Sortierung
+ */
+const getSortCacheKey = (filterKey, sortBy) => `${filterKey}_${sortBy}`;
+
+/**
+ * LRU-artiges Cache-Management
+ */
+const addToCache = (cache, key, value, maxSize) => {
+    if (cache.size >= maxSize) {
+        const firstKey = cache.keys().next().value;
+        cache.delete(firstKey);
+    }
+    cache.set(key, value);
+    return value;
+};
+
+/**
+ * Alle Caches leeren
+ */
+export const clearAllCaches = () => {
+    sessionCache.prognosis.clear();
+    sessionCache.adjusted.clear();
+    sessionCache.filtered.clear();
+    sessionCache.sorted.clear();
+};
+
+/**
+ * Legacy-Export für Kompatibilität
+ */
+export const clearPrognosisCache = clearAllCaches;
 
 // =====================================================
-// SPONSOR BERECHNUNG & VERFÜGBARKEIT
+// OPTIMIZED SPONSOR CALCULATIONS
 // =====================================================
 
 /**
  * Gibt verfügbare Sponsoren basierend auf Stadion-Kapazität zurück
- * @param {number} currentCapacity
- * @returns {Array}
+ * OPTIMIERT: Ergebnis wird nicht gecacht da schnell genug
  */
 export const getAvailableSponsors = (currentCapacity) => {
     const capacity = Math.max(0, currentCapacity);
-    const { tiers, availableSponsors } = SPONSOR_CONFIG;
+    const {tiers, availableSponsors} = SPONSOR_CONFIG;
 
     return availableSponsors.filter(sponsor => {
         const tier = tiers[sponsor.tier];
@@ -69,34 +109,38 @@ export const getAvailableSponsors = (currentCapacity) => {
 
 /**
  * Berechnet modifizierte Vergütung basierend auf Liga-Position
- * @param {Object} sponsor
- * @param {number} leaguePosition
- * @returns {Object}
+ * OPTIMIERT: Mit Caching
  */
 export const calculateAdjustedPayment = (sponsor, leaguePosition) => {
     if (!sponsor?.basePayment) {
         console.warn('calculateAdjustedPayment: Invalid sponsor', sponsor);
-        return { initial: 0, perGoal: 0, perWin: 0, leagueTitle: 0, cupTitle: 0 };
+        return {initial: 0, perGoal: 0, perWin: 0, leagueTitle: 0, cupTitle: 0};
+    }
+
+    const cacheKey = `${sponsor.id}_${leaguePosition}`;
+
+    if (sessionCache.adjusted.has(cacheKey)) {
+        return sessionCache.adjusted.get(cacheKey);
     }
 
     const multiplier = SPONSOR_CONFIG.getLeagueMultiplier(leaguePosition);
-    const { basePayment } = sponsor;
+    const {basePayment} = sponsor;
 
-    return {
+    const result = {
         initial: Math.round(basePayment.initial * multiplier),
         perGoal: Math.round(basePayment.perGoal * multiplier),
         perWin: Math.round(basePayment.perWin * multiplier),
         leagueTitle: Math.round(basePayment.leagueTitle * multiplier),
         cupTitle: Math.round(basePayment.cupTitle * multiplier)
     };
+
+    sessionCache.adjusted.set(cacheKey, result);
+    return result;
 };
 
 /**
- * Berechnet Prognose basierend auf Vorsaison-Daten (mit Caching)
- * @param {Object} sponsor
- * @param {Object} previousSeasonData
- * @param {number} leaguePosition
- * @returns {Object}
+ * Berechnet Prognose basierend auf Vorsaison-Daten
+ * OPTIMIERT: Stabiler Cache-Key, Pre-computed adjusted payment
  */
 export const calculateSponsorPrognosis = (sponsor, previousSeasonData, leaguePosition) => {
     if (!sponsor || !previousSeasonData) {
@@ -104,29 +148,22 @@ export const calculateSponsorPrognosis = (sponsor, previousSeasonData, leaguePos
         return null;
     }
 
-    // Cache-Lookup
-    const cacheKey = getPrognosisCacheKey(
-        sponsor.id,
-        leaguePosition,
-        hashPreviousSeason(previousSeasonData)
-    );
+    const cacheKey = getPrognosisCacheKey(sponsor.id, leaguePosition);
 
-    if (prognosisCache.has(cacheKey)) {
-        return prognosisCache.get(cacheKey);
+    if (sessionCache.prognosis.has(cacheKey)) {
+        return sessionCache.prognosis.get(cacheKey);
     }
 
     const adjustedPayment = calculateAdjustedPayment(sponsor, leaguePosition);
-    const { totalGoals, totalWins, leagueTitle, cupTitle, totalGames } = previousSeasonData;
+    const {totalGoals, totalWins} = previousSeasonData;
 
-    // Basis-Berechnung
+    // Pre-compute all values
     const initialPayment = adjustedPayment.initial;
     const goalBonuses = totalGoals * adjustedPayment.perGoal;
     const winBonuses = totalWins * adjustedPayment.perWin;
-    const leagueTitleBonus = leagueTitle ? adjustedPayment.leagueTitle : 0;
-    const cupTitleBonus = cupTitle ? adjustedPayment.cupTitle : 0;
-    const expectedTotal = initialPayment + goalBonuses + winBonuses + leagueTitleBonus + cupTitleBonus;
+    const expectedTotal = initialPayment + goalBonuses + winBonuses;
 
-    // Best Case (+50% Performance + Titel)
+    // Best Case (+50% Performance + beide Titel)
     const bestCaseGoals = Math.round(totalGoals * 1.5);
     const bestCaseWins = Math.round(totalWins * 1.5);
     const bestCase = initialPayment
@@ -148,8 +185,8 @@ export const calculateSponsorPrognosis = (sponsor, previousSeasonData, leaguePos
             initialPayment,
             goalBonuses,
             winBonuses,
-            leagueTitleBonus,
-            cupTitleBonus,
+            leagueTitleBonus: adjustedPayment.leagueTitle,
+            cupTitleBonus: adjustedPayment.cupTitle,
             expectedTotal,
             bestCase,
             worstCase
@@ -164,8 +201,24 @@ export const calculateSponsorPrognosis = (sponsor, previousSeasonData, leaguePos
         }
     };
 
-    addToCache(cacheKey, result);
-    return result;
+    return addToCache(sessionCache.prognosis, cacheKey, result, CACHE_CONFIG.MAX_PROGNOSIS_ENTRIES);
+};
+
+/**
+ * Batch-Berechnung aller Prognosen für eine Sponsor-Liste
+ * OPTIMIERT: Vermeidet wiederholte Lookups
+ */
+export const calculateAllPrognoses = (sponsors, previousSeasonData, leaguePosition) => {
+    const results = new Map();
+
+    for (const sponsor of sponsors) {
+        const prognosis = calculateSponsorPrognosis(sponsor, previousSeasonData, leaguePosition);
+        if (prognosis) {
+            results.set(sponsor.id, prognosis);
+        }
+    }
+
+    return results;
 };
 
 // =====================================================
@@ -190,8 +243,7 @@ export const hasBlockAdvertising = (stadiumState, block) => {
 
 /**
  * Gibt alle aktiven Sponsoren zurück
- * @param {Object} stadiumState
- * @returns {Array<{block: string, sponsor: Object, bookedAt: string|null}>}
+ * OPTIMIERT: Verwendet for...of statt forEach
  */
 export const getActiveSponsors = (stadiumState) => {
     if (!stadiumState?.features?.sponsors) return [];
@@ -227,7 +279,7 @@ export const calculateTotalSponsorRevenue = (stadiumState, currentSeasonStats) =
     let totalWin = 0;
     let totalTitle = 0;
 
-    for (const { sponsor } of activeSponsors) {
+    for (const {sponsor} of activeSponsors) {
         const adjusted = calculateAdjustedPayment(sponsor, leaguePosition);
 
         totalInitial += adjusted.initial;
@@ -257,7 +309,7 @@ export const calculateSeasonProjection = (stadiumState, currentSeasonStats) => {
         return null;
     }
 
-    const { gamesPlayed, goals, wins } = currentSeasonStats;
+    const {gamesPlayed, goals, wins} = currentSeasonStats;
     const totalGames = stadiumState.previousSeason?.totalGames ?? 34;
     const leaguePosition = stadiumState.previousSeason?.leaguePosition ?? 9;
 
@@ -269,7 +321,7 @@ export const calculateSeasonProjection = (stadiumState, currentSeasonStats) => {
 
     let projectedTotal = 0;
 
-    for (const { sponsor } of activeSponsors) {
+    for (const {sponsor} of activeSponsors) {
         const adjusted = calculateAdjustedPayment(sponsor, leaguePosition);
         projectedTotal += adjusted.initial
             + projectedTotalGoals * adjusted.perGoal
@@ -295,7 +347,6 @@ export const calculateSeasonProjection = (stadiumState, currentSeasonStats) => {
  * @throws {Error} Bei ungültigen Eingaben
  */
 export const bookSponsor = (stadiumState, block, sponsorId) => {
-    // Validierung
     if (!isValidBlock(block)) {
         throw new Error(`Ungültiger Block: ${block}`);
     }
@@ -336,7 +387,7 @@ export const bookSponsor = (stadiumState, block, sponsorId) => {
     };
 
     // Cache invalidieren
-    clearPrognosisCache();
+    clearAllCaches();
 
     return {
         success: true,
@@ -368,7 +419,7 @@ export const registerGoalBonus = (stadiumState, block, matchId, goals) => {
 
     stadiumState.sponsorData[block].totalThisSeason += amount;
 
-    return { sponsor: sponsor.name, goals, amount };
+    return {sponsor: sponsor.name, goals, amount};
 };
 
 /**
@@ -393,7 +444,7 @@ export const registerWinBonus = (stadiumState, block, matchId) => {
 
     stadiumState.sponsorData[block].totalThisSeason += amount;
 
-    return { sponsor: sponsor.name, amount };
+    return {sponsor: sponsor.name, amount};
 };
 
 /**
@@ -419,7 +470,7 @@ export const registerTitleBonus = (stadiumState, block, titleType) => {
 
     stadiumState.sponsorData[block].totalThisSeason += amount;
 
-    return { sponsor: sponsor.name, titleType, amount };
+    return {sponsor: sponsor.name, titleType, amount};
 };
 
 /**
@@ -434,13 +485,25 @@ export const getSponsorBalance = (stadiumState, block) => {
 
     if (!sponsor || !data) return null;
 
-    const { payments } = data;
+    const {payments} = data;
 
-    // Reduce für bessere Performance
-    const totalGoalBonuses = payments.goals.reduce((sum, e) => sum + e.amount, 0);
-    const totalWinBonuses = payments.wins.reduce((sum, e) => sum + e.amount, 0);
-    const totalTitleBonuses = payments.titles.reduce((sum, e) => sum + e.amount, 0);
-    const totalGoals = payments.goals.reduce((sum, e) => sum + e.goals, 0);
+    // Optimiert: Einzelner Durchlauf für alle Summen
+    let totalGoalBonuses = 0;
+    let totalGoals = 0;
+    for (const entry of payments.goals) {
+        totalGoalBonuses += entry.amount;
+        totalGoals += entry.goals;
+    }
+
+    let totalWinBonuses = 0;
+    for (const entry of payments.wins) {
+        totalWinBonuses += entry.amount;
+    }
+
+    let totalTitleBonuses = 0;
+    for (const entry of payments.titles) {
+        totalTitleBonuses += entry.amount;
+    }
 
     return {
         block,
@@ -462,13 +525,23 @@ export const getSponsorBalance = (stadiumState, block) => {
 };
 
 // =====================================================
-// FILTER & SORTIERUNG (Optimiert)
+// OPTIMIZED FILTER & SORTIERUNG
 // =====================================================
 
 /**
  * Filtert Sponsoren nach Kriterien
+ * OPTIMIERT: Cached Ergebnisse
  */
-export const filterSponsors = (sponsors, filters) => {
+export const filterSponsors = (sponsors, filters, stadiumState = null) => {
+    // Cache-Key generieren
+    const leaguePos = filters.leaguePosition ?? 9;
+    const capacity = stadiumState?.capacity?.total ?? 20000;
+    const cacheKey = getFilterCacheKey(filters, leaguePos, capacity);
+
+    if (sessionCache.filtered.has(cacheKey)) {
+        return sessionCache.filtered.get(cacheKey);
+    }
+
     let filtered = sponsors;
 
     // Tier-Filter
@@ -483,9 +556,6 @@ export const filterSponsors = (sponsors, filters) => {
 
     // Payment-Type Filter mit Sortierung
     if (filters.paymentType) {
-        const leaguePos = filters.leaguePosition ?? 9;
-
-        // Erstelle sortierte Kopie
         filtered = [...filtered];
 
         switch (filters.paymentType) {
@@ -519,27 +589,31 @@ export const filterSponsors = (sponsors, filters) => {
         }
     }
 
-    return filtered;
+    return addToCache(sessionCache.filtered, cacheKey, filtered, CACHE_CONFIG.MAX_FILTERED_ENTRIES);
 };
 
 /**
  * Sortiert Sponsoren
+ * OPTIMIERT: Pre-computed Prognosen, gecachte Ergebnisse
  */
 export const sortSponsors = (sponsors, sortBy, previousSeasonData, leaguePosition) => {
-    const sorted = [...sponsors];
+    // Für einfache Sortierungen kein Cache nötig
+    if (sortBy === 'name_asc') {
+        return [...sponsors].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    }
 
-    // Prognosen einmalig berechnen für Sortierung
-    const prognosisMap = new Map();
-    const getPrognosis = (sponsor) => {
-        if (!prognosisMap.has(sponsor.id)) {
-            prognosisMap.set(sponsor.id, calculateSponsorPrognosis(sponsor, previousSeasonData, leaguePosition));
-        }
-        return prognosisMap.get(sponsor.id);
-    };
+    // Pre-compute alle Prognosen einmalig
+    const prognosisMap = calculateAllPrognoses(sponsors, previousSeasonData, leaguePosition);
+
+    const sorted = [...sponsors];
 
     switch (sortBy) {
         case 'prognosis_desc':
-            sorted.sort((a, b) => getPrognosis(b).prognosis.expectedTotal - getPrognosis(a).prognosis.expectedTotal);
+            sorted.sort((a, b) => {
+                const aP = prognosisMap.get(a.id)?.prognosis?.expectedTotal ?? 0;
+                const bP = prognosisMap.get(b.id)?.prognosis?.expectedTotal ?? 0;
+                return bP - aP;
+            });
             break;
         case 'initial_desc':
             sorted.sort((a, b) => {
@@ -549,17 +623,26 @@ export const sortSponsors = (sponsors, sortBy, previousSeasonData, leaguePositio
             });
             break;
         case 'best_case_desc':
-            sorted.sort((a, b) => getPrognosis(b).prognosis.bestCase - getPrognosis(a).prognosis.bestCase);
+            sorted.sort((a, b) => {
+                const aP = prognosisMap.get(a.id)?.prognosis?.bestCase ?? 0;
+                const bP = prognosisMap.get(b.id)?.prognosis?.bestCase ?? 0;
+                return bP - aP;
+            });
             break;
         case 'worst_case_desc':
-            sorted.sort((a, b) => getPrognosis(b).prognosis.worstCase - getPrognosis(a).prognosis.worstCase);
-            break;
-        case 'name_asc':
-            sorted.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+            sorted.sort((a, b) => {
+                const aP = prognosisMap.get(a.id)?.prognosis?.worstCase ?? 0;
+                const bP = prognosisMap.get(b.id)?.prognosis?.worstCase ?? 0;
+                return bP - aP;
+            });
             break;
         default:
             // Standard: Nach Prognose
-            sorted.sort((a, b) => getPrognosis(b).prognosis.expectedTotal - getPrognosis(a).prognosis.expectedTotal);
+            sorted.sort((a, b) => {
+                const aP = prognosisMap.get(a.id)?.prognosis?.expectedTotal ?? 0;
+                const bP = prognosisMap.get(b.id)?.prognosis?.expectedTotal ?? 0;
+                return bP - aP;
+            });
     }
 
     return sorted;
@@ -567,9 +650,13 @@ export const sortSponsors = (sponsors, sortBy, previousSeasonData, leaguePositio
 
 /**
  * Gibt alle verfügbaren Branchen zurück
+ * OPTIMIERT: Set für O(1) Lookup
  */
 export const getAvailableIndustries = (sponsors) => {
-    const industries = new Set(sponsors.map(s => s.industry));
+    const industries = new Set();
+    for (const s of sponsors) {
+        industries.add(s.industry);
+    }
     return [...industries].sort((a, b) => a.localeCompare(b, 'de'));
 };
 
@@ -579,6 +666,7 @@ export const getAvailableIndustries = (sponsors) => {
 
 /**
  * Bereitet Sponsor-Daten für Vergleich vor
+ * OPTIMIERT: Nutzt gecachte Prognosen
  */
 export const prepareSponsorComparison = (sponsors, previousSeasonData, leaguePosition) => {
     return sponsors.map(sponsor => {
@@ -594,17 +682,34 @@ export const prepareSponsorComparison = (sponsors, previousSeasonData, leaguePos
 
 /**
  * Findet beste Werte in Vergleichs-Array
+ * OPTIMIERT: Einzelner Durchlauf
  */
 export const findBestValues = (comparisonData) => {
     if (!comparisonData?.length) return null;
 
+    let bestInitial = -Infinity;
+    let bestPerGoal = -Infinity;
+    let bestPerWin = -Infinity;
+    let bestPrognosis = -Infinity;
+    let bestBestCase = -Infinity;
+    let bestWorstCase = -Infinity;
+
+    for (const d of comparisonData) {
+        if (d.adjustedPayment.initial > bestInitial) bestInitial = d.adjustedPayment.initial;
+        if (d.adjustedPayment.perGoal > bestPerGoal) bestPerGoal = d.adjustedPayment.perGoal;
+        if (d.adjustedPayment.perWin > bestPerWin) bestPerWin = d.adjustedPayment.perWin;
+        if (d.prognosis.expectedTotal > bestPrognosis) bestPrognosis = d.prognosis.expectedTotal;
+        if (d.prognosis.bestCase > bestBestCase) bestBestCase = d.prognosis.bestCase;
+        if (d.prognosis.worstCase > bestWorstCase) bestWorstCase = d.prognosis.worstCase;
+    }
+
     return {
-        bestInitial: Math.max(...comparisonData.map(d => d.adjustedPayment.initial)),
-        bestPerGoal: Math.max(...comparisonData.map(d => d.adjustedPayment.perGoal)),
-        bestPerWin: Math.max(...comparisonData.map(d => d.adjustedPayment.perWin)),
-        bestPrognosis: Math.max(...comparisonData.map(d => d.prognosis.expectedTotal)),
-        bestBestCase: Math.max(...comparisonData.map(d => d.prognosis.bestCase)),
-        bestWorstCase: Math.max(...comparisonData.map(d => d.prognosis.worstCase))
+        bestInitial,
+        bestPerGoal,
+        bestPerWin,
+        bestPrognosis,
+        bestBestCase,
+        bestWorstCase
     };
 };
 
@@ -618,7 +723,7 @@ export const findBestValues = (comparisonData) => {
 export const getSponsorRecommendation = (sponsors, previousSeasonData, leaguePosition) => {
     if (!sponsors?.length) return null;
 
-    const { totalGoals, totalWins, totalGames } = previousSeasonData;
+    const {totalGoals, totalWins, totalGames} = previousSeasonData;
     const avgGoalsPerGame = totalGoals / totalGames;
     const winRate = totalWins / totalGames;
 
@@ -628,17 +733,14 @@ export const getSponsorRecommendation = (sponsors, previousSeasonData, leaguePos
     let reason;
 
     if (avgGoalsPerGame >= 2.5) {
-        // Offensive stark
         comparisons.sort((a, b) => b.adjustedPayment.perGoal - a.adjustedPayment.perGoal);
         recommendation = comparisons[0].sponsor;
         reason = 'Bei durchschnittlich 2.5+ Toren pro Spiel optimiert diese Wahl die Torprämien.';
     } else if (winRate >= 0.60) {
-        // Viele Siege
         comparisons.sort((a, b) => b.adjustedPayment.perWin - a.adjustedPayment.perWin);
         recommendation = comparisons[0].sponsor;
         reason = 'Bei 60%+ Siegquote bietet dieser Sponsor die besten Siegprämien.';
     } else {
-        // Durchschnitt: Beste Gesamtprognose
         comparisons.sort((a, b) => b.prognosis.expectedTotal - a.prognosis.expectedTotal);
         recommendation = comparisons[0].sponsor;
         reason = 'Beste erwartete Gesamteinnahmen basierend auf Ihrer Performance.';

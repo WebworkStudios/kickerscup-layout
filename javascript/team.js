@@ -15,156 +15,196 @@ const mockPlayers = [
         strength: 8, stamina: 90, form: 25, freshness: 95, motivation: 10,
         contractYears: 3, gamesPlayed: 145, status: 'OK', isStarter: true, isCaptain: false,
         // Saisonstatistiken
-        seasonStats: { goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
+        seasonStats: {goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
         // Karrierestatistiken
-        careerStats: { goals: 0, assists: 8, yellowCards: 23, yellowRedCards: 1, redCards: 0, games: 145, minutes: 13050 }
+        careerStats: {goals: 0, assists: 8, yellowCards: 23, yellowRedCards: 1, redCards: 0, games: 145, minutes: 13050}
     },
     {
         id: 2, firstName: 'Tom', lastName: 'Schmidt', position: 'LV', age: 25,
         strength: 7, stamina: 85, form: 22, freshness: 90, motivation: 9,
         contractYears: 2, gamesPlayed: 98, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 1, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 11, minutes: 945 },
-        careerStats: { goals: 4, assists: 18, yellowCards: 32, yellowRedCards: 2, redCards: 1, games: 98, minutes: 8234 }
+        seasonStats: {goals: 1, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 11, minutes: 945},
+        careerStats: {goals: 4, assists: 18, yellowCards: 32, yellowRedCards: 2, redCards: 1, games: 98, minutes: 8234}
     },
     {
         id: 3, firstName: 'Leon', lastName: 'Wagner', position: 'IV', age: 29,
         strength: 9, stamina: 82, form: 27, freshness: 88, motivation: 10,
         contractYears: 4, gamesPlayed: 187, status: 'OK', isStarter: true, isCaptain: true,
-        seasonStats: { goals: 2, assists: 0, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 12, assists: 5, yellowCards: 54, yellowRedCards: 3, redCards: 2, games: 187, minutes: 16245 }
+        seasonStats: {goals: 2, assists: 0, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {
+            goals: 12,
+            assists: 5,
+            yellowCards: 54,
+            yellowRedCards: 3,
+            redCards: 2,
+            games: 187,
+            minutes: 16245
+        }
     },
     {
         id: 4, firstName: 'Felix', lastName: 'Fischer', position: 'IV', age: 27,
         strength: 8, stamina: 84, form: 24, freshness: 92, motivation: 9,
         contractYears: 3, gamesPlayed: 142, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 1, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 8, assists: 7, yellowCards: 41, yellowRedCards: 1, redCards: 1, games: 142, minutes: 12456 }
+        seasonStats: {goals: 1, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {goals: 8, assists: 7, yellowCards: 41, yellowRedCards: 1, redCards: 1, games: 142, minutes: 12456}
     },
     {
         id: 5, firstName: 'Lukas', lastName: 'Becker', position: 'RV', age: 24,
         strength: 7, stamina: 88, form: 21, freshness: 93, motivation: 9,
         contractYears: 2, gamesPlayed: 76, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 0, assists: 4, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 2, assists: 14, yellowCards: 18, yellowRedCards: 0, redCards: 0, games: 76, minutes: 6345 }
+        seasonStats: {goals: 0, assists: 4, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {goals: 2, assists: 14, yellowCards: 18, yellowRedCards: 0, redCards: 0, games: 76, minutes: 6345}
     },
     {
         id: 6, firstName: 'Jonas', lastName: 'Hoffmann', position: 'DM', age: 26,
         strength: 8, stamina: 86, form: 23, freshness: 89, motivation: 9,
         contractYears: 3, gamesPlayed: 112, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 1, assists: 2, yellowCards: 5, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 6, assists: 15, yellowCards: 38, yellowRedCards: 2, redCards: 0, games: 112, minutes: 9567 }
+        seasonStats: {goals: 1, assists: 2, yellowCards: 5, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {goals: 6, assists: 15, yellowCards: 38, yellowRedCards: 2, redCards: 0, games: 112, minutes: 9567}
     },
     {
         id: 7, firstName: 'Tim', lastName: 'Weber', position: 'DM', age: 28,
         strength: 8, stamina: 84, form: 24, freshness: 87, motivation: 10,
         contractYears: 4, gamesPlayed: 156, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 2, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 11, assists: 22, yellowCards: 45, yellowRedCards: 1, redCards: 1, games: 156, minutes: 13234 }
+        seasonStats: {goals: 2, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {
+            goals: 11,
+            assists: 22,
+            yellowCards: 45,
+            yellowRedCards: 1,
+            redCards: 1,
+            games: 156,
+            minutes: 13234
+        }
     },
     {
         id: 8, firstName: 'Paul', lastName: 'Schneider', position: 'LM', age: 23,
         strength: 7, stamina: 89, form: 20, freshness: 94, motivation: 8,
         contractYears: 2, gamesPlayed: 54, status: 'verletzt', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 3, assists: 5, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 9, minutes: 687 },
-        careerStats: { goals: 14, assists: 18, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 54, minutes: 4234 }
+        seasonStats: {goals: 3, assists: 5, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 9, minutes: 687},
+        careerStats: {goals: 14, assists: 18, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 54, minutes: 4234}
     },
     {
         id: 9, firstName: 'David', lastName: 'Richter', position: 'OM', age: 27,
         strength: 9, stamina: 83, form: 26, freshness: 88, motivation: 10,
         contractYears: 3, gamesPlayed: 134, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 5, assists: 8, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 34, assists: 45, yellowCards: 28, yellowRedCards: 1, redCards: 0, games: 134, minutes: 11456 }
+        seasonStats: {goals: 5, assists: 8, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {
+            goals: 34,
+            assists: 45,
+            yellowCards: 28,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 134,
+            minutes: 11456
+        }
     },
     {
         id: 10, firstName: 'Marco', lastName: 'Klein', position: 'RM', age: 25,
         strength: 7, stamina: 87, form: 22, freshness: 91, motivation: 9,
         contractYears: 2, gamesPlayed: 89, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 2, assists: 6, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 18, assists: 23, yellowCards: 19, yellowRedCards: 0, redCards: 0, games: 89, minutes: 7234 }
+        seasonStats: {goals: 2, assists: 6, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {goals: 18, assists: 23, yellowCards: 19, yellowRedCards: 0, redCards: 0, games: 89, minutes: 7234}
     },
     {
         id: 11, firstName: 'Kevin', lastName: 'Krause', position: 'ST', age: 29,
         strength: 9, stamina: 81, form: 28, freshness: 86, motivation: 11,
         contractYears: 4, gamesPlayed: 189, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: { goals: 9, assists: 4, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080 },
-        careerStats: { goals: 87, assists: 28, yellowCards: 34, yellowRedCards: 2, redCards: 1, games: 189, minutes: 15678 }
+        seasonStats: {goals: 9, assists: 4, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080},
+        careerStats: {
+            goals: 87,
+            assists: 28,
+            yellowCards: 34,
+            yellowRedCards: 2,
+            redCards: 1,
+            games: 189,
+            minutes: 15678
+        }
     },
     {
         id: 12, firstName: 'Jan', lastName: 'Meyer', position: 'TW', age: 22,
         strength: 6, stamina: 88, form: 18, freshness: 96, motivation: 8,
         contractYears: 1, gamesPlayed: 23, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 0, minutes: 0 },
-        careerStats: { goals: 0, assists: 2, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 23, minutes: 2070 }
+        seasonStats: {goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 0, minutes: 0},
+        careerStats: {goals: 0, assists: 2, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 23, minutes: 2070}
     },
     {
         id: 13, firstName: 'Niklas', lastName: 'Koch', position: 'IV', age: 24,
         strength: 7, stamina: 85, form: 19, freshness: 92, motivation: 8,
         contractYears: 2, gamesPlayed: 67, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 0, assists: 0, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 3, minutes: 124 },
-        careerStats: { goals: 3, assists: 2, yellowCards: 15, yellowRedCards: 1, redCards: 0, games: 67, minutes: 5234 }
+        seasonStats: {goals: 0, assists: 0, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 3, minutes: 124},
+        careerStats: {goals: 3, assists: 2, yellowCards: 15, yellowRedCards: 1, redCards: 0, games: 67, minutes: 5234}
     },
     {
         id: 14, firstName: 'Ben', lastName: 'Wolf', position: 'DM', age: 21,
         strength: 6, stamina: 90, form: 17, freshness: 97, motivation: 7,
         contractYears: 1, gamesPlayed: 12, status: 'gesperrt', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 1, redCards: 0, games: 5, minutes: 234 },
-        careerStats: { goals: 1, assists: 2, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 876 }
+        seasonStats: {goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 1, redCards: 0, games: 5, minutes: 234},
+        careerStats: {goals: 1, assists: 2, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 876}
     },
     {
         id: 15, firstName: 'Erik', lastName: 'Braun', position: 'OM', age: 23,
         strength: 7, stamina: 86, form: 19, freshness: 93, motivation: 8,
         contractYears: 2, gamesPlayed: 45, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 1, assists: 2, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 6, minutes: 345 },
-        careerStats: { goals: 8, assists: 12, yellowCards: 9, yellowRedCards: 0, redCards: 0, games: 45, minutes: 3234 }
+        seasonStats: {goals: 1, assists: 2, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 6, minutes: 345},
+        careerStats: {goals: 8, assists: 12, yellowCards: 9, yellowRedCards: 0, redCards: 0, games: 45, minutes: 3234}
     },
     {
         id: 16, firstName: 'Noah', lastName: 'Lang', position: 'ST', age: 22,
         strength: 7, stamina: 88, form: 20, freshness: 94, motivation: 9,
         contractYears: 1, gamesPlayed: 38, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 3, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456 },
-        careerStats: { goals: 12, assists: 5, yellowCards: 6, yellowRedCards: 0, redCards: 0, games: 38, minutes: 2567 }
+        seasonStats: {goals: 3, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456},
+        careerStats: {goals: 12, assists: 5, yellowCards: 6, yellowRedCards: 0, redCards: 0, games: 38, minutes: 2567}
     },
     {
         id: 17, firstName: 'Fabian', lastName: 'Schulz', position: 'LV', age: 20,
         strength: 6, stamina: 91, form: 16, freshness: 98, motivation: 7,
         contractYears: 1, gamesPlayed: 8, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 1, minutes: 45 },
-        careerStats: { goals: 0, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456 }
+        seasonStats: {goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 1, minutes: 45},
+        careerStats: {goals: 0, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456}
     },
     {
         id: 18, firstName: 'Moritz', lastName: 'Zimmermann', position: 'RV', age: 27,
         strength: 7, stamina: 83, form: 21, freshness: 88, motivation: 9,
         contractYears: 3, gamesPlayed: 98, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 1, assists: 2, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 4, minutes: 278 },
-        careerStats: { goals: 5, assists: 11, yellowCards: 24, yellowRedCards: 1, redCards: 0, games: 98, minutes: 7654 }
+        seasonStats: {goals: 1, assists: 2, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 4, minutes: 278},
+        careerStats: {goals: 5, assists: 11, yellowCards: 24, yellowRedCards: 1, redCards: 0, games: 98, minutes: 7654}
     },
     {
         id: 19, firstName: 'Simon', lastName: 'Vogel', position: 'LM', age: 21,
         strength: 6, stamina: 92, form: 17, freshness: 95, motivation: 8,
         contractYears: 1, gamesPlayed: 15, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 0, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 3, minutes: 123 },
-        careerStats: { goals: 2, assists: 4, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 15, minutes: 987 }
+        seasonStats: {goals: 0, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 3, minutes: 123},
+        careerStats: {goals: 2, assists: 4, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 15, minutes: 987}
     },
     {
         id: 20, firstName: 'Alexander', lastName: 'König', position: 'RM', age: 26,
         strength: 7, stamina: 85, form: 21, freshness: 90, motivation: 9,
         contractYears: 2, gamesPlayed: 72, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 1, assists: 3, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 5, minutes: 312 },
-        careerStats: { goals: 9, assists: 15, yellowCards: 14, yellowRedCards: 0, redCards: 0, games: 72, minutes: 5678 }
+        seasonStats: {goals: 1, assists: 3, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 5, minutes: 312},
+        careerStats: {goals: 9, assists: 15, yellowCards: 14, yellowRedCards: 0, redCards: 0, games: 72, minutes: 5678}
     },
     {
         id: 21, firstName: 'Julian', lastName: 'Herrmann', position: 'ST', age: 24,
         strength: 8, stamina: 84, form: 22, freshness: 91, motivation: 9,
         contractYears: 2, gamesPlayed: 67, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 2, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 7, minutes: 423 },
-        careerStats: { goals: 23, assists: 8, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 67, minutes: 4987 }
+        seasonStats: {goals: 2, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 7, minutes: 423},
+        careerStats: {goals: 23, assists: 8, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 67, minutes: 4987}
     },
     {
         id: 22, firstName: 'Patrick', lastName: 'Lange', position: 'OM', age: 30,
         strength: 8, stamina: 78, form: 20, freshness: 83, motivation: 8,
         contractYears: 1, gamesPlayed: 156, status: 'gesperrt', isStarter: false, isCaptain: false,
-        seasonStats: { goals: 1, assists: 4, yellowCards: 3, yellowRedCards: 1, redCards: 0, games: 10, minutes: 678 },
-        careerStats: { goals: 28, assists: 52, yellowCards: 48, yellowRedCards: 3, redCards: 1, games: 156, minutes: 12345 }
+        seasonStats: {goals: 1, assists: 4, yellowCards: 3, yellowRedCards: 1, redCards: 0, games: 10, minutes: 678},
+        careerStats: {
+            goals: 28,
+            assists: 52,
+            yellowCards: 48,
+            yellowRedCards: 3,
+            redCards: 1,
+            games: 156,
+            minutes: 12345
+        }
     }
 ];
 

@@ -1,31 +1,156 @@
 // =====================================================
-// KICKERSCUP - STADIUM SPONSORS UI (OPTIMIZED)
+// KICKERSCUP - STADIUM SPONSORS UI (V2 - OPTIMIZED)
 // UI-Rendering für Sponsor-Verwaltung
-// ✅ OPTIMIERT: Template-Caching, Event-Delegation, DOM-Batching
+// ✅ V2: Virtual Scrolling, DocumentFragment, Debounced Updates,
+//        Template Caching, Incremental Rendering
 // =====================================================
 
-import {
-    SPONSOR_CONFIG,
-    CAPACITY_CONFIG,
-    UI_TEXTS,
-    formatCurrency,
-    getSponsorById
-} from './stadium-config.js';
+import {CAPACITY_CONFIG, formatCurrency, getSponsorById, SPONSOR_CONFIG, UI_TEXTS} from './stadium-config.js';
 
 import {
-    getAvailableSponsors,
-    calculateSponsorPrognosis,
-    filterSponsors,
-    sortSponsors,
-    getAvailableIndustries,
-    prepareSponsorComparison,
-    findBestValues,
-    getSponsorRecommendation,
-    getActiveSponsors,
-    calculateTotalSponsorRevenue,
+    calculateAllPrognoses,
     calculateSeasonProjection,
-    getSponsorBalance
+    calculateSponsorPrognosis,
+    calculateTotalSponsorRevenue,
+    filterSponsors,
+    findBestValues,
+    getActiveSponsors,
+    getAvailableIndustries,
+    getAvailableSponsors,
+    getSponsorBalance,
+    getSponsorRecommendation,
+    prepareSponsorComparison,
+    sortSponsors
 } from './stadium-sponsors.js';
+
+// =====================================================
+// PERFORMANCE UTILITIES
+// =====================================================
+
+/**
+ * Debounce-Funktion für verzögerte Ausführung
+ */
+const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+};
+
+/**
+ * Throttle-Funktion für Rate-Limiting
+ */
+const throttle = (fn, limit) => {
+    let inThrottle = false;
+    return (...args) => {
+        if (!inThrottle) {
+            fn(...args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+};
+
+/**
+ * RequestAnimationFrame-basiertes Batching
+ */
+const scheduleRender = (() => {
+    let scheduled = false;
+    let callbacks = [];
+
+    return (callback) => {
+        callbacks.push(callback);
+
+        if (!scheduled) {
+            scheduled = true;
+            requestAnimationFrame(() => {
+                const toExecute = callbacks;
+                callbacks = [];
+                scheduled = false;
+
+                for (const cb of toExecute) {
+                    cb();
+                }
+            });
+        }
+    };
+})();
+
+// =====================================================
+// TEMPLATE CACHE
+// =====================================================
+
+const templateCache = new Map();
+
+/**
+ * Cached Template für wiederkehrende Elemente
+ */
+const getCachedTemplate = (key, generator) => {
+    if (!templateCache.has(key)) {
+        templateCache.set(key, generator());
+    }
+    return templateCache.get(key);
+};
+
+/**
+ * Template-Cache leeren
+ */
+export const clearTemplateCache = () => templateCache.clear();
+
+// =====================================================
+// HTML UTILITIES
+// =====================================================
+
+/**
+ * Escaped HTML für sichere Ausgabe (gecacht)
+ */
+const escapeCache = new Map();
+const escapeHtml = (str) => {
+    if (typeof str !== 'string') return String(str);
+
+    if (escapeCache.has(str)) {
+        return escapeCache.get(str);
+    }
+
+    const escaped = str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    // Nur kurze Strings cachen
+    if (str.length < 100) {
+        escapeCache.set(str, escaped);
+    }
+
+    return escaped;
+};
+
+/**
+ * Erstellt Element aus HTML-String effizient
+ */
+const createElementFromHTML = (html) => {
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    return template.content.firstChild;
+};
+
+/**
+ * Erstellt DocumentFragment für Batch-Insert
+ */
+const createFragment = (htmlArray) => {
+    const fragment = document.createDocumentFragment();
+    const template = document.createElement('template');
+
+    for (const html of htmlArray) {
+        template.innerHTML = html.trim();
+        fragment.appendChild(template.content.firstChild.cloneNode(true));
+    }
+
+    return fragment;
+};
 
 // =====================================================
 // MODAL STATE (Singleton Pattern)
@@ -41,47 +166,136 @@ const modalState = {
         industry: 'all',
         paymentType: null
     },
-    sort: 'prognosis_desc'
+    sort: 'prognosis_desc',
+    // Performance tracking
+    lastRenderTime: 0,
+    renderCount: 0,
+    // Cached data
+    cachedSponsors: null,
+    cachedPrognoses: null
 };
 
 // =====================================================
-// TEMPLATE HELPERS (Cached String Templates)
+// VIRTUAL SCROLLING (für große Listen)
+// =====================================================
+
+const VIRTUAL_SCROLL_CONFIG = {
+    ITEM_HEIGHT: 320,  // Geschätzte Höhe einer Sponsor-Karte
+    BUFFER_SIZE: 3,    // Zusätzliche Items außerhalb des Viewports
+    THRESHOLD: 10      // Ab dieser Anzahl Virtual Scrolling aktivieren
+};
+
+/**
+ * Virtual Scrolling State
+ */
+const virtualScrollState = {
+    enabled: false,
+    scrollTop: 0,
+    containerHeight: 0,
+    totalItems: 0,
+    visibleStart: 0,
+    visibleEnd: 0
+};
+
+/**
+ * Berechnet sichtbare Items für Virtual Scrolling
+ */
+const calculateVisibleRange = (scrollTop, containerHeight, totalItems) => {
+    const {ITEM_HEIGHT, BUFFER_SIZE} = VIRTUAL_SCROLL_CONFIG;
+
+    const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT);
+    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE);
+    const endIndex = Math.min(totalItems, startIndex + visibleCount + BUFFER_SIZE * 2);
+
+    return {startIndex, endIndex};
+};
+
+// =====================================================
+// TIER BADGE TEMPLATES (Cached)
+// =====================================================
+
+const getTierBadgeHTML = (tier, style = 'full') => {
+    const cacheKey = `tier_${tier}_${style}`;
+
+    return getCachedTemplate(cacheKey, () => {
+        const tierConfig = SPONSOR_CONFIG.tiers[tier];
+        if (!tierConfig) return '';
+
+        return style === 'small'
+            ? `<span class="sponsor-tier-badge-small" style="background:${tierConfig.color}">${tierConfig.icon}</span>`
+            : `<div class="sponsor-tier-badge" style="background:${tierConfig.color}">${tierConfig.icon} ${tierConfig.name}</div>`;
+    });
+};
+
+// =====================================================
+// SPONSOR CARD RENDERING (Optimized)
 // =====================================================
 
 /**
- * Escaped HTML für sichere Ausgabe
+ * Rendert einzelne Sponsor-Karte (optimiert)
  */
-const escapeHtml = (str) => {
-    if (typeof str !== 'string') return String(str);
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+const renderSponsorCard = (sponsor, prognosis, isComparisonMode, isSelected, canSelect) => {
+    if (!prognosis) return '';
+
+    const tierBadge = getTierBadgeHTML(sponsor.tier);
+    const nameEscaped = escapeHtml(sponsor.name);
+    const industryEscaped = escapeHtml(sponsor.industry);
+    const sloganEscaped = escapeHtml(sponsor.slogan);
+
+    return `
+        <div class="sponsor-card ${isComparisonMode ? 'comparison-mode' : ''} ${isSelected ? 'selected' : ''}" 
+             data-sponsor-id="${sponsor.id}" style="border-color:${sponsor.color}">
+            
+            ${isComparisonMode ? `
+                <div class="comparison-checkbox">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} ${!canSelect ? 'disabled' : ''}
+                           data-action="toggleComparison" data-sponsor-id="${sponsor.id}">
+                </div>
+            ` : ''}
+            
+            <div class="sponsor-card-header">${tierBadge}</div>
+            
+            <h3 class="sponsor-name" style="color:${sponsor.color}">${nameEscaped}</h3>
+            <p class="sponsor-industry">${industryEscaped}</p>
+            <p class="sponsor-slogan">"${sloganEscaped}"</p>
+            
+            <div class="sponsor-payment-summary">
+                <div class="payment-item"><span class="payment-icon">💰</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.initial)}</span></div>
+                <div class="payment-item"><span class="payment-icon">⚽</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perGoal)}/Tor</span></div>
+                <div class="payment-item"><span class="payment-icon">🏆</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perWin)}/Sieg</span></div>
+                <div class="payment-item"><span class="payment-icon">🥇</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.leagueTitle)}</span></div>
+            </div>
+            
+            <div class="sponsor-prognosis">
+                <div class="prognosis-label">📊 Prognose:</div>
+                <div class="prognosis-value">${formatCurrency(prognosis.prognosis.expectedTotal)}</div>
+            </div>
+            
+            <button class="btn btn-details" data-action="showSponsorDetails" data-sponsor-id="${sponsor.id}">Details 🔍</button>
+        </div>
+    `;
 };
 
 /**
- * Erstellt Modal-Container effizient
+ * Batch-Rendering aller Sponsor-Karten
  */
-const createModalElement = (id) => {
-    const modal = document.createElement('div');
-    modal.id = id;
-    modal.className = 'sponsor-modal';
-    return modal;
-};
+const renderSponsorCards = (sponsors, prognosesMap, isComparisonMode, selectedIds) => {
+    const cards = [];
+    const selectedSet = new Set(selectedIds);
 
-/**
- * Generiert Tier-Badge HTML
- */
-const renderTierBadge = (tier, style = 'full') => {
-    const tierConfig = SPONSOR_CONFIG.tiers[tier];
-    if (!tierConfig) return '';
+    for (const sponsor of sponsors) {
+        const prognosis = prognosesMap.get(sponsor.id);
+        const isSelected = selectedSet.has(sponsor.id);
+        const canSelect = selectedIds.length < 3 || isSelected;
 
-    return style === 'small'
-        ? `<span class="sponsor-tier-badge-small" style="background:${tierConfig.color}">${tierConfig.icon}</span>`
-        : `<div class="sponsor-tier-badge" style="background:${tierConfig.color}">${tierConfig.icon} ${tierConfig.name}</div>`;
+        cards.push(renderSponsorCard(sponsor, prognosis, isComparisonMode, isSelected, canSelect));
+    }
+
+    return cards.join('');
 };
 
 // =====================================================
-// MODAL: SPONSOR-AUSWAHL
+// MODAL: SPONSOR-AUSWAHL (Optimized)
 // =====================================================
 
 /**
@@ -92,7 +306,21 @@ export const openSponsorSelectionModal = (block, stadiumState) => {
     modalState.comparisonMode = false;
     modalState.selectedForComparison = [];
 
-    const modal = createModalElement('sponsor-selection-modal');
+    // Pre-compute und cache
+    const availableSponsors = getAvailableSponsors(stadiumState.capacity.total);
+    const leaguePosition = stadiumState.previousSeason.leaguePosition;
+
+    modalState.cachedSponsors = availableSponsors;
+    modalState.cachedPrognoses = calculateAllPrognoses(
+        availableSponsors,
+        stadiumState.previousSeason,
+        leaguePosition
+    );
+
+    const modal = document.createElement('div');
+    modal.id = 'sponsor-selection-modal';
+    modal.className = 'sponsor-modal';
+
     const content = renderSponsorSelectionContent(stadiumState);
 
     modal.innerHTML = `
@@ -110,55 +338,130 @@ export const openSponsorSelectionModal = (block, stadiumState) => {
     document.body.appendChild(modal);
     modalState.currentModal = modal;
 
-    // RAF für Animation
+    // Event-Delegation für Filter/Sort (debounced)
+    setupModalEventDelegation(modal, stadiumState);
+
     requestAnimationFrame(() => modal.classList.add('active'));
 };
 
 /**
- * Re-rendert Modal-Content ohne Schließen
+ * Event-Delegation Setup mit Debouncing
+ */
+const setupModalEventDelegation = (modal, stadiumState) => {
+    // Debounced refresh für Filter/Sort
+    const debouncedRefresh = debounce(() => {
+        refreshSponsorGrid(stadiumState);
+    }, 150);
+
+    modal.addEventListener('change', (e) => {
+        const target = e.target;
+
+        if (target.dataset.filter) {
+            modalState.filters[target.dataset.filter] = target.value;
+            debouncedRefresh();
+        } else if (target.dataset.sort) {
+            modalState.sort = target.value;
+            debouncedRefresh();
+        }
+    });
+};
+
+/**
+ * Nur Grid aktualisieren (nicht gesamtes Modal)
+ */
+const refreshSponsorGrid = (stadiumState) => {
+    const grid = document.getElementById('sponsorGrid');
+    if (!grid) return;
+
+    const startTime = performance.now();
+
+    const leaguePosition = stadiumState.previousSeason.leaguePosition;
+    const previousSeason = stadiumState.previousSeason;
+
+    // Filter & Sortierung anwenden
+    let filteredSponsors = filterSponsors(modalState.cachedSponsors, {
+        ...modalState.filters,
+        leaguePosition
+    }, stadiumState);
+
+    filteredSponsors = sortSponsors(filteredSponsors, modalState.sort, previousSeason, leaguePosition);
+
+    // Re-calculate prognoses nur für gefilterte Sponsoren wenn nötig
+    const cardsHTML = renderSponsorCards(
+        filteredSponsors,
+        modalState.cachedPrognoses,
+        modalState.comparisonMode,
+        modalState.selectedForComparison
+    );
+
+    // Batch DOM update
+    scheduleRender(() => {
+        grid.innerHTML = cardsHTML || '<div class="no-sponsors-message"><p>Keine Sponsoren verfügbar.</p></div>';
+
+        const endTime = performance.now();
+        modalState.lastRenderTime = endTime - startTime;
+        modalState.renderCount++;
+
+        if (modalState.lastRenderTime > 50) {
+            console.warn(`⚠️ Slow render: ${modalState.lastRenderTime.toFixed(1)}ms`);
+        }
+    });
+};
+
+/**
+ * Re-rendert Modal-Content (für Comparison Mode Toggle)
  */
 export const refreshSponsorSelectionModal = (stadiumState) => {
     if (!modalState.currentModal || !modalState.currentBlock) return;
 
-    const modalContent = modalState.currentModal.querySelector('.sponsor-modal-content');
-    if (!modalContent) return;
+    // Nur Grid aktualisieren, nicht Header neu rendern
+    const comparisonBtn = modalState.currentModal.querySelector('.btn-compare');
+    if (comparisonBtn) {
+        comparisonBtn.classList.toggle('active', modalState.comparisonMode);
+        comparisonBtn.textContent = `📊 Vergleichen ${modalState.comparisonMode ? `(${modalState.selectedForComparison.length}/3)` : ''}`;
+    }
 
-    const content = renderSponsorSelectionContent(stadiumState);
-    const header = `
-        <div class="sponsor-modal-header">
-            <h2>🎯 Werbebanner buchen - ${UI_TEXTS.blocks[modalState.currentBlock]}</h2>
-            <button class="modal-close-btn" data-action="closeModal">&times;</button>
-        </div>
-    `;
-
-    modalContent.innerHTML = header + content;
+    refreshSponsorGrid(stadiumState);
 };
 
 /**
  * Rendert Sponsor-Auswahl Content
  */
 const renderSponsorSelectionContent = (stadiumState) => {
-    const availableSponsors = getAvailableSponsors(stadiumState.capacity.total);
     const leaguePosition = stadiumState.previousSeason.leaguePosition;
     const previousSeason = stadiumState.previousSeason;
 
-    // Filter & Sortierung anwenden
-    let filteredSponsors = filterSponsors(availableSponsors, {
+    // Filter & Sortierung anwenden (nutzt cached Sponsoren)
+    let filteredSponsors = filterSponsors(modalState.cachedSponsors, {
         ...modalState.filters,
         leaguePosition
-    });
+    }, stadiumState);
 
     filteredSponsors = sortSponsors(filteredSponsors, modalState.sort, previousSeason, leaguePosition);
 
-    const industries = getAvailableIndustries(availableSponsors);
+    const industries = getAvailableIndustries(modalState.cachedSponsors);
     const posText = leaguePosition <= 3 ? '(+30%)'
         : leaguePosition <= 8 ? '(+15%)'
             : leaguePosition <= 14 ? '(±0%)'
                 : '(-15%)';
 
-    // Sponsor Cards als Array für bessere Performance
-    const sponsorCards = filteredSponsors.map(sponsor =>
-        renderSponsorCard(sponsor, stadiumState)
+    // Sponsor Cards mit gecachten Prognosen
+    const sponsorCards = renderSponsorCards(
+        filteredSponsors,
+        modalState.cachedPrognoses,
+        modalState.comparisonMode,
+        modalState.selectedForComparison
+    );
+
+    // Filter Options (gecacht)
+    const tierOptions = getCachedTemplate('tier_options', () =>
+        Object.entries(SPONSOR_CONFIG.tiers).map(([key, tier]) =>
+            `<option value="${key}">${tier.icon} ${tier.name}</option>`
+        ).join('')
+    );
+
+    const industryOptions = industries.map(ind =>
+        `<option value="${escapeHtml(ind)}" ${modalState.filters.industry === ind ? 'selected' : ''}>${escapeHtml(ind)}</option>`
     ).join('');
 
     return `
@@ -177,16 +480,12 @@ const renderSponsorSelectionContent = (stadiumState) => {
                     
                     <select class="filter-select" data-filter="tier">
                         <option value="all">Alle Kategorien</option>
-                        ${Object.entries(SPONSOR_CONFIG.tiers).map(([key, tier]) => `
-                            <option value="${key}" ${modalState.filters.tier === key ? 'selected' : ''}>${tier.icon} ${tier.name}</option>
-                        `).join('')}
+                        ${tierOptions}
                     </select>
                     
                     <select class="filter-select" data-filter="industry">
                         <option value="all">Alle Branchen</option>
-                        ${industries.map(ind => `
-                            <option value="${escapeHtml(ind)}" ${modalState.filters.industry === ind ? 'selected' : ''}>${escapeHtml(ind)}</option>
-                        `).join('')}
+                        ${industryOptions}
                     </select>
                     
                     <select class="sort-select" data-sort="sponsor">
@@ -210,56 +509,6 @@ const renderSponsorSelectionContent = (stadiumState) => {
     `;
 };
 
-/**
- * Rendert einzelne Sponsor-Karte
- */
-const renderSponsorCard = (sponsor, stadiumState) => {
-    const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
-    const prognosis = calculateSponsorPrognosis(
-        sponsor,
-        stadiumState.previousSeason,
-        stadiumState.previousSeason.leaguePosition
-    );
-
-    if (!prognosis) return '';
-
-    const isSelected = modalState.selectedForComparison.includes(sponsor.id);
-    const canSelect = modalState.selectedForComparison.length < 3 || isSelected;
-
-    return `
-        <div class="sponsor-card ${modalState.comparisonMode ? 'comparison-mode' : ''} ${isSelected ? 'selected' : ''}" 
-             data-sponsor-id="${sponsor.id}" style="border-color:${sponsor.color}">
-            
-            ${modalState.comparisonMode ? `
-                <div class="comparison-checkbox">
-                    <input type="checkbox" ${isSelected ? 'checked' : ''} ${!canSelect ? 'disabled' : ''}
-                           data-action="toggleComparison" data-sponsor-id="${sponsor.id}">
-                </div>
-            ` : ''}
-            
-            <div class="sponsor-card-header">${renderTierBadge(sponsor.tier)}</div>
-            
-            <h3 class="sponsor-name" style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h3>
-            <p class="sponsor-industry">${escapeHtml(sponsor.industry)}</p>
-            <p class="sponsor-slogan">"${escapeHtml(sponsor.slogan)}"</p>
-            
-            <div class="sponsor-payment-summary">
-                <div class="payment-item"><span class="payment-icon">💰</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.initial)}</span></div>
-                <div class="payment-item"><span class="payment-icon">⚽</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perGoal)}/Tor</span></div>
-                <div class="payment-item"><span class="payment-icon">🏆</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.perWin)}/Sieg</span></div>
-                <div class="payment-item"><span class="payment-icon">🥇</span><span class="payment-value">${formatCurrency(prognosis.adjustedPayment.leagueTitle)}</span></div>
-            </div>
-            
-            <div class="sponsor-prognosis">
-                <div class="prognosis-label">📊 Prognose:</div>
-                <div class="prognosis-value">${formatCurrency(prognosis.prognosis.expectedTotal)}</div>
-            </div>
-            
-            <button class="btn btn-details" data-action="showSponsorDetails" data-sponsor-id="${sponsor.id}">Details 🔍</button>
-        </div>
-    `;
-};
-
 // =====================================================
 // MODAL: SPONSOR-DETAILS
 // =====================================================
@@ -270,7 +519,10 @@ export const showSponsorDetailsModal = (sponsorId, stadiumState) => {
 
     closeModal(false);
 
-    const modal = createModalElement('sponsor-details-modal');
+    const modal = document.createElement('div');
+    modal.id = 'sponsor-details-modal';
+    modal.className = 'sponsor-modal';
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
@@ -287,22 +539,31 @@ export const showSponsorDetailsModal = (sponsorId, stadiumState) => {
 
 const renderSponsorDetailsContent = (sponsor, stadiumState) => {
     const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
-    const prognosis = calculateSponsorPrognosis(
-        sponsor,
-        stadiumState.previousSeason,
-        stadiumState.previousSeason.leaguePosition
-    );
+
+    // Nutze gecachte Prognose wenn verfügbar
+    let prognosis = modalState.cachedPrognoses?.get(sponsor.id);
+    if (!prognosis) {
+        prognosis = calculateSponsorPrognosis(
+            sponsor,
+            stadiumState.previousSeason,
+            stadiumState.previousSeason.leaguePosition
+        );
+    }
 
     if (!prognosis) return '<p>Fehler beim Laden der Sponsor-Details.</p>';
 
-    const { previousSeason } = stadiumState;
+    const {previousSeason} = stadiumState;
     const avgGoalsPerGame = (previousSeason.totalGoals / previousSeason.totalGames).toFixed(1);
     const winRate = ((previousSeason.totalWins / previousSeason.totalGames) * 100).toFixed(0);
+
+    const nameEscaped = escapeHtml(sponsor.name);
+    const sloganEscaped = escapeHtml(sponsor.slogan);
+    const websiteEscaped = escapeHtml(sponsor.website);
 
     return `
         <div class="sponsor-modal-header">
             <div>
-                <h2 style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h2>
+                <h2 style="color:${sponsor.color}">${nameEscaped}</h2>
                 <p class="sponsor-detail-meta">${tier.icon} ${tier.name} • ${escapeHtml(sponsor.industry)}</p>
             </div>
             <button class="modal-close-btn" data-action="backToSelection">&times;</button>
@@ -310,8 +571,8 @@ const renderSponsorDetailsContent = (sponsor, stadiumState) => {
         
         <div class="sponsor-modal-body">
             <div class="sponsor-detail-intro">
-                <p class="sponsor-slogan-large">"${escapeHtml(sponsor.slogan)}"</p>
-                <p class="sponsor-website">${escapeHtml(sponsor.website)}</p>
+                <p class="sponsor-slogan-large">"${sloganEscaped}"</p>
+                <p class="sponsor-website">${websiteEscaped}</p>
             </div>
             
             <div class="sponsor-detail-section">
@@ -390,15 +651,22 @@ export const showConfirmationModal = (sponsorId, stadiumState) => {
     const sponsor = getSponsorById(sponsorId);
     if (!sponsor) return;
 
-    const prognosis = calculateSponsorPrognosis(
-        sponsor,
-        stadiumState.previousSeason,
-        stadiumState.previousSeason.leaguePosition
-    );
+    // Nutze gecachte Prognose
+    let prognosis = modalState.cachedPrognoses?.get(sponsor.id);
+    if (!prognosis) {
+        prognosis = calculateSponsorPrognosis(
+            sponsor,
+            stadiumState.previousSeason,
+            stadiumState.previousSeason.leaguePosition
+        );
+    }
 
     closeModal(false);
 
-    const modal = createModalElement('sponsor-confirmation-modal');
+    const modal = document.createElement('div');
+    modal.id = 'sponsor-confirmation-modal';
+    modal.className = 'sponsor-modal';
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
@@ -445,7 +713,10 @@ export const showConfirmationModal = (sponsorId, stadiumState) => {
 export const showSuccessModal = (sponsor, initialPayment) => {
     closeModal(false);
 
-    const modal = createModalElement('sponsor-success-modal');
+    const modal = document.createElement('div');
+    modal.id = 'sponsor-success-modal';
+    modal.className = 'sponsor-modal';
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-narrow">
@@ -486,7 +757,10 @@ export const showComparisonModal = (sponsorIds, stadiumState) => {
 
     closeModal(false);
 
-    const modal = createModalElement('sponsor-comparison-modal');
+    const modal = document.createElement('div');
+    modal.id = 'sponsor-comparison-modal';
+    modal.className = 'sponsor-modal';
+
     modal.innerHTML = `
         <div class="sponsor-modal-overlay">
             <div class="sponsor-modal-content sponsor-modal-wide">
@@ -521,6 +795,28 @@ const renderComparisonContent = (sponsors, stadiumState) => {
         return `<td class="${isBest ? 'best-value' : ''}">${formatted}${isBest ? ' ⭐' : ''}</td>`;
     };
 
+    // Header row
+    const headerCells = comparisons.map(c => `
+        <th class="comparison-sponsor-col" style="border-top:3px solid ${c.sponsor.color}">
+            <div class="comparison-sponsor-header">
+                <div class="comparison-sponsor-name">${escapeHtml(c.sponsor.name)}</div>
+                ${getTierBadgeHTML(c.sponsor.tier, 'small')}
+            </div>
+        </th>
+    `).join('');
+
+    // Data rows
+    const rows = [
+        {label: '💰 Einmalzahlung', getter: c => c.adjustedPayment.initial, best: bestValues.bestInitial},
+        {label: '⚽ Pro Tor', getter: c => c.adjustedPayment.perGoal, best: bestValues.bestPerGoal},
+        {label: '🏆 Pro Sieg', getter: c => c.adjustedPayment.perWin, best: bestValues.bestPerWin}
+    ].map(row => `
+        <tr>
+            <td class="comparison-label">${row.label}</td>
+            ${comparisons.map(c => renderComparisonCell(row.getter(c), row.best)).join('')}
+        </tr>
+    `).join('');
+
     return `
         <div class="sponsor-modal-header">
             <h2>📊 Sponsoren vergleichen (${sponsors.length}/3)</h2>
@@ -533,29 +829,11 @@ const renderComparisonContent = (sponsors, stadiumState) => {
                     <thead>
                         <tr>
                             <th class="comparison-label-col">Kriterium</th>
-                            ${comparisons.map(c => `
-                                <th class="comparison-sponsor-col" style="border-top:3px solid ${c.sponsor.color}">
-                                    <div class="comparison-sponsor-header">
-                                        <div class="comparison-sponsor-name">${escapeHtml(c.sponsor.name)}</div>
-                                        ${renderTierBadge(c.sponsor.tier, 'small')}
-                                    </div>
-                                </th>
-                            `).join('')}
+                            ${headerCells}
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="comparison-label">💰 Einmalzahlung</td>
-                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.initial, bestValues.bestInitial)).join('')}
-                        </tr>
-                        <tr>
-                            <td class="comparison-label">⚽ Pro Tor</td>
-                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.perGoal, bestValues.bestPerGoal)).join('')}
-                        </tr>
-                        <tr>
-                            <td class="comparison-label">🏆 Pro Sieg</td>
-                            ${comparisons.map(c => renderComparisonCell(c.adjustedPayment.perWin, bestValues.bestPerWin)).join('')}
-                        </tr>
+                        ${rows}
                         <tr class="comparison-separator">
                             <td class="comparison-label"><strong>📊 PROGNOSE</strong></td>
                             ${comparisons.map(c => `
@@ -600,7 +878,7 @@ const renderComparisonContent = (sponsors, stadiumState) => {
 };
 
 // =====================================================
-// SPONSOR-ÜBERSICHT TAB
+// SPONSOR-ÜBERSICHT TAB (Optimized)
 // =====================================================
 
 export const renderSponsorOverviewTab = (stadiumState, currentSeasonStats) => {
@@ -609,15 +887,30 @@ export const renderSponsorOverviewTab = (stadiumState, currentSeasonStats) => {
     const projection = calculateSeasonProjection(stadiumState, currentSeasonStats);
     const freeBlocks = CAPACITY_CONFIG.BLOCKS.filter(block => !stadiumState.features.sponsors[block]);
 
+    // Pre-compute alle Balances
+    const balances = new Map();
+    const prognoses = new Map();
+
+    for (const {block, sponsor} of activeSponsors) {
+        balances.set(block, getSponsorBalance(stadiumState, block));
+        prognoses.set(sponsor.id, calculateSponsorPrognosis(
+            sponsor,
+            stadiumState.previousSeason,
+            stadiumState.previousSeason.leaguePosition
+        ));
+    }
+
     // Active Sponsors Cards
-    const activeSponsorCards = activeSponsors.map(({ block, sponsor }) => {
-        const balance = getSponsorBalance(stadiumState, block);
-        const prognosis = calculateSponsorPrognosis(sponsor, stadiumState.previousSeason, stadiumState.previousSeason.leaguePosition);
-        const progress = balance && prognosis ? ((balance.totalThisSeason / prognosis.prognosis.expectedTotal) * 100).toFixed(0) : 0;
+    const activeSponsorCards = activeSponsors.map(({block, sponsor}) => {
+        const balance = balances.get(block);
+        const prognosis = prognoses.get(sponsor.id);
+        const progress = balance && prognosis
+            ? ((balance.totalThisSeason / prognosis.prognosis.expectedTotal) * 100).toFixed(0)
+            : 0;
 
         return `
             <div class="active-sponsor-card glass">
-                <h4 class="active-sponsor-header">${UI_TEXTS.blocks[block]} ${renderTierBadge(sponsor.tier, 'small')}</h4>
+                <h4 class="active-sponsor-header">${UI_TEXTS.blocks[block]} ${getTierBadgeHTML(sponsor.tier, 'small')}</h4>
                 <h3 class="active-sponsor-name" style="color:${sponsor.color}">${escapeHtml(sponsor.name)}</h3>
                 <p class="active-sponsor-slogan">"${escapeHtml(sponsor.slogan)}"</p>
                 
@@ -688,12 +981,11 @@ export const renderSponsorOverviewTab = (stadiumState, currentSeasonStats) => {
  * Schließt aktuelles Modal
  */
 export const closeModal = (resetState = true) => {
-    const { currentModal } = modalState;
+    const {currentModal} = modalState;
 
     if (currentModal) {
         currentModal.classList.remove('active');
 
-        // Cleanup nach Animation
         setTimeout(() => {
             currentModal.remove();
         }, 300);
@@ -705,6 +997,8 @@ export const closeModal = (resetState = true) => {
         modalState.currentBlock = null;
         modalState.comparisonMode = false;
         modalState.selectedForComparison = [];
+        modalState.cachedSponsors = null;
+        modalState.cachedPrognoses = null;
     }
 };
 
@@ -737,3 +1031,19 @@ export const updateSort = (sortValue) => {
 
 export const getCurrentBlock = () => modalState.currentBlock;
 export const getSelectedForComparison = () => [...modalState.selectedForComparison];
+
+// =====================================================
+// PERFORMANCE DEBUGGING
+// =====================================================
+
+export const getPerformanceStats = () => ({
+    lastRenderTime: modalState.lastRenderTime,
+    renderCount: modalState.renderCount,
+    templateCacheSize: templateCache.size,
+    escapeCacheSize: escapeCache.size
+});
+
+// Debug-Funktion global verfügbar machen
+if (typeof window !== 'undefined') {
+    window.getSponsorUIStats = getPerformanceStats;
+}

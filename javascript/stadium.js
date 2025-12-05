@@ -1,84 +1,52 @@
 // =====================================================
-// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (OPTIMIZED)
+// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (V2 - OPTIMIZED)
 // Stadion-Verwaltung mit Block-Click-Modals + Pitch-Renovation
-// ✅ OPTIMIERT: Event-Delegation, DOM-Batching, State-Management
+// ✅ V2: Event-Delegation, DOM-Batching, Throttled Slider,
+//        RequestAnimationFrame, Optimiertes State-Management
 // =====================================================
 
 import {
-    CAPACITY_CONFIG,
-    TIMING_CONFIG,
-    ROOF_CONFIG,
-    FLOODLIGHT_CONFIG,
-    PITCH_CONFIG,
     ADVERTISING_CONFIG,
-    EXPANSION_CONFIG,
-    UI_TEXTS,
     BLOCKS,
     calculateBuildDays,
-    formatCurrency,
-    formatCapacity,
     calculateCapacityDistribution,
-    calculateExpansionCost,
     calculateExpansionBuildWeeks,
+    calculateExpansionCost,
+    CAPACITY_CONFIG,
     createInitialState,
-    validateState,
+    EXPANSION_CONFIG,
+    FLOODLIGHT_CONFIG,
+    formatCapacity,
+    formatCurrency,
+    isValidBlock,
+    PITCH_CONFIG,
     repairState,
-    isValidBlock
+    ROOF_CONFIG,
+    TIMING_CONFIG,
+    UI_TEXTS,
+    validateState
 } from './stadium-config.js';
 
-import {
-    bookSponsor,
-    hasBlockSponsor,
-    hasBlockAdvertising,
-    clearPrognosisCache
-} from './stadium-sponsors.js';
+import {bookSponsor, clearAllCaches, hasBlockAdvertising, hasBlockSponsor} from './stadium-sponsors.js';
 
 import {
+    clearTemplateCache,
+    closeModal,
+    getCurrentBlock,
+    getSelectedForComparison,
     openSponsorSelectionModal,
     refreshSponsorSelectionModal,
-    showSponsorDetailsModal,
-    showConfirmationModal,
-    showSuccessModal,
-    showComparisonModal,
     renderSponsorOverviewTab,
-    closeModal,
+    showComparisonModal,
+    showConfirmationModal,
+    showSponsorDetailsModal,
+    showSuccessModal,
     toggleComparisonMode,
-    toggleSponsorForComparison,
-    updateFilter,
-    updateSort,
-    getCurrentBlock,
-    getSelectedForComparison
+    toggleSponsorForComparison
 } from './stadium-sponsors-ui.js';
 
 // =====================================================
-// CONSTANTS
-// =====================================================
-
-const STORAGE_KEY = 'kickerscup_stadium_state';
-const DEBOUNCE_DELAY = 150;
-
-// =====================================================
-// PRIVATE STATE
-// =====================================================
-
-let stadiumState = null;
-let currentModal = null;
-let isInitialized = false;
-
-// Event Listener Tracking für sauberes Cleanup
-let eventController = new AbortController();
-
-// Mock current season stats
-const currentSeasonStats = {
-    gamesPlayed: 12,
-    goals: 23,
-    wins: 8,
-    leagueTitle: false,
-    cupTitle: false
-};
-
-// =====================================================
-// UTILITY: DEBOUNCE
+// PERFORMANCE UTILITIES
 // =====================================================
 
 const debounce = (fn, delay) => {
@@ -89,13 +57,130 @@ const debounce = (fn, delay) => {
     };
 };
 
+const throttle = (fn, limit) => {
+    let inThrottle = false;
+    let lastArgs = null;
+
+    return (...args) => {
+        lastArgs = args;
+
+        if (!inThrottle) {
+            fn(...args);
+            inThrottle = true;
+
+            setTimeout(() => {
+                inThrottle = false;
+                if (lastArgs) {
+                    fn(...lastArgs);
+                    lastArgs = null;
+                }
+            }, limit);
+        }
+    };
+};
+
+const batchDOMUpdates = (() => {
+    let scheduled = false;
+    let updates = [];
+
+    return (updateFn) => {
+        updates.push(updateFn);
+
+        if (!scheduled) {
+            scheduled = true;
+            requestAnimationFrame(() => {
+                const toExecute = updates;
+                updates = [];
+                scheduled = false;
+
+                for (const fn of toExecute) {
+                    fn();
+                }
+            });
+        }
+    };
+})();
+
+// =====================================================
+// CONSTANTS
+// =====================================================
+
+const STORAGE_KEY = 'kickerscup_stadium_state';
+const DEBOUNCE_DELAY = 150;
+const SLIDER_THROTTLE = 16;
+
+// =====================================================
+// PRIVATE STATE
+// =====================================================
+
+let stadiumState = null;
+let currentModal = null;
+let isInitialized = false;
+let eventController = new AbortController();
+
+let domCache = {
+    elements: null,
+    blockElements: null,
+    lastCacheTime: 0
+};
+
+const DOM_CACHE_TTL = 5000;
+
+const currentSeasonStats = {
+    gamesPlayed: 12,
+    goals: 23,
+    wins: 8,
+    leagueTitle: false,
+    cupTitle: false
+};
+
+// =====================================================
+// DOM CACHING
+// =====================================================
+
+const getCachedElements = () => {
+    const now = Date.now();
+
+    if (domCache.elements && (now - domCache.lastCacheTime) < DOM_CACHE_TTL) {
+        return domCache;
+    }
+
+    domCache.elements = {
+        totalCapacity: document.getElementById('totalCapacity'),
+        standingCapacity: document.getElementById('standingCapacity'),
+        seatedCapacity: document.getElementById('seatedCapacity'),
+        boxesCapacity: document.getElementById('boxesCapacity'),
+        floodlightStage: document.getElementById('floodlightStage'),
+        floodlightStage2: document.getElementById('floodlightStage2'),
+        pitchType: document.getElementById('pitchType'),
+        pitchCondition: document.getElementById('pitchCondition'),
+        currentDay: document.getElementById('currentDay'),
+        constructionQueue: document.getElementById('constructionQueue'),
+        sponsorOverviewContainer: document.getElementById('sponsorOverviewContainer')
+    };
+
+    domCache.blockElements = {};
+    for (const block of BLOCKS) {
+        domCache.blockElements[block] = {
+            capacity: document.getElementById(`block${block}Capacity`),
+            roof: document.getElementById(`block${block}Roof`),
+            ad: document.getElementById(`block${block}Ad`),
+            element: document.querySelector(`.stadium-block[data-block="${block}"]`)
+        };
+    }
+
+    domCache.lastCacheTime = now;
+    return domCache;
+};
+
+const invalidateDOMCache = () => {
+    domCache.lastCacheTime = 0;
+};
+
 // =====================================================
 // STATE MANAGEMENT
 // =====================================================
 
-/**
- * Lädt Stadion-State aus LocalStorage mit Validierung
- */
 const loadStadiumState = () => {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -108,27 +193,20 @@ const loadStadiumState = () => {
                 console.warn('State validation failed:', validation.errors);
                 stadiumState = repairState(parsed);
                 saveStadiumStateImmediate();
-                console.log('✓ Stadium-State repariert');
             } else {
                 stadiumState = parsed;
-                console.log('✓ Stadium-State geladen');
             }
             return stadiumState;
         }
     } catch (error) {
-        console.error('❌ Fehler beim Laden des Stadium-States:', error);
+        console.error('❌ Fehler beim Laden:', error);
     }
 
-    // Fallback: Neuer State
     stadiumState = createInitialState();
     saveStadiumStateImmediate();
-    console.log('✓ Neuer Stadium-State initialisiert');
     return stadiumState;
 };
 
-/**
- * Speichert Stadion-State (debounced)
- */
 const saveStadiumState = debounce(() => {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stadiumState));
@@ -137,9 +215,6 @@ const saveStadiumState = debounce(() => {
     }
 }, DEBOUNCE_DELAY);
 
-/**
- * Speichert sofort (für kritische Operationen)
- */
 const saveStadiumStateImmediate = () => {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stadiumState));
@@ -152,28 +227,19 @@ const saveStadiumStateImmediate = () => {
 // BAUZEITEN-SYSTEM
 // =====================================================
 
-/**
- * Prüft ob Spielbetrieb aktiv ist (Tag 1-27)
- */
 const isGameSeasonActive = () => {
-    const { currentDay } = stadiumState;
-    const { START_DAY, END_DAY } = TIMING_CONFIG.GAME_SEASON;
+    const {currentDay} = stadiumState;
+    const {START_DAY, END_DAY} = TIMING_CONFIG.GAME_SEASON;
     return currentDay >= START_DAY && currentDay <= END_DAY;
 };
 
-/**
- * Aktualisiert Bau-Queue (pro Tag)
- */
 const tickBuildTimer = () => {
-    if (!isGameSeasonActive()) {
-        console.log('⏸️ Bauarbeiten pausiert');
-        return;
-    }
+    if (!isGameSeasonActive()) return;
 
-    const { queue } = stadiumState.construction;
+    const {queue} = stadiumState.construction;
     let hasChanges = false;
+    const completedProjects = [];
 
-    // Rückwärts iterieren für sicheres Entfernen
     for (let i = queue.length - 1; i >= 0; i--) {
         const project = queue[i];
 
@@ -182,28 +248,30 @@ const tickBuildTimer = () => {
             hasChanges = true;
 
             if (project.remainingDays <= 0) {
-                completeConstruction(project);
+                completedProjects.push(project);
                 queue.splice(i, 1);
                 stadiumState.construction.active--;
             }
         }
     }
 
-    // Starte wartende Projekte
+    for (const project of completedProjects) {
+        completeConstruction(project);
+    }
+
     startQueuedProjects();
 
     if (hasChanges) {
         saveStadiumState();
-        renderConstructionQueue();
-        renderStadiumOverview();
+        batchDOMUpdates(() => {
+            renderConstructionQueue();
+            renderStadiumOverview();
+        });
     }
 };
 
-/**
- * Startet wartende Bauprojekte
- */
 const startQueuedProjects = () => {
-    const { queue, active } = stadiumState.construction;
+    const {queue, active} = stadiumState.construction;
     const slotsAvailable = TIMING_CONFIG.MAX_PARALLEL_BUILDS - active;
 
     if (slotsAvailable <= 0) return;
@@ -215,41 +283,39 @@ const startQueuedProjects = () => {
             project.startDay = stadiumState.currentDay;
             stadiumState.construction.active++;
             started++;
-            console.log(`🔨 Baustart: ${project.name}`);
         }
     }
 };
 
-/**
- * Schließt Bauprojekt ab
- */
 const completeConstruction = (project) => {
-    console.log(`✅ Bauabschluss: ${project.name}`);
-
     const handlers = {
-        roof: () => { stadiumState.features.roofs[project.block] = true; },
-        floodlight: () => { stadiumState.features.floodlight = project.targetStage; },
-        pitch_renovation: () => { stadiumState.features.pitch.condition = 100; },
-        advertising: () => { stadiumState.features.advertising[project.block] = true; },
+        roof: () => {
+            stadiumState.features.roofs[project.block] = true;
+        },
+        floodlight: () => {
+            stadiumState.features.floodlight = project.targetStage;
+        },
+        pitch_renovation: () => {
+            stadiumState.features.pitch.condition = 100;
+        },
+        advertising: () => {
+            stadiumState.features.advertising[project.block] = true;
+        },
         expansion: () => applyExpansion(project)
     };
 
     const handler = handlers[project.type];
     if (handler) handler();
 
-    // Cache invalidieren bei relevanten Änderungen
     if (project.type === 'expansion') {
-        clearPrognosisCache();
+        clearAllCaches();
     }
 
     showNotification(`✅ ${project.name} abgeschlossen!`);
 };
 
-/**
- * Wendet Tribünen-Ausbau an
- */
 const applyExpansion = (project) => {
-    const { block, additionalSeats } = project;
+    const {block, additionalSeats} = project;
     const dist = stadiumState.capacity.distribution[block];
 
     dist.capacity += additionalSeats;
@@ -259,13 +325,8 @@ const applyExpansion = (project) => {
 
     Object.assign(dist, newDist);
     recalculateTotalCapacity();
-
-    console.log(`✅ Tribünen-Ausbau ${UI_TEXTS.blocks[block]} (+${formatCapacity(additionalSeats)})`);
 };
 
-/**
- * Berechnet Gesamt-Kapazität neu
- */
 const recalculateTotalCapacity = () => {
     let total = 0, standing = 0, seated = 0, boxes = 0;
 
@@ -277,13 +338,10 @@ const recalculateTotalCapacity = () => {
         boxes += dist.boxes || 0;
     }
 
-    Object.assign(stadiumState.capacity, { total, standing, seated });
+    Object.assign(stadiumState.capacity, {total, standing, seated});
     stadiumState.capacity.boxes.total = boxes;
 };
 
-/**
- * Fügt Bauprojekt zur Queue hinzu
- */
 const addConstructionProject = (projectData) => {
     const canStartImmediately = stadiumState.construction.active < TIMING_CONFIG.MAX_PARALLEL_BUILDS;
 
@@ -309,8 +367,6 @@ const addConstructionProject = (projectData) => {
 
     saveStadiumStateImmediate();
     renderConstructionQueue();
-
-    console.log(`📋 Bauprojekt: ${project.name} (${project.status})`);
 };
 
 // =====================================================
@@ -318,7 +374,6 @@ const addConstructionProject = (projectData) => {
 // =====================================================
 
 const showNotification = (message) => {
-    // Einfache Alert-Fallback, kann später durch Toast ersetzt werden
     alert(message);
 };
 
@@ -326,14 +381,8 @@ const showNotification = (message) => {
 // MODAL SYSTEM
 // =====================================================
 
-/**
- * Öffnet Block-Expansion Modal
- */
 const openBlockExpansionModal = (block) => {
-    if (!isValidBlock(block)) {
-        console.error('Invalid block:', block);
-        return;
-    }
+    if (!isValidBlock(block)) return;
 
     const dist = stadiumState.capacity.distribution[block];
     const currentCapacity = dist.capacity;
@@ -344,7 +393,7 @@ const openBlockExpansionModal = (block) => {
         return;
     }
 
-    const { minStep, maxStep: configMaxStep } = EXPANSION_CONFIG;
+    const {minStep, maxStep: configMaxStep} = EXPANSION_CONFIG;
     const maxStep = Math.min(configMaxStep, maxCapacity - currentCapacity);
     const initialValue = Math.min(1000, maxStep);
 
@@ -396,27 +445,26 @@ const openBlockExpansionModal = (block) => {
     document.body.appendChild(modal);
     currentModal = modal;
 
-    // Event Listeners mit AbortController
     const slider = modal.querySelector('#capacitySlider');
     const confirmBtn = modal.querySelector('#confirmExpansionBtn');
 
-    const updatePreview = () => {
+    // Throttled Slider Update
+    const throttledUpdatePreview = throttle(() => {
         const additionalSeats = parseInt(slider.value, 10);
         updateExpansionPreview(block, currentCapacity, additionalSeats, maxStep);
-    };
+    }, SLIDER_THROTTLE);
 
-    slider.addEventListener('input', updatePreview, { signal: eventController.signal });
+    slider.addEventListener('input', throttledUpdatePreview, {signal: eventController.signal});
+
     confirmBtn.addEventListener('click', () => {
         confirmBlockExpansion(block, parseInt(slider.value, 10));
-    }, { signal: eventController.signal });
+    }, {signal: eventController.signal});
 
-    updatePreview();
+    updateExpansionPreview(block, currentCapacity, initialValue, maxStep);
+
     requestAnimationFrame(() => modal.classList.add('active'));
 };
 
-/**
- * Aktualisiert Expansion-Preview
- */
 const updateExpansionPreview = (block, currentCapacity, additionalSeats, maxStep) => {
     const previewEl = document.getElementById('expansionPreview');
     const sliderValueEl = document.getElementById('sliderValue');
@@ -432,24 +480,22 @@ const updateExpansionPreview = (block, currentCapacity, additionalSeats, maxStep
     const hasBoxes = block === CAPACITY_CONFIG.FIXED_BOX_BLOCK;
     const newDist = calculateCapacityDistribution(newCapacity, hasBoxes);
 
-    // Update UI
-    sliderValueEl.textContent = `+${formatCapacity(additionalSeats)}`;
-    slider.style.setProperty('--slider-progress', `${(additionalSeats / maxStep) * 100}%`);
+    batchDOMUpdates(() => {
+        sliderValueEl.textContent = `+${formatCapacity(additionalSeats)}`;
+        slider.style.setProperty('--slider-progress', `${(additionalSeats / maxStep) * 100}%`);
 
-    previewEl.innerHTML = `
-        <h3>📊 Vorschau</h3>
-        <div class="preview-row"><span class="preview-label">Neue Kapazität:</span><span class="preview-value highlight">${formatCapacity(currentCapacity)} → ${formatCapacity(newCapacity)}</span></div>
-        <div class="preview-row"><span class="preview-label">Stehplätze:</span><span class="preview-value">${formatCapacity(newDist.standing)}</span></div>
-        <div class="preview-row"><span class="preview-label">Sitzplätze:</span><span class="preview-value">${formatCapacity(newDist.seated)}</span></div>
-        ${newDist.boxes > 0 ? `<div class="preview-row"><span class="preview-label">Logen:</span><span class="preview-value">${formatCapacity(newDist.boxes)}</span></div>` : ''}
-        <div class="preview-row"><span class="preview-label">Kosten:</span><span class="preview-value highlight">${formatCurrency(cost)}</span></div>
-        <div class="preview-row"><span class="preview-label">Bauzeit:</span><span class="preview-value">${buildWeeks} SW (${buildDays} Tage)</span></div>
-    `;
+        previewEl.innerHTML = `
+            <h3>📊 Vorschau</h3>
+            <div class="preview-row"><span class="preview-label">Neue Kapazität:</span><span class="preview-value highlight">${formatCapacity(currentCapacity)} → ${formatCapacity(newCapacity)}</span></div>
+            <div class="preview-row"><span class="preview-label">Stehplätze:</span><span class="preview-value">${formatCapacity(newDist.standing)}</span></div>
+            <div class="preview-row"><span class="preview-label">Sitzplätze:</span><span class="preview-value">${formatCapacity(newDist.seated)}</span></div>
+            ${newDist.boxes > 0 ? `<div class="preview-row"><span class="preview-label">Logen:</span><span class="preview-value">${formatCapacity(newDist.boxes)}</span></div>` : ''}
+            <div class="preview-row"><span class="preview-label">Kosten:</span><span class="preview-value highlight">${formatCurrency(cost)}</span></div>
+            <div class="preview-row"><span class="preview-label">Bauzeit:</span><span class="preview-value">${buildWeeks} SW (${buildDays} Tage)</span></div>
+        `;
+    });
 };
 
-/**
- * Bestätigt Block-Expansion
- */
 const confirmBlockExpansion = (block, additionalSeats) => {
     const cost = calculateExpansionCost(block, additionalSeats);
     const buildWeeks = calculateExpansionBuildWeeks(additionalSeats);
@@ -472,12 +518,9 @@ const confirmBlockExpansion = (block, additionalSeats) => {
     showNotification(`🔨 Tribünen-Ausbau gestartet!`);
 };
 
-/**
- * Öffnet Pitch-Renovation Modal
- */
 const openPitchRenovationModal = () => {
-    const { condition } = stadiumState.features.pitch;
-    const { cost, buildWeeks } = PITCH_CONFIG.renovation;
+    const {condition} = stadiumState.features.pitch;
+    const {cost, buildWeeks} = PITCH_CONFIG.renovation;
     const buildDays = calculateBuildDays(buildWeeks);
 
     const conditionClass = condition >= 70 ? 'excellent' : condition >= 40 ? 'good' : 'poor';
@@ -537,17 +580,14 @@ const openPitchRenovationModal = () => {
 
     const confirmBtn = modal.querySelector('#confirmRenovationBtn');
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', confirmPitchRenovation, { signal: eventController.signal });
+        confirmBtn.addEventListener('click', confirmPitchRenovation, {signal: eventController.signal});
     }
 
     requestAnimationFrame(() => modal.classList.add('active'));
 };
 
-/**
- * Bestätigt Rasen-Renovation
- */
 const confirmPitchRenovation = () => {
-    const { cost, buildWeeks } = PITCH_CONFIG.renovation;
+    const {cost, buildWeeks} = PITCH_CONFIG.renovation;
     const buildDays = calculateBuildDays(buildWeeks);
 
     if (!confirm(`Rasen renovieren?\n\n${formatCurrency(cost)}\n${buildDays} Tage`)) {
@@ -565,9 +605,6 @@ const confirmPitchRenovation = () => {
     showNotification(`🔨 Rasen-Renovation gestartet!`);
 };
 
-/**
- * Schließt Stadium-Modal
- */
 const closeStadiumModal = () => {
     if (!currentModal) return;
 
@@ -590,12 +627,12 @@ const buildRoof = (block) => {
         return;
     }
 
-    const { cost, buildWeeks } = ROOF_CONFIG;
+    const {cost, buildWeeks} = ROOF_CONFIG;
     const duration = calculateBuildDays(buildWeeks);
 
     if (!confirm(`Dach für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) return;
 
-    addConstructionProject({ type: 'roof', name: `Dach ${UI_TEXTS.blocks[block]}`, block, duration, cost });
+    addConstructionProject({type: 'roof', name: `Dach ${UI_TEXTS.blocks[block]}`, block, duration, cost});
     showNotification(`🔨 Dachbau gestartet!`);
 };
 
@@ -612,7 +649,13 @@ const upgradeFloodlight = () => {
 
     if (!confirm(`Flutlicht → "${stage.name}"?\n\n${formatCurrency(stage.cost)}\n${duration} Tage\n+${((stage.tvRevenueMultiplier - 1) * 100).toFixed(0)}% TV`)) return;
 
-    addConstructionProject({ type: 'floodlight', name: `Flutlicht: ${stage.name}`, targetStage: nextStage, duration, cost: stage.cost });
+    addConstructionProject({
+        type: 'floodlight',
+        name: `Flutlicht: ${stage.name}`,
+        targetStage: nextStage,
+        duration,
+        cost: stage.cost
+    });
     showNotification(`🔨 Flutlicht-Upgrade gestartet!`);
 };
 
@@ -624,12 +667,12 @@ const installAdvertising = (block) => {
         return;
     }
 
-    const { cost, buildWeeks } = ADVERTISING_CONFIG;
+    const {cost, buildWeeks} = ADVERTISING_CONFIG;
     const duration = calculateBuildDays(buildWeeks);
 
     if (!confirm(`Werbung für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) return;
 
-    addConstructionProject({ type: 'advertising', name: `Werbung ${UI_TEXTS.blocks[block]}`, block, duration, cost });
+    addConstructionProject({type: 'advertising', name: `Werbung ${UI_TEXTS.blocks[block]}`, block, duration, cost});
     showNotification(`🔨 Werbeinstallation gestartet!`);
 };
 
@@ -660,11 +703,13 @@ const finalizeSponsorBooking = (sponsorId) => {
             showSuccessModal(result.sponsor, result.initialPayment);
 
             setTimeout(() => {
-                renderStadiumOverview();
-                const container = document.getElementById('sponsorOverviewContainer');
-                if (container) {
-                    container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
-                }
+                batchDOMUpdates(() => {
+                    renderStadiumOverview();
+                    const container = document.getElementById('sponsorOverviewContainer');
+                    if (container) {
+                        container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
+                    }
+                });
             }, 500);
         }
     } catch (error) {
@@ -674,56 +719,32 @@ const finalizeSponsorBooking = (sponsorId) => {
 };
 
 // =====================================================
-// RENDERING (Batched DOM Updates)
+// RENDERING
 // =====================================================
 
 const renderStadiumOverview = () => {
-    // Batch all DOM reads first
-    const elements = {
-        totalCapacity: document.getElementById('totalCapacity'),
-        standingCapacity: document.getElementById('standingCapacity'),
-        seatedCapacity: document.getElementById('seatedCapacity'),
-        boxesCapacity: document.getElementById('boxesCapacity'),
-        floodlightStage: document.getElementById('floodlightStage'),
-        floodlightStage2: document.getElementById('floodlightStage2'),
-        pitchType: document.getElementById('pitchType'),
-        pitchCondition: document.getElementById('pitchCondition')
-    };
+    const {elements, blockElements} = getCachedElements();
 
-    const blockElements = {};
-    for (const block of BLOCKS) {
-        blockElements[block] = {
-            capacity: document.getElementById(`block${block}Capacity`),
-            roof: document.getElementById(`block${block}Roof`),
-            ad: document.getElementById(`block${block}Ad`)
-        };
-    }
-
-    // Prepare values
-    const { capacity, features } = stadiumState;
+    const {capacity, features} = stadiumState;
     const stage = FLOODLIGHT_CONFIG.stages[features.floodlight];
     const condition = features.pitch.condition;
+    const conditionColor = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
 
-    // Batch all DOM writes
-    requestAnimationFrame(() => {
-        // Main stats
+    batchDOMUpdates(() => {
         if (elements.totalCapacity) elements.totalCapacity.textContent = formatCapacity(capacity.total);
         if (elements.standingCapacity) elements.standingCapacity.textContent = formatCapacity(capacity.standing);
         if (elements.seatedCapacity) elements.seatedCapacity.textContent = formatCapacity(capacity.seated);
         if (elements.boxesCapacity) elements.boxesCapacity.textContent = formatCapacity(capacity.boxes.total);
 
-        // Floodlight
         if (elements.floodlightStage) elements.floodlightStage.textContent = stage.name;
         if (elements.floodlightStage2) elements.floodlightStage2.textContent = stage.name;
 
-        // Pitch
         if (elements.pitchType) elements.pitchType.textContent = 'British';
         if (elements.pitchCondition) {
             elements.pitchCondition.textContent = `${condition}%`;
-            elements.pitchCondition.style.color = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
+            elements.pitchCondition.style.color = conditionColor;
         }
 
-        // Block details
         for (const block of BLOCKS) {
             const dist = capacity.distribution[block];
             const els = blockElements[block];
@@ -732,33 +753,32 @@ const renderStadiumOverview = () => {
             if (els.roof) els.roof.textContent = features.roofs[block] ? '✅ Ja' : '❌ Nein';
             if (els.ad) els.ad.textContent = features.advertising[block] ? '✅ Ja' : '❌ Nein';
         }
+    });
 
+    batchDOMUpdates(() => {
         updateStadiumVisualization();
     });
 };
 
 const updateStadiumVisualization = () => {
-    const { features } = stadiumState;
+    const {features} = stadiumState;
+    const {blockElements} = getCachedElements();
 
     for (const block of BLOCKS) {
-        const blockEl = document.querySelector(`.stadium-block[data-block="${block}"]`);
-        if (!blockEl) continue;
+        const els = blockElements[block];
+        if (!els.element) continue;
 
-        // Roof icon
-        const roofIcon = blockEl.querySelector('.roof-icon');
+        const roofIcon = els.element.querySelector('.roof-icon');
         if (roofIcon) roofIcon.style.display = features.roofs[block] ? 'block' : 'none';
 
-        // Boxes icon
-        const boxesIcon = blockEl.querySelector('.boxes-icon');
+        const boxesIcon = els.element.querySelector('.boxes-icon');
         if (boxesIcon && block === CAPACITY_CONFIG.FIXED_BOX_BLOCK) {
             boxesIcon.style.display = 'block';
         }
 
-        // Advertising indicator
-        blockEl.classList.toggle('has-advertising', features.advertising[block]);
+        els.element.classList.toggle('has-advertising', features.advertising[block]);
     }
 
-    // Pitch texture
     const pitchEl = document.querySelector('.stadium-pitch');
     if (pitchEl) {
         pitchEl.classList.remove('pitch-normal', 'pitch-dirt');
@@ -767,44 +787,42 @@ const updateStadiumVisualization = () => {
 };
 
 const renderConstructionQueue = () => {
-    const queueContainer = document.getElementById('constructionQueue');
+    const {elements} = getCachedElements();
+    const queueContainer = elements.constructionQueue;
     if (!queueContainer) return;
 
-    const { queue } = stadiumState.construction;
+    const {queue} = stadiumState.construction;
 
     if (!queue.length) {
         queueContainer.innerHTML = '<p class="no-construction">Keine laufenden Bauprojekte</p>';
         return;
     }
 
-    const fragment = document.createDocumentFragment();
-
-    for (const project of queue) {
+    const cardsHTML = queue.map(project => {
         const progress = ((project.duration - project.remainingDays) / project.duration) * 100;
         const statusText = UI_TEXTS.constructionStatus[project.status];
 
-        const card = document.createElement('div');
-        card.className = 'construction-card glass';
-        card.innerHTML = `
-            <div class="construction-header">
-                <h4>${project.name}</h4>
-                <span class="construction-status ${project.status}">${statusText}</span>
+        return `
+            <div class="construction-card glass">
+                <div class="construction-header">
+                    <h4>${project.name}</h4>
+                    <span class="construction-status ${project.status}">${statusText}</span>
+                </div>
+                <div class="construction-details">
+                    <div class="detail-row"><span>Verbleibend:</span><span>${project.remainingDays} Tage</span></div>
+                    <div class="detail-row"><span>Kosten:</span><span>${formatCurrency(project.cost)}</span></div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width:${progress}%"></div>
+                </div>
+                <div class="progress-text">${Math.round(progress)}% abgeschlossen</div>
             </div>
-            <div class="construction-details">
-                <div class="detail-row"><span>Verbleibend:</span><span>${project.remainingDays} Tage</span></div>
-                <div class="detail-row"><span>Kosten:</span><span>${formatCurrency(project.cost)}</span></div>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width:${progress}%"></div>
-            </div>
-            <div class="progress-text">${Math.round(progress)}% abgeschlossen</div>
         `;
+    }).join('');
 
-        fragment.appendChild(card);
-    }
-
-    queueContainer.innerHTML = '';
-    queueContainer.appendChild(fragment);
+    batchDOMUpdates(() => {
+        queueContainer.innerHTML = cardsHTML;
+    });
 };
 
 const switchFeatureTab = (tabName) => {
@@ -815,88 +833,91 @@ const switchFeatureTab = (tabName) => {
         construction: 'tabConstruction'
     };
 
-    // Update buttons
-    document.querySelectorAll('.feature-tab').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
+    batchDOMUpdates(() => {
+        document.querySelectorAll('.feature-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
 
-    // Update content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
 
-    const targetContent = document.getElementById(tabIdMap[tabName]);
-    if (targetContent) {
-        targetContent.classList.add('active');
+        const targetContent = document.getElementById(tabIdMap[tabName]);
+        if (targetContent) {
+            targetContent.classList.add('active');
 
-        if (tabName === 'sponsors') {
-            const container = document.getElementById('sponsorOverviewContainer');
-            if (container) {
-                container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
+            if (tabName === 'sponsors') {
+                const container = document.getElementById('sponsorOverviewContainer');
+                if (container) {
+                    container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
+                }
             }
         }
-    }
+    });
 };
 
 // =====================================================
-// EVENT HANDLING (Centralized Delegation)
+// EVENT HANDLING
 // =====================================================
 
-const handleClick = (e) => {
-    const target = e.target.closest('[data-action], [data-tab]');
-    if (!target) return;
+const actionHandlers = {
+    openBlockExpansion: (target) => openBlockExpansionModal(target.dataset.block),
+    openPitchRenovation: () => openPitchRenovationModal(),
+    closeStadiumModal: () => closeStadiumModal(),
+    buildRoof: (target) => buildRoof(target.dataset.block),
+    upgradeFloodlight: () => upgradeFloodlight(),
+    installAdvertising: (target) => installAdvertising(target.dataset.block),
+    manageSponsor: (target) => manageSponsor(target.dataset.block),
+    openSponsorSelection: (target) => openSponsorSelectionModal(target.dataset.block, stadiumState),
+    showSponsorDetails: (target) => showSponsorDetailsModal(parseInt(target.dataset.sponsorId, 10), stadiumState),
+    confirmBooking: (target) => showConfirmationModal(parseInt(target.dataset.sponsorId, 10), stadiumState),
+    finalizeBooking: (target) => finalizeSponsorBooking(parseInt(target.dataset.sponsorId, 10)),
+    toggleComparisonMode: () => {
+        toggleComparisonMode();
+        refreshSponsorSelectionModal(stadiumState);
+    },
+    toggleComparison: (target) => {
+        const sponsorId = parseInt(target.dataset.sponsorId, 10);
+        if (toggleSponsorForComparison(sponsorId)) {
+            showComparisonModal(getSelectedForComparison(), stadiumState);
+        } else {
+            refreshSponsorSelectionModal(stadiumState);
+        }
+    },
+    closeModal: () => closeModal(),
+    closeModalAndRefresh: () => {
+        closeModal();
+        renderStadiumOverview();
+        switchFeatureTab('sponsors');
+    },
+    backToSelection: () => {
+        closeModal(false);
+        setTimeout(() => openSponsorSelectionModal(getCurrentBlock(), stadiumState), 100);
+    },
+    backToDetails: (target) => {
+        closeModal(false);
+        setTimeout(() => showSponsorDetailsModal(parseInt(target.dataset.sponsorId, 10), stadiumState), 100);
+    },
+    goToSponsorOverview: () => {
+        closeModal();
+        switchFeatureTab('sponsors');
+    },
+    simulateDay: () => simulateDay()
+};
 
-    // Tab switching
-    if (target.dataset.tab) {
-        switchFeatureTab(target.dataset.tab);
+const handleClick = (e) => {
+    const tabTarget = e.target.closest('[data-tab]');
+    if (tabTarget) {
+        switchFeatureTab(tabTarget.dataset.tab);
         return;
     }
 
-    const { action } = target.dataset;
-    const block = target.dataset.block;
-    const sponsorId = target.dataset.sponsorId ? parseInt(target.dataset.sponsorId, 10) : null;
+    const actionTarget = e.target.closest('[data-action]');
+    if (!actionTarget) return;
 
-    const actions = {
-        openBlockExpansion: () => openBlockExpansionModal(block),
-        openPitchRenovation: () => openPitchRenovationModal(),
-        closeStadiumModal: () => closeStadiumModal(),
-        buildRoof: () => buildRoof(block),
-        upgradeFloodlight: () => upgradeFloodlight(),
-        installAdvertising: () => installAdvertising(block),
-        manageSponsor: () => manageSponsor(block),
-        openSponsorSelection: () => openSponsorSelectionModal(block, stadiumState),
-        showSponsorDetails: () => showSponsorDetailsModal(sponsorId, stadiumState),
-        confirmBooking: () => showConfirmationModal(sponsorId, stadiumState),
-        finalizeBooking: () => finalizeSponsorBooking(sponsorId),
-        toggleComparisonMode: () => { toggleComparisonMode(); refreshSponsorSelectionModal(stadiumState); },
-        toggleComparison: () => {
-            if (toggleSponsorForComparison(sponsorId)) {
-                showComparisonModal(getSelectedForComparison(), stadiumState);
-            } else {
-                refreshSponsorSelectionModal(stadiumState);
-            }
-        },
-        closeModal: () => closeModal(),
-        closeModalAndRefresh: () => { closeModal(); renderStadiumOverview(); switchFeatureTab('sponsors'); },
-        backToSelection: () => { closeModal(false); setTimeout(() => openSponsorSelectionModal(getCurrentBlock(), stadiumState), 100); },
-        backToDetails: () => { closeModal(false); setTimeout(() => showSponsorDetailsModal(sponsorId, stadiumState), 100); },
-        goToSponsorOverview: () => { closeModal(); switchFeatureTab('sponsors'); },
-        simulateDay: () => simulateDay()
-    };
-
-    const actionFn = actions[action];
-    if (actionFn) actionFn();
-};
-
-const handleChange = (e) => {
-    const target = e.target;
-
-    if (target.dataset.filter) {
-        updateFilter(target.dataset.filter, target.value);
-        refreshSponsorSelectionModal(stadiumState);
-    } else if (target.dataset.sort) {
-        updateSort(target.value);
-        refreshSponsorSelectionModal(stadiumState);
+    const handler = actionHandlers[actionTarget.dataset.action];
+    if (handler) {
+        handler(actionTarget);
     }
 };
 
@@ -908,7 +929,6 @@ const simulateDay = () => {
         stadiumState.currentMonth++;
     }
 
-    // Rasen verschlechtert sich wöchentlich
     if (stadiumState.currentDay % 7 === 0) {
         const roofCount = Object.values(stadiumState.features.roofs).filter(Boolean).length;
         const wearReduction = roofCount * ROOF_CONFIG.pitchWearReduction;
@@ -920,10 +940,10 @@ const simulateDay = () => {
     tickBuildTimer();
     saveStadiumState();
 
-    const dayEl = document.getElementById('currentDay');
-    if (dayEl) dayEl.textContent = stadiumState.currentDay;
-
-    console.log(`📅 Tag ${stadiumState.currentDay}, Rasen: ${stadiumState.features.pitch.condition.toFixed(1)}%`);
+    const {elements} = getCachedElements();
+    if (elements.currentDay) {
+        elements.currentDay.textContent = stadiumState.currentDay;
+    }
 };
 
 // =====================================================
@@ -936,37 +956,48 @@ export function init() {
         return;
     }
 
-    console.log('🎬 Initialisiere Stadium-Modul');
+    console.log('🎬 Initialisiere Stadium-Modul (V2 Optimized)');
 
-    // Neuen AbortController erstellen falls alter aborted wurde
     if (eventController.signal.aborted) {
         eventController = new AbortController();
     }
 
     loadStadiumState();
-    renderStadiumOverview();
-    renderConstructionQueue();
 
-    // Event Delegation mit AbortController
-    document.addEventListener('click', handleClick, { signal: eventController.signal });
-    document.addEventListener('change', handleChange, { signal: eventController.signal });
+    batchDOMUpdates(() => {
+        renderStadiumOverview();
+        renderConstructionQueue();
+    });
+
+    document.addEventListener('click', handleClick, {signal: eventController.signal});
 
     isInitialized = true;
-    console.log('✅ Stadium-Modul bereit');
+    console.log('✅ Stadium-Modul bereit (V2)');
 }
 
 export function cleanup() {
     console.log('🧹 Cleanup Stadium-Modul');
 
-    // Alle Events auf einmal entfernen
     eventController.abort();
 
-    // Modals schließen
     closeStadiumModal();
     closeModal();
 
-    // State zurücksetzen
+    clearAllCaches();
+    clearTemplateCache();
+    invalidateDOMCache();
+
     stadiumState = null;
     currentModal = null;
     isInitialized = false;
+}
+
+export const getPerformanceStats = () => ({
+    domCacheAge: Date.now() - domCache.lastCacheTime,
+    hasCachedElements: !!domCache.elements,
+    isInitialized
+});
+
+if (typeof window !== 'undefined') {
+    window.getStadiumStats = getPerformanceStats;
 }
