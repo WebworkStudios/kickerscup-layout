@@ -6,6 +6,7 @@
 
 import {
     SPONSOR_CONFIG,
+    CAPACITY_CONFIG,
     UI_TEXTS,
     formatCurrency,
     getSponsorById
