@@ -1,6 +1,7 @@
 /* =====================================================
    KICKERSCUP - STADIUM MODALS & SLIDER
    CSS für Block-Ausbau und Rasen-Renovation
+   ✅ FIX: Slider-Thumb jetzt symmetrisch zentriert
    ===================================================== */
 
 /* ========== MODAL OVERLAY ========== */
@@ -179,13 +180,7 @@
 .capacity-slider::-webkit-slider-runnable-track {
     width: 100%;
     height: 8px;
-    background: linear-gradient(
-            90deg,
-            var(--gold-primary) 0%,
-            var(--gold-primary) var(--slider-progress, 0%),
-            rgba(255, 255, 255, 0.1) var(--slider-progress, 0%),
-            rgba(255, 255, 255, 0.1) 100%
-    );
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
 
@@ -202,28 +197,28 @@
     border-radius: 10px;
 }
 
-/* Slider Thumb */
+/* Slider Thumb - KORRIGIERT für symmetrische Zentrierung */
 .capacity-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 15px var(--turquoise-shadow);
-    border: 3px solid var(--dark-secondary);
+    border: 2px solid var(--dark-secondary);
     transition: all 0.3s ease;
 }
 
 .capacity-slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, var(--gold-primary), var(--platinum));
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 15px var(--turquoise-shadow);
-    border: 3px solid var(--dark-secondary);
+    border: 2px solid var(--dark-secondary);
     transition: all 0.3s ease;
 }
 
@@ -378,8 +373,7 @@
 .renovation-info li {
     font-size: 13px;
     color: var(--text-white);
-    padding: 5px 0;
-    padding-left: 20px;
+    padding: 5px 0 5px 20px;
     position: relative;
 }
 
