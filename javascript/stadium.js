@@ -1,8 +1,7 @@
 // =====================================================
-// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (V2 - OPTIMIZED)
+// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (V2.1 - SAFARI FIX)
 // Stadion-Verwaltung mit Block-Click-Modals + Pitch-Renovation
-// ✅ V2: Event-Delegation, DOM-Batching, Throttled Slider,
-//        RequestAnimationFrame, Optimiertes State-Management
+// ✅ V2.1: Safari-kompatibler DOM-Cache, verzögertes Rendering
 // =====================================================
 
 import {
@@ -118,13 +117,55 @@ let currentModal = null;
 let isInitialized = false;
 let eventController = new AbortController();
 
-let domCache = {
-    elements: null,
-    blockElements: null,
-    lastCacheTime: 0
+// =====================================================
+// DOM CACHING - SAFARI FIX
+// =====================================================
+
+// SAFARI FIX: Kein Cache für DOM-Elemente mehr
+// Stattdessen: Direkter Zugriff mit Null-Check
+
+/**
+ * Holt DOM-Element sicher (Safari-kompatibel)
+ * Kein Caching mehr, da Safari timing-sensitiv ist
+ */
+const getElement = (id) => {
+    return document.getElementById(id);
 };
 
-const DOM_CACHE_TTL = 5000;
+/**
+ * Holt Block-Element sicher
+ */
+const getBlockElement = (block, type) => {
+    const idMap = {
+        capacity: `block${block}Capacity`,
+        roof: `block${block}Roof`,
+        ad: `block${block}Ad`
+    };
+
+    if (type === 'element') {
+        return document.querySelector(`.stadium-block[data-block="${block}"]`);
+    }
+
+    return document.getElementById(idMap[type]);
+};
+
+/**
+ * Sicheres Text-Update mit Null-Check
+ */
+const safeSetText = (element, text) => {
+    if (element && element.textContent !== undefined) {
+        element.textContent = text;
+    }
+};
+
+/**
+ * Sicheres Style-Update mit Null-Check
+ */
+const safeSetStyle = (element, property, value) => {
+    if (element && element.style) {
+        element.style[property] = value;
+    }
+};
 
 const currentSeasonStats = {
     gamesPlayed: 12,
@@ -132,49 +173,6 @@ const currentSeasonStats = {
     wins: 8,
     leagueTitle: false,
     cupTitle: false
-};
-
-// =====================================================
-// DOM CACHING
-// =====================================================
-
-const getCachedElements = () => {
-    const now = Date.now();
-
-    if (domCache.elements && (now - domCache.lastCacheTime) < DOM_CACHE_TTL) {
-        return domCache;
-    }
-
-    domCache.elements = {
-        totalCapacity: document.getElementById('totalCapacity'),
-        standingCapacity: document.getElementById('standingCapacity'),
-        seatedCapacity: document.getElementById('seatedCapacity'),
-        boxesCapacity: document.getElementById('boxesCapacity'),
-        floodlightStage: document.getElementById('floodlightStage'),
-        floodlightStage2: document.getElementById('floodlightStage2'),
-        pitchType: document.getElementById('pitchType'),
-        pitchCondition: document.getElementById('pitchCondition'),
-        currentDay: document.getElementById('currentDay'),
-        constructionQueue: document.getElementById('constructionQueue'),
-        sponsorOverviewContainer: document.getElementById('sponsorOverviewContainer')
-    };
-
-    domCache.blockElements = {};
-    for (const block of BLOCKS) {
-        domCache.blockElements[block] = {
-            capacity: document.getElementById(`block${block}Capacity`),
-            roof: document.getElementById(`block${block}Roof`),
-            ad: document.getElementById(`block${block}Ad`),
-            element: document.querySelector(`.stadium-block[data-block="${block}"]`)
-        };
-    }
-
-    domCache.lastCacheTime = now;
-    return domCache;
-};
-
-const invalidateDOMCache = () => {
-    domCache.lastCacheTime = 0;
 };
 
 // =====================================================
@@ -450,17 +448,11 @@ const openBlockExpansionModal = (block) => {
 
     // Throttled Slider Update
     const throttledUpdatePreview = throttle(() => {
-        const additionalSeats = Math.floor(Number(slider.value) || 0);
+        const additionalSeats = parseInt(slider.value, 10);
         updateExpansionPreview(block, currentCapacity, additionalSeats, maxStep);
     }, SLIDER_THROTTLE);
 
-    ['input', 'change'].forEach(eventType => {
-        slider.addEventListener(eventType, throttledUpdatePreview, {signal: eventController.signal});
-    });
-
-    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        slider.addEventListener('touchend', throttledUpdatePreview, {signal: eventController.signal});
-    }
+    slider.addEventListener('input', throttledUpdatePreview, {signal: eventController.signal});
 
     confirmBtn.addEventListener('click', () => {
         confirmBlockExpansion(block, parseInt(slider.value, 10));
@@ -725,42 +717,63 @@ const finalizeSponsorBooking = (sponsorId) => {
 };
 
 // =====================================================
-// RENDERING
+// RENDERING - SAFARI FIX
 // =====================================================
 
+/**
+ * SAFARI FIX: Direkter DOM-Zugriff ohne Caching
+ * Jeder Aufruf holt frische Element-Referenzen
+ */
 const renderStadiumOverview = () => {
-    const {elements, blockElements} = getCachedElements();
-
     const {capacity, features} = stadiumState;
     const stage = FLOODLIGHT_CONFIG.stages[features.floodlight];
     const condition = features.pitch.condition;
     const conditionColor = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
 
+    // SAFARI FIX: Direkte getElementById-Aufrufe statt gecachte Referenzen
     batchDOMUpdates(() => {
-        if (elements.totalCapacity) elements.totalCapacity.textContent = formatCapacity(capacity.total);
-        if (elements.standingCapacity) elements.standingCapacity.textContent = formatCapacity(capacity.standing);
-        if (elements.seatedCapacity) elements.seatedCapacity.textContent = formatCapacity(capacity.seated);
-        if (elements.boxesCapacity) elements.boxesCapacity.textContent = formatCapacity(capacity.boxes.total);
+        // Hauptkapazitäten
+        safeSetText(getElement('totalCapacity'), formatCapacity(capacity.total));
+        safeSetText(getElement('standingCapacity'), formatCapacity(capacity.standing));
+        safeSetText(getElement('seatedCapacity'), formatCapacity(capacity.seated));
+        safeSetText(getElement('boxesCapacity'), formatCapacity(capacity.boxes.total));
 
-        if (elements.floodlightStage) elements.floodlightStage.textContent = stage.name;
-        if (elements.floodlightStage2) elements.floodlightStage2.textContent = stage.name;
+        // Flutlicht & Rasen
+        safeSetText(getElement('floodlightStage'), stage.name);
+        safeSetText(getElement('floodlightStage2'), stage.name);
+        safeSetText(getElement('pitchType'), 'British');
 
-        if (elements.pitchType) elements.pitchType.textContent = 'British';
-        if (elements.pitchCondition) {
-            elements.pitchCondition.textContent = `${condition}%`;
-            elements.pitchCondition.style.color = conditionColor;
+        const pitchConditionEl = getElement('pitchCondition');
+        if (pitchConditionEl) {
+            pitchConditionEl.textContent = `${condition}%`;
+            pitchConditionEl.style.color = conditionColor;
         }
 
+        // Block-Kapazitäten - SAFARI FIX: Jedes Element einzeln abrufen
         for (const block of BLOCKS) {
             const dist = capacity.distribution[block];
-            const els = blockElements[block];
 
-            if (els.capacity) els.capacity.textContent = formatCapacity(dist.capacity);
-            if (els.roof) els.roof.textContent = features.roofs[block] ? '✅ Ja' : '❌ Nein';
-            if (els.ad) els.ad.textContent = features.advertising[block] ? '✅ Ja' : '❌ Nein';
+            // Kapazität
+            const capacityEl = getElement(`block${block}Capacity`);
+            if (capacityEl) {
+                capacityEl.textContent = formatCapacity(dist.capacity);
+            }
+
+            // Dach-Status
+            const roofEl = getElement(`block${block}Roof`);
+            if (roofEl) {
+                roofEl.textContent = features.roofs[block] ? '✅ Ja' : '❌ Nein';
+            }
+
+            // Werbung-Status
+            const adEl = getElement(`block${block}Ad`);
+            if (adEl) {
+                adEl.textContent = features.advertising[block] ? '✅ Ja' : '❌ Nein';
+            }
         }
     });
 
+    // Visualisierung separat aktualisieren
     batchDOMUpdates(() => {
         updateStadiumVisualization();
     });
@@ -768,21 +781,20 @@ const renderStadiumOverview = () => {
 
 const updateStadiumVisualization = () => {
     const {features} = stadiumState;
-    const {blockElements} = getCachedElements();
 
     for (const block of BLOCKS) {
-        const els = blockElements[block];
-        if (!els.element) continue;
+        const blockEl = document.querySelector(`.stadium-block[data-block="${block}"]`);
+        if (!blockEl) continue;
 
-        const roofIcon = els.element.querySelector('.roof-icon');
+        const roofIcon = blockEl.querySelector('.roof-icon');
         if (roofIcon) roofIcon.style.display = features.roofs[block] ? 'block' : 'none';
 
-        const boxesIcon = els.element.querySelector('.boxes-icon');
+        const boxesIcon = blockEl.querySelector('.boxes-icon');
         if (boxesIcon && block === CAPACITY_CONFIG.FIXED_BOX_BLOCK) {
             boxesIcon.style.display = 'block';
         }
 
-        els.element.classList.toggle('has-advertising', features.advertising[block]);
+        blockEl.classList.toggle('has-advertising', features.advertising[block]);
     }
 
     const pitchEl = document.querySelector('.stadium-pitch');
@@ -793,8 +805,7 @@ const updateStadiumVisualization = () => {
 };
 
 const renderConstructionQueue = () => {
-    const {elements} = getCachedElements();
-    const queueContainer = elements.constructionQueue;
+    const queueContainer = getElement('constructionQueue');
     if (!queueContainer) return;
 
     const {queue} = stadiumState.construction;
@@ -946,14 +957,14 @@ const simulateDay = () => {
     tickBuildTimer();
     saveStadiumState();
 
-    const {elements} = getCachedElements();
-    if (elements.currentDay) {
-        elements.currentDay.textContent = stadiumState.currentDay;
+    const currentDayEl = getElement('currentDay');
+    if (currentDayEl) {
+        currentDayEl.textContent = stadiumState.currentDay;
     }
 };
 
 // =====================================================
-// MODULE LIFECYCLE
+// MODULE LIFECYCLE - SAFARI FIX
 // =====================================================
 
 export function init() {
@@ -962,7 +973,7 @@ export function init() {
         return;
     }
 
-    console.log('🎬 Initialisiere Stadium-Modul (V2 Optimized)');
+    console.log('🎬 Initialisiere Stadium-Modul (V2.1 Safari Fix)');
 
     if (eventController.signal.aborted) {
         eventController = new AbortController();
@@ -970,15 +981,54 @@ export function init() {
 
     loadStadiumState();
 
-    batchDOMUpdates(() => {
-        renderStadiumOverview();
-        renderConstructionQueue();
-    });
+    // SAFARI FIX: Verzögertes Rendering, um sicherzustellen dass DOM bereit ist
+    // Safari braucht manchmal etwas länger, bis alle Elemente verfügbar sind
+    const doInitialRender = () => {
+        batchDOMUpdates(() => {
+            renderStadiumOverview();
+            renderConstructionQueue();
+        });
+    };
+
+    // Prüfen ob DOM-Elemente bereits verfügbar sind
+    const testElement = document.getElementById('totalCapacity');
+
+    if (testElement) {
+        // DOM ist bereit - sofort rendern
+        doInitialRender();
+    } else {
+        // SAFARI FIX: DOM noch nicht bereit - mit kleiner Verzögerung versuchen
+        console.log('⏳ Safari-Modus: Warte auf DOM...');
+
+        // Mehrere Versuche mit steigender Verzögerung
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        const tryRender = () => {
+            attempts++;
+            const el = document.getElementById('totalCapacity');
+
+            if (el || attempts >= maxAttempts) {
+                if (el) {
+                    console.log(`✅ DOM bereit nach ${attempts} Versuch(en)`);
+                } else {
+                    console.warn('⚠️ DOM-Elemente nicht gefunden - rendere trotzdem');
+                }
+                doInitialRender();
+            } else {
+                // Exponentielles Backoff: 10ms, 20ms, 40ms, 80ms, 160ms
+                setTimeout(tryRender, 10 * Math.pow(2, attempts));
+            }
+        };
+
+        // Ersten Versuch nach 10ms starten
+        setTimeout(tryRender, 10);
+    }
 
     document.addEventListener('click', handleClick, {signal: eventController.signal});
 
     isInitialized = true;
-    console.log('✅ Stadium-Modul bereit (V2)');
+    console.log('✅ Stadium-Modul bereit (V2.1 Safari Fix)');
 }
 
 export function cleanup() {
@@ -991,7 +1041,6 @@ export function cleanup() {
 
     clearAllCaches();
     clearTemplateCache();
-    invalidateDOMCache();
 
     stadiumState = null;
     currentModal = null;
@@ -999,9 +1048,8 @@ export function cleanup() {
 }
 
 export const getPerformanceStats = () => ({
-    domCacheAge: Date.now() - domCache.lastCacheTime,
-    hasCachedElements: !!domCache.elements,
-    isInitialized
+    isInitialized,
+    stateLoaded: stadiumState !== null
 });
 
 if (typeof window !== 'undefined') {
