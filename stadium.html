@@ -131,6 +131,9 @@
     <button class="feature-tab" data-tab="infrastructure">
         💡 Infrastruktur
     </button>
+    <button class="feature-tab" data-tab="sponsors">
+        📺 Sponsoren
+    </button>
     <button class="feature-tab" data-tab="construction">
         🔨 Bauprojekte
     </button>
@@ -195,8 +198,7 @@
         <h3>📺 Werbebanden</h3>
         <p class="feature-description">
             Installation: 50.000 €, Bauzeit: 1 SW (7 Tage)<br>
-            <small>Große Werbebanner wie im echten Stadion - Später Amazon, Nike, Coca-Cola!</small><br>
-            <small>Längsseiten: 3 Banner-Plätze • Kurven: 2 Banner-Plätze</small>
+            <small>1 Banner = 1 Sponsor pro Tribüne</small>
         </p>
 
         <div class="feature-grid">
@@ -208,8 +210,8 @@
                 <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="NORD">
                     Installieren
                 </button>
-                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="NORD">
-                    📺 Sponsoren verwalten
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsor" data-block="NORD">
+                    📺 Sponsor verwalten
                 </button>
             </div>
 
@@ -221,8 +223,8 @@
                 <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="OST">
                     Installieren
                 </button>
-                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="OST">
-                    📺 Sponsoren verwalten
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsor" data-block="OST">
+                    📺 Sponsor verwalten
                 </button>
             </div>
 
@@ -234,8 +236,8 @@
                 <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="SUED">
                     Installieren
                 </button>
-                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="SUED">
-                    📺 Sponsoren verwalten
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsor" data-block="SUED">
+                    📺 Sponsor verwalten
                 </button>
             </div>
 
@@ -247,8 +249,8 @@
                 <button class="btn btn-primary btn-sm" data-action="installAdvertising" data-block="WEST">
                     Installieren
                 </button>
-                <button class="btn btn-secondary btn-sm" data-action="manageSponsors" data-block="WEST">
-                    📺 Sponsoren verwalten
+                <button class="btn btn-secondary btn-sm" data-action="manageSponsor" data-block="WEST">
+                    📺 Sponsor verwalten
                 </button>
             </div>
         </div>
@@ -373,6 +375,13 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Tab Content: Sponsoren -->
+<div class="tab-content" id="tabSponsors">
+    <div id="sponsorOverviewContainer">
+        <!-- Wird dynamisch von stadium-sponsors-ui.js befüllt -->
     </div>
 </div>
 

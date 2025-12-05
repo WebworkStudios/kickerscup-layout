@@ -1,6 +1,6 @@
 // =====================================================
 // KICKERSCUP - STADIUM MANAGEMENT SYSTEM (ESM)
-// Stadion-Verwaltung mit Bauzeiten und Features
+// Stadion-Verwaltung mit Bauzeiten und Features + SPONSOREN
 // =====================================================
 
 import {
@@ -10,13 +10,35 @@ import {
     FLOODLIGHT_CONFIG,
     PITCH_CONFIG,
     ADVERTISING_CONFIG,
-    SPONSOR_CONFIG,
     INITIAL_STADIUM_STATE,
     UI_TEXTS,
     calculateBuildDays,
     formatCurrency,
     formatCapacity
-} from './stadium-config.js';
+} from './stadium-config-extended.js';
+
+// Sponsor-Imports
+import {
+    bookSponsor,
+    hasBlockSponsor,
+    hasBlockAdvertising
+} from './stadium-sponsors.js';
+
+import {
+    openSponsorSelectionModal,
+    showSponsorDetailsModal,
+    showConfirmationModal,
+    showSuccessModal,
+    showComparisonModal,
+    renderSponsorOverviewTab,
+    closeModal,
+    toggleComparisonMode,
+    toggleSponsorForComparison,
+    updateFilter,
+    updateSort,
+    getCurrentBlock,
+    getSelectedForComparison
+} from './stadium-sponsors-ui.js';
 
 // =====================================================
 // PRIVATE STATE
@@ -25,6 +47,15 @@ import {
 let stadiumState = null;
 const eventListeners = [];
 let buildTimerInterval = null;
+
+// Mock current season stats für Sponsor-Übersicht
+const currentSeasonStats = {
+    gamesPlayed: 12,
+    goals: 23,
+    wins: 8,
+    leagueTitle: false,
+    cupTitle: false
+};
 
 // LocalStorage Key
 const STORAGE_KEY = 'kickerscup_stadium_state';
@@ -306,7 +337,7 @@ const installAdvertising = (block) => {
     const cost = ADVERTISING_CONFIG.cost;
     const duration = calculateBuildDays(ADVERTISING_CONFIG.buildWeeks);
 
-    if (!confirm(`Werbung für ${UI_TEXTS.blocks[block]} installieren?\n\nKosten: ${formatCurrency(cost)}\nBauzeit: ${ADVERTISING_CONFIG.buildWeeks} SW (${duration} Tage)\nEinnahmen: ${formatCurrency(ADVERTISING_CONFIG.revenuePerMatch)}/Heimspiel`)) {
+    if (!confirm(`Werbung für ${UI_TEXTS.blocks[block]} installieren?\n\nKosten: ${formatCurrency(cost)}\nBauzeit: ${ADVERTISING_CONFIG.buildWeeks} SW (${duration} Tage)`)) {
         return;
     }
 
@@ -319,192 +350,6 @@ const installAdvertising = (block) => {
     });
 
     alert(`🔨 Werbeinstallation für ${UI_TEXTS.blocks[block]} gestartet!`);
-};
-
-// =====================================================
-// SPONSOR-MANAGEMENT
-// =====================================================
-
-/**
- * Gibt verfügbare Sponsoren basierend auf Stadion-Kapazität zurück
- */
-const getAvailableSponsors = () => {
-    const currentCapacity = stadiumState.capacity.total;
-
-    return SPONSOR_CONFIG.availableSponsors.filter(sponsor => {
-        const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
-        return currentCapacity >= tier.minCapacity;
-    });
-};
-
-/**
- * Berechnet Einnahmen pro Sponsor-Slot
- */
-const calculateSponsorRevenue = (sponsorId) => {
-    const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
-    if (!sponsor) return 0;
-
-    const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
-    return SPONSOR_CONFIG.baseRevenuePerSlot * tier.multiplier;
-};
-
-/**
- * Öffnet Sponsor-Auswahl-Modal für einen Block
- */
-const openSponsorSelection = (block) => {
-    // Prüfe ob Werbebande installiert ist
-    if (!stadiumState.features.advertising[block]) {
-        alert(`❌ Bitte installiere zuerst die Werbebande für ${UI_TEXTS.blocks[block]}!`);
-        return;
-    }
-
-    const bannerType = ADVERTISING_CONFIG.bannerTypes[block];
-    const maxBanners = ADVERTISING_CONFIG.bannersPerBlock[bannerType];
-    const currentSponsors = stadiumState.features.sponsors[block] || [];
-
-    if (currentSponsors.length >= maxBanners) {
-        alert(`❌ ${UI_TEXTS.blocks[block]} hat bereits die maximale Anzahl an Werbebannern (${maxBanners})!`);
-        return;
-    }
-
-    // Zeige verfügbare Sponsoren
-    const availableSponsors = getAvailableSponsors();
-
-    // Erstelle Sponsor-Liste
-    const sponsorListItems = [];
-    for (let i = 0; i < availableSponsors.length; i++) {
-        const sponsor = availableSponsors[i];
-        const revenue = calculateSponsorRevenue(sponsor.id);
-        const tier = SPONSOR_CONFIG.tiers[sponsor.tier];
-        sponsorListItems.push(
-            `${i + 1}. ${sponsor.name} (${tier.name})\n   "${sponsor.slogan}"\n   ${formatCurrency(revenue)}/Heimspiel`
-        );
-    }
-    const sponsorList = sponsorListItems.join('\n\n');
-
-    const selection = prompt(
-        `🎯 WERBEBANNER für ${UI_TEXTS.blocks[block]}\n` +
-        `═══════════════════════════════\n\n` +
-        `Freie Banner-Plätze: ${maxBanners - currentSponsors.length}/${maxBanners}\n\n` +
-        `${sponsorList}\n\n` +
-        `═══════════════════════════════\n` +
-        `Wähle Nummer (1-${availableSponsors.length}):`
-    );
-
-    if (selection) {
-        const index = parseInt(selection) - 1;
-
-        if (index >= 0 && index < availableSponsors.length) {
-            const sponsor = availableSponsors[index];
-
-            // Prüfe ob Sponsor bereits im Block ist
-            if (currentSponsors.includes(sponsor.id)) {
-                alert(`❌ ${sponsor.name} ist bereits in ${UI_TEXTS.blocks[block]}!`);
-                return;
-            }
-
-            // Füge Sponsor hinzu
-            stadiumState.features.sponsors[block].push(sponsor.id);
-            saveStadiumState();
-            renderSponsorBanners();
-
-            const revenue = calculateSponsorRevenue(sponsor.id);
-            alert(
-                `✅ WERBEBANNER GEBUCHT!\n\n` +
-                `${sponsor.name}\n` +
-                `"${sponsor.slogan}"\n\n` +
-                `Einnahmen: ${formatCurrency(revenue)}/Heimspiel`
-            );
-        } else {
-            alert('❌ Ungültige Auswahl!');
-        }
-    }
-};
-
-/**
- * Entfernt einen Sponsor von einem Block
- */
-const removeSponsor = (block, sponsorId) => {
-    const sponsors = stadiumState.features.sponsors[block];
-    const index = sponsors.indexOf(sponsorId);
-
-    if (index > -1) {
-        const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === sponsorId);
-
-        if (confirm(`${sponsor.logo} ${sponsor.name} wirklich entfernen?`)) {
-            sponsors.splice(index, 1);
-            saveStadiumState();
-            renderSponsorBanners();
-            alert(`✅ Sponsor entfernt!`);
-        }
-    }
-};
-
-/**
- * Rendert Sponsor-Banner in der Visualisierung (realistische Werbebanden)
- */
-const renderSponsorBanners = () => {
-    CAPACITY_CONFIG.BLOCKS.forEach(block => {
-        const blockEl = document.querySelector(`.stadium-block[data-block="${block}"]`);
-        if (!blockEl) return;
-
-        // Entferne alte Banner
-        const oldBanners = blockEl.querySelector('.advertising-board');
-        if (oldBanners) oldBanners.remove();
-
-        // Prüfe ob Werbebande installiert ist
-        if (!stadiumState.features.advertising[block]) return;
-
-        // Erstelle Werbebande-Container
-        const boardContainer = document.createElement('div');
-        boardContainer.className = 'advertising-board';
-
-        const sponsorIds = stadiumState.features.sponsors[block] || [];
-        const bannerType = ADVERTISING_CONFIG.bannerTypes[block];
-        const maxBanners = ADVERTISING_CONFIG.bannersPerBlock[bannerType];
-
-        // Zeige aktuell gebuchte Banner
-        if (sponsorIds.length > 0) {
-            // Rotiere durch die Banner (zeige den ersten)
-            const currentSponsorId = sponsorIds[0];
-            const sponsor = SPONSOR_CONFIG.availableSponsors.find(s => s.id === currentSponsorId);
-
-            if (sponsor) {
-                const banner = document.createElement('div');
-                banner.className = 'advertising-banner';
-                banner.style.backgroundColor = sponsor.color;
-                banner.innerHTML = `
-                    <div class="banner-content">
-                        <div class="banner-name">${sponsor.shortName}</div>
-                        <div class="banner-slogan">${sponsor.slogan}</div>
-                        <div class="banner-website">${sponsor.website}</div>
-                    </div>
-                `;
-                boardContainer.appendChild(banner);
-            }
-        } else {
-            // Leere Bande - zeige Placeholder
-            const placeholder = document.createElement('div');
-            placeholder.className = 'advertising-banner empty';
-            placeholder.innerHTML = `
-                <div class="banner-content">
-                    <div class="banner-placeholder">🎯 WERBUNG VERFÜGBAR</div>
-                    <div class="banner-info">${maxBanners} Banner-Plätze frei</div>
-                </div>
-            `;
-            boardContainer.appendChild(placeholder);
-        }
-
-        // Füge Indikator für weitere Banner hinzu
-        if (sponsorIds.length > 1) {
-            const indicator = document.createElement('div');
-            indicator.className = 'banner-indicator';
-            indicator.textContent = `+${sponsorIds.length - 1}`;
-            boardContainer.appendChild(indicator);
-        }
-
-        blockEl.appendChild(boardContainer);
-    });
 };
 
 /**
@@ -539,6 +384,55 @@ const changeBoxPlacement = (targetBlock) => {
 };
 
 // =====================================================
+// SPONSOR-MANAGEMENT
+// =====================================================
+
+/**
+ * Öffnet Sponsor-Verwaltung für einen Block
+ */
+const manageSponsor = (block) => {
+    // Prüfe ob Werbebande installiert ist
+    if (!hasBlockAdvertising(stadiumState, block)) {
+        alert(`❌ Bitte installiere zuerst die Werbebande für ${UI_TEXTS.blocks[block]}!`);
+        return;
+    }
+    
+    // Prüfe ob bereits Sponsor vorhanden
+    if (hasBlockSponsor(stadiumState, block)) {
+        alert(`ℹ️ ${UI_TEXTS.blocks[block]} hat bereits einen Sponsor.\n\nVerträge können während der Saison nicht geändert werden.`);
+        return;
+    }
+    
+    // Öffne Sponsor-Auswahl
+    openSponsorSelectionModal(block, stadiumState);
+};
+
+/**
+ * Finalisiert Sponsor-Buchung
+ */
+const finalizeSponsorBooking = (sponsorId) => {
+    const block = getCurrentBlock();
+    
+    try {
+        const result = bookSponsor(stadiumState, block, sponsorId);
+        
+        if (result.success) {
+            saveStadiumState();
+            showSuccessModal(result.sponsor, result.initialPayment);
+            
+            // Update UI
+            setTimeout(() => {
+                renderStadiumOverview();
+                renderSponsorOverviewTab(stadiumState, currentSeasonStats);
+            }, 500);
+        }
+    } catch (error) {
+        alert(`❌ Fehler beim Buchen: ${error.message}`);
+        closeModal();
+    }
+};
+
+// =====================================================
 // RENDERING
 // =====================================================
 
@@ -555,7 +449,9 @@ const renderStadiumOverview = () => {
     if (totalCapacity) totalCapacity.textContent = formatCapacity(stadiumState.capacity.total);
     if (standingCapacity) standingCapacity.textContent = formatCapacity(stadiumState.capacity.standing);
     if (seatedCapacity) seatedCapacity.textContent = formatCapacity(stadiumState.capacity.seated);
-    if (boxesCapacity) boxesCapacity.textContent = `${formatCapacity(stadiumState.capacity.boxes.total)} (${UI_TEXTS.blocks[stadiumState.capacity.boxes.placement]})`;
+    if (boxesCapacity) boxesCapacity.textContent = stadiumState.capacity.boxes.placement 
+        ? `${formatCapacity(stadiumState.capacity.boxes.total)} (${UI_TEXTS.blocks[stadiumState.capacity.boxes.placement]})`
+        : '0';
 
     // Block-Details
     CAPACITY_CONFIG.BLOCKS.forEach(block => {
@@ -582,17 +478,23 @@ const renderStadiumOverview = () => {
 
     // Floodlight
     const floodlightEl = document.getElementById('floodlightStage');
-    if (floodlightEl) {
-        const stage = FLOODLIGHT_CONFIG.stages[stadiumState.features.floodlight];
-        floodlightEl.textContent = stage.name;
-    }
+    const floodlightEl2 = document.getElementById('floodlightStage2');
+    const stage = FLOODLIGHT_CONFIG.stages[stadiumState.features.floodlight];
+    
+    if (floodlightEl) floodlightEl.textContent = stage.name;
+    if (floodlightEl2) floodlightEl2.textContent = stage.name;
 
     // Pitch
     const pitchQualityEl = document.getElementById('pitchQuality');
+    const pitchQualityEl2 = document.getElementById('pitchQuality2');
     const pitchConditionEl = document.getElementById('pitchCondition');
+    const pitchConditionEl2 = document.getElementById('pitchCondition2');
 
     if (pitchQualityEl) {
         pitchQualityEl.textContent = PITCH_CONFIG.states[stadiumState.features.pitch.quality].name;
+    }
+    if (pitchQualityEl2) {
+        pitchQualityEl2.textContent = PITCH_CONFIG.states[stadiumState.features.pitch.quality].name;
     }
 
     if (pitchConditionEl) {
@@ -600,12 +502,13 @@ const renderStadiumOverview = () => {
         pitchConditionEl.textContent = `${condition}%`;
         pitchConditionEl.style.color = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
     }
+    if (pitchConditionEl2) {
+        const condition = stadiumState.features.pitch.condition;
+        pitchConditionEl2.textContent = `${condition}%`;
+    }
 
     // Stadion-Visualisierung aktualisieren
     updateStadiumVisualization();
-
-    // Sponsor-Banner rendern
-    renderSponsorBanners();
 };
 
 /**
@@ -633,13 +536,8 @@ const updateStadiumVisualization = () => {
         // Werbe-Banden-Indikator
         if (stadiumState.features.advertising[block]) {
             blockEl.classList.add('has-advertising');
-
-            // Setze Banden-Typ als CSS-Klasse
-            const bannerType = ADVERTISING_CONFIG.bannerTypes[block];
-            blockEl.classList.add(`banner-${bannerType}`);
         } else {
             blockEl.classList.remove('has-advertising');
-            blockEl.classList.remove('banner-curve', 'banner-longside');
         }
     });
 
@@ -654,26 +552,7 @@ const updateStadiumVisualization = () => {
 
         // Füge neue Textur-Klasse hinzu
         pitchEl.classList.add(`pitch-${pitchConfig.texture}`);
-
-        // Optional: Setze Hintergrundfarbe direkt
-        pitchEl.style.background = `linear-gradient(135deg, ${pitchConfig.color} 0%, ${adjustBrightness(pitchConfig.color, -20)} 100%)`;
     }
-};
-
-/**
- * Helper: Helligkeit einer Farbe anpassen
- */
-const adjustBrightness = (color, percent) => {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-        (B < 255 ? B < 1 ? 0 : B : 255))
-        .toString(16).slice(1);
 };
 
 /**
@@ -742,6 +621,7 @@ const switchFeatureTab = (tabName) => {
     const tabIdMap = {
         'blocks': 'tabBlocks',
         'infrastructure': 'tabInfrastructure',
+        'sponsors': 'tabSponsors',
         'construction': 'tabConstruction'
     };
 
@@ -762,6 +642,14 @@ const switchFeatureTab = (tabName) => {
     const targetContent = document.getElementById(tabIdMap[tabName]);
     if (targetContent) {
         targetContent.classList.add('active');
+        
+        // Wenn Sponsor-Tab, rendere Übersicht
+        if (tabName === 'sponsors') {
+            const container = document.getElementById('sponsorOverviewContainer');
+            if (container) {
+                container.innerHTML = renderSponsorOverviewTab(stadiumState, currentSeasonStats);
+            }
+        }
     }
 };
 
@@ -773,7 +661,7 @@ const switchFeatureTab = (tabName) => {
  * Event Delegation Handler
  */
 const handleDocumentClick = (e) => {
-    const target = e.target.closest('[data-action], [data-tab]');
+    const target = e.target.closest('[data-action], [data-tab], [data-filter], [data-sort]');
     if (!target) return;
 
     // Feature-Tab Wechsel
@@ -781,10 +669,37 @@ const handleDocumentClick = (e) => {
         switchFeatureTab(target.dataset.tab);
         return;
     }
+    
+    // Filter
+    if (target.dataset.filter) {
+        updateFilter(target.dataset.filter, target.value);
+        // Re-render modal content
+        const modal = document.querySelector('.sponsor-modal.active');
+        if (modal) {
+            const block = getCurrentBlock();
+            closeModal();
+            setTimeout(() => openSponsorSelectionModal(block, stadiumState), 100);
+        }
+        return;
+    }
+    
+    // Sortierung
+    if (target.dataset.sort) {
+        updateSort(target.value);
+        // Re-render modal content
+        const modal = document.querySelector('.sponsor-modal.active');
+        if (modal) {
+            const block = getCurrentBlock();
+            closeModal();
+            setTimeout(() => openSponsorSelectionModal(block, stadiumState), 100);
+        }
+        return;
+    }
 
     const action = target.dataset.action;
     const block = target.dataset.block;
     const value = target.dataset.value;
+    const sponsorId = target.dataset.sponsorId ? parseInt(target.dataset.sponsorId) : null;
 
     switch (action) {
         case 'buildRoof':
@@ -807,12 +722,69 @@ const handleDocumentClick = (e) => {
             changeBoxPlacement(block);
             break;
 
-        case 'manageSponsors':
-            openSponsorSelection(block);
+        case 'manageSponsor':
+            manageSponsor(block);
             break;
-
-        case 'removeSponsor':
-            removeSponsor(block, parseInt(value));
+            
+        case 'openSponsorSelection':
+            openSponsorSelectionModal(block, stadiumState);
+            break;
+            
+        case 'showSponsorDetails':
+            showSponsorDetailsModal(sponsorId, stadiumState);
+            break;
+            
+        case 'confirmBooking':
+            showConfirmationModal(sponsorId, stadiumState);
+            break;
+            
+        case 'finalizeBooking':
+            finalizeSponsorBooking(sponsorId);
+            break;
+            
+        case 'toggleComparisonMode':
+            toggleComparisonMode();
+            // Re-render modal content
+            const block2 = getCurrentBlock();
+            closeModal();
+            setTimeout(() => openSponsorSelectionModal(block2, stadiumState), 100);
+            break;
+            
+        case 'toggleComparison':
+            const shouldShowComparison = toggleSponsorForComparison(sponsorId);
+            if (shouldShowComparison) {
+                showComparisonModal(getSelectedForComparison(), stadiumState);
+            } else {
+                // Re-render current modal
+                const block3 = getCurrentBlock();
+                closeModal();
+                setTimeout(() => openSponsorSelectionModal(block3, stadiumState), 100);
+            }
+            break;
+            
+        case 'closeModal':
+        case 'closeModalAndRefresh':
+            closeModal();
+            if (action === 'closeModalAndRefresh') {
+                renderStadiumOverview();
+                switchFeatureTab('sponsors');
+            }
+            break;
+            
+        case 'backToSelection':
+            const block4 = getCurrentBlock();
+            closeModal();
+            setTimeout(() => openSponsorSelectionModal(block4, stadiumState), 100);
+            break;
+            
+        case 'backToDetails':
+            closeModal();
+            setTimeout(() => showSponsorDetailsModal(sponsorId, stadiumState), 100);
+            break;
+            
+        case 'goToSponsorOverview':
+            closeModal();
+            switchFeatureTab('sponsors');
             break;
 
         case 'simulateDay':
@@ -849,7 +821,7 @@ const simulateDay = () => {
  * Initialisiert das Modul
  */
 export function init() {
-    console.log('🎬 Initialisiere Stadium-Modul');
+    console.log('🎬 Initialisiere Stadium-Modul mit Sponsor-System');
 
     loadStadiumState();
     renderStadiumOverview();
@@ -857,6 +829,9 @@ export function init() {
 
     // Event Delegation
     addEventListener(document, 'click', handleDocumentClick);
+    
+    // Change Events für Select-Elemente
+    addEventListener(document, 'change', handleDocumentClick);
 
     console.log('✅ Stadium-Modul bereit');
 }
@@ -878,6 +853,9 @@ export function cleanup() {
         clearInterval(buildTimerInterval);
         buildTimerInterval = null;
     }
+    
+    // Schließe offene Modals
+    closeModal();
 
     stadiumState = null;
 }

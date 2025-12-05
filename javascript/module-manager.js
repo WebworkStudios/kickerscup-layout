@@ -1,7 +1,7 @@
 // =====================================================
 // KICKERSCUP - MODULE MANAGER (ESM) - ENHANCED
 // Zentrales System für Script-Loading & Lifecycle
-// ✅ NEU: ChampionsCup-Modul integriert
+// ✅ Stadium-Sponsor-Module integriert
 // =====================================================
 
 // Tracking für geladene Module
@@ -42,8 +42,8 @@ const moduleRegistry = {
         module: null
     },
     stadium: {
-        scripts: ['./stadium-config.js', './stadium.js'],
-        css: ['css/stadium.css'],
+        scripts: ['./stadium-config-extended.js', './stadium-sponsors.js', './stadium-sponsors-ui.js', './stadium.js'],
+        css: ['css/stadium.css', 'css/stadium-sponsors.css'],
         cssElements: [],
         module: null
     },
