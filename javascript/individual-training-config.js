@@ -18,7 +18,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Abseitsfalle',
             icon: '🎯',
             category: 'taktik',
-            effects: { kondition: -1, form: 1, frische: 1, motivation: 0 },
+            effects: {kondition: -1, form: 1, frische: 1, motivation: 0},
             description: 'Taktisches Training zur Verbesserung der Abseitsfalle'
         },
         EINZELGESPRAECH: {
@@ -26,7 +26,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Einzelgespräch',
             icon: '💬',
             category: 'mental',
-            effects: { kondition: 1, form: 0, frische: 1, motivation: 0 },
+            effects: {kondition: 1, form: 0, frische: 1, motivation: 0},
             description: 'Persönliches Gespräch zur Motivation'
         },
         TORWARTTRAINING: {
@@ -34,7 +34,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Torwarttraining',
             icon: '🧤',
             category: 'speziell',
-            effects: { kondition: 0, form: 1, frische: 0, motivation: 0 },
+            effects: {kondition: 0, form: 1, frische: 0, motivation: 0},
             description: 'Spezielles Training für Torhüter'
         },
         STRAFTRAINING: {
@@ -42,7 +42,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Straftraining',
             icon: '🔥',
             category: 'intensiv',
-            effects: { kondition: 2, form: 0, frische: -3, motivation: -1 },
+            effects: {kondition: 2, form: 0, frische: -3, motivation: -1},
             description: 'Intensives Training - hoher Frische-Verbrauch'
         },
         SPRINT: {
@@ -50,7 +50,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Sprint',
             icon: '🏃',
             category: 'athletik',
-            effects: { kondition: 1, form: 0, frische: -1, motivation: 1 },
+            effects: {kondition: 1, form: 0, frische: -1, motivation: 1},
             description: 'Schnelligkeitstraining'
         },
         SCHWALBEN: {
@@ -58,7 +58,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Schwalben',
             icon: '🦅',
             category: 'speziell',
-            effects: { kondition: -2, form: 1, frische: -1, motivation: 0 },
+            effects: {kondition: -2, form: 1, frische: -1, motivation: 0},
             description: 'Spezielles Training für theatralische Einlagen'
         },
         PAESSE: {
@@ -66,7 +66,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Pässe',
             icon: '⚽',
             category: 'technik',
-            effects: { kondition: 0, form: 2, frische: -1, motivation: 0 },
+            effects: {kondition: 0, form: 2, frische: -1, motivation: 0},
             description: 'Passtraining zur Formverbesserung'
         },
         LIEGESTUETZE: {
@@ -74,7 +74,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Liegestütze',
             icon: '💪',
             category: 'athletik',
-            effects: { kondition: 1, form: 1, frische: 0, motivation: 0 },
+            effects: {kondition: 1, form: 1, frische: 0, motivation: 0},
             description: 'Grundlegendes Krafttraining'
         },
         KOPFBALL: {
@@ -82,7 +82,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Kopfball',
             icon: '🗣️',
             category: 'technik',
-            effects: { kondition: 2, form: 0, frische: 0, motivation: 0 },
+            effects: {kondition: 2, form: 0, frische: 0, motivation: 0},
             description: 'Kopfballtraining für mehr Kondition'
         },
         GYMNASTIK: {
@@ -90,7 +90,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Gymnastik',
             icon: '🤸',
             category: 'athletik',
-            effects: { kondition: 1, form: 0, frische: 1, motivation: 0 },
+            effects: {kondition: 1, form: 0, frische: 1, motivation: 0},
             description: 'Leichtes Training zur Erholung'
         },
         FREISTOSS: {
@@ -98,7 +98,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Freistoss',
             icon: '🎯',
             category: 'speziell',
-            effects: { kondition: 0, form: 1, frische: 2, motivation: 0 },
+            effects: {kondition: 0, form: 1, frische: 2, motivation: 0},
             description: 'Freistoßtraining - erholsam'
         },
         ELFMETER: {
@@ -106,7 +106,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Elfmeter',
             icon: '⚽',
             category: 'speziell',
-            effects: { kondition: -1, form: 1, frische: 0, motivation: 1 },
+            effects: {kondition: -1, form: 1, frische: 0, motivation: 1},
             description: 'Elfmetertraining für Form und Motivation'
         },
         DOPING: {
@@ -114,7 +114,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Doping',
             icon: '💉',
             category: 'riskant',
-            effects: { kondition: 2, form: -1, frische: 2, motivation: 1 },
+            effects: {kondition: 2, form: -1, frische: 2, motivation: 1},
             description: '⚠️ Riskant! Hohe Kondition, aber Form-Verlust'
         },
         DEHNUEBUNG: {
@@ -122,7 +122,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Dehn-Übung',
             icon: '🧘',
             category: 'athletik',
-            effects: { kondition: 2, form: 0, frische: 1, motivation: 0 },
+            effects: {kondition: 2, form: 0, frische: 1, motivation: 0},
             description: 'Dehnübungen für Kondition und Erholung'
         },
         BALLFUEHRUNG: {
@@ -130,7 +130,7 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Ballführung',
             icon: '⚽',
             category: 'technik',
-            effects: { kondition: 1, form: 1, frische: 0, motivation: 0 },
+            effects: {kondition: 1, form: 1, frische: 0, motivation: 0},
             description: 'Dribblingtraining'
         },
         ALLEINGANG: {
@@ -138,26 +138,26 @@ const INDIVIDUAL_TRAINING_CONFIG = {
             name: 'Alleingang',
             icon: '🚀',
             category: 'technik',
-            effects: { kondition: 0, form: 2, frische: 0, motivation: 0 },
+            effects: {kondition: 0, form: 2, frische: 0, motivation: 0},
             description: 'Solo-Training für maximale Form'
         }
     },
 
     categories: {
-        athletik: { name: 'Athletik', color: '#48bb78' },
-        technik: { name: 'Technik', color: '#4299e1' },
-        speziell: { name: 'Speziell', color: '#9f7aea' },
-        mental: { name: 'Mental', color: '#ed8936' },
-        taktik: { name: 'Taktik', color: '#a0aec0' },
-        intensiv: { name: 'Intensiv', color: '#f56565' },
-        riskant: { name: 'Riskant', color: '#e53e3e' }
+        athletik: {name: 'Athletik', color: '#48bb78'},
+        technik: {name: 'Technik', color: '#4299e1'},
+        speziell: {name: 'Speziell', color: '#9f7aea'},
+        mental: {name: 'Mental', color: '#ed8936'},
+        taktik: {name: 'Taktik', color: '#a0aec0'},
+        intensiv: {name: 'Intensiv', color: '#f56565'},
+        riskant: {name: 'Riskant', color: '#e53e3e'}
     },
 
     effectLabels: {
-        kondition: { name: 'Kondition', short: 'K', icon: '💪' },
-        form: { name: 'Form', short: 'F', icon: '📈' },
-        frische: { name: 'Frische', short: 'Fr', icon: '⚡' },
-        motivation: { name: 'Motivation', short: 'M', icon: '🔥' }
+        kondition: {name: 'Kondition', short: 'K', icon: '💪'},
+        form: {name: 'Form', short: 'F', icon: '📈'},
+        frische: {name: 'Frische', short: 'Fr', icon: '⚡'},
+        motivation: {name: 'Motivation', short: 'M', icon: '🔥'}
     },
 
     helpers: {
@@ -206,18 +206,18 @@ const INDIVIDUAL_TRAINING_CONFIG = {
 
 // Beispiel-Spielerdaten (WICHTIG: Global verfügbar machen!)
 const SAMPLE_PLAYERS = [
-    { id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8 },
-    { id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7 },
-    { id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9 },
-    { id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6 },
-    { id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8 },
-    { id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7 },
-    { id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8 },
-    { id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6 },
-    { id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7 },
-    { id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9 },
-    { id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8 },
-    { id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7 }
+    {id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8},
+    {id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7},
+    {id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9},
+    {id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6},
+    {id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8},
+    {id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7},
+    {id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8},
+    {id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6},
+    {id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7},
+    {id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9},
+    {id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8},
+    {id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7}
 ];
 
 // Positionskategorien für Filter

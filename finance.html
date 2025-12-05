@@ -28,7 +28,7 @@
     <div class="vermoegens-chart-section">
         <h3 class="chart-title">📈 Vermögensverlauf (6 Monate)</h3>
         <div class="chart-container">
-            <canvas id="capitalChart" width="400" height="200"></canvas>
+            <canvas height="200" id="capitalChart" width="400"></canvas>
         </div>
         <div class="chart-legend" id="chartLegend">
             <!-- Wird per JS gefüllt -->
@@ -262,7 +262,7 @@
                 <h2 class="timeline-title">📋 Transaktionen</h2>
                 <p class="timeline-subtitle" id="timelineSubtitle">Dezember 2024 (Tag 1-15)</p>
             </div>
-            <button class="timeline-close" id="timelineClose" aria-label="Schließen">
+            <button aria-label="Schließen" class="timeline-close" id="timelineClose">
                 <span>✕</span>
             </button>
         </div>
@@ -325,11 +325,11 @@
                 <label class="filter-label">Suche:</label>
                 <div class="search-input-wrapper">
                     <input
-                            type="text"
+                            autocomplete="off"
                             class="search-input"
                             id="searchInput"
                             placeholder="Beschreibung suchen..."
-                            autocomplete="off"
+                            type="text"
                     >
                     <span class="search-icon">🔍</span>
                 </div>

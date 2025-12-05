@@ -48,10 +48,10 @@ const generateGroupData = (groupName) => {
 
     // Mock Teams
     const teams = [
-        { id: 1, name: isUserGroup ? 'FC Thunderbolts' : `Team ${groupName}1`, flag: '⚽', isUser: isUserGroup },
-        { id: 2, name: `Team ${groupName}2`, flag: '🏴', isUser: false },
-        { id: 3, name: `Team ${groupName}3`, flag: '🏳️', isUser: false },
-        { id: 4, name: `Team ${groupName}4`, flag: '🚩', isUser: false }
+        {id: 1, name: isUserGroup ? 'FC Thunderbolts' : `Team ${groupName}1`, flag: '⚽', isUser: isUserGroup},
+        {id: 2, name: `Team ${groupName}2`, flag: '🏴', isUser: false},
+        {id: 3, name: `Team ${groupName}3`, flag: '🏳️', isUser: false},
+        {id: 4, name: `Team ${groupName}4`, flag: '🚩', isUser: false}
     ];
 
     // Mock Tabelle
@@ -76,7 +76,7 @@ const generateGroupData = (groupName) => {
     // Mock Fixtures
     const fixtures = generateFixtures(teams, groupName);
 
-    return { table, fixtures };
+    return {table, fixtures};
 };
 
 /**
@@ -87,12 +87,12 @@ const generateFixtures = (teams, groupName) => {
 
     // Spieltag 1-6 (Jeder gegen Jeden = 6 Spiele)
     const matchdays = [
-        { day: 1, date: '10. Dez', matches: [[0, 1], [2, 3]] },
-        { day: 2, date: '11. Dez', matches: [[0, 2], [1, 3]] },
-        { day: 3, date: '12. Dez', matches: [[0, 3], [1, 2]] },
-        { day: 4, date: '13. Dez', matches: [[1, 0], [3, 2]] },
-        { day: 5, date: '14. Dez', matches: [[2, 0], [3, 1]] },
-        { day: 6, date: '15. Dez', matches: [[3, 0], [2, 1]] }
+        {day: 1, date: '10. Dez', matches: [[0, 1], [2, 3]]},
+        {day: 2, date: '11. Dez', matches: [[0, 2], [1, 3]]},
+        {day: 3, date: '12. Dez', matches: [[0, 3], [1, 2]]},
+        {day: 4, date: '13. Dez', matches: [[1, 0], [3, 2]]},
+        {day: 5, date: '14. Dez', matches: [[2, 0], [3, 1]]},
+        {day: 6, date: '15. Dez', matches: [[3, 0], [2, 1]]}
     ];
 
     matchdays.forEach(md => {
@@ -229,7 +229,7 @@ const generateKnockoutData = () => {
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 // =====================================================
@@ -340,7 +340,7 @@ const switchToGroup = (groupName) => {
 // =====================================================
 
 const renderGroup = (groupName) => {
-    const { table, fixtures } = generateGroupData(groupName);
+    const {table, fixtures} = generateGroupData(groupName);
 
     // Group Header aktualisieren
     const groupNameEl = document.getElementById('currentGroupName');
@@ -448,7 +448,7 @@ const initMatchdayNavigation = () => {
             if (currentMatchday > 1) {
                 currentMatchday--;
                 const currentGroupName = document.getElementById('groupSelect')?.value || currentGroup;
-                const { fixtures } = generateGroupData(currentGroupName);
+                const {fixtures} = generateGroupData(currentGroupName);
                 renderGroupFixtures(fixtures, currentMatchday);
             }
         });
@@ -459,7 +459,7 @@ const initMatchdayNavigation = () => {
             if (currentMatchday < 6) {
                 currentMatchday++;
                 const currentGroupName = document.getElementById('groupSelect')?.value || currentGroup;
-                const { fixtures } = generateGroupData(currentGroupName);
+                const {fixtures} = generateGroupData(currentGroupName);
                 renderGroupFixtures(fixtures, currentMatchday);
             }
         });
@@ -532,7 +532,7 @@ const initZoomControls = () => {
             // Scroll zu User-Match
             const userMatch = document.querySelector('.bracket-match.user-match');
             if (userMatch) {
-                userMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                userMatch.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
             }
         });
     }
@@ -635,7 +635,7 @@ export function cleanup() {
     console.log('ChampionsCup-Modul cleanup wird ausgeführt...');
 
     // Event Listeners entfernen
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

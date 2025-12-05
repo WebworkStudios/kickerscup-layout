@@ -16,12 +16,42 @@ const trainingCategories = {
         icon: '🏃',
         color: '#48bb78',
         options: [
-            { id: 'brutale_kondition', name: 'Brutale Kondition', effect: '+4 Kondition, -3 Frische', impacts: {kondition: 4, form: -1, frische: -3, motivation: 0} },
-            { id: 'harte_kondition', name: 'harte Kondition', effect: '+3 Kondition, -2 Frische', impacts: {kondition: 3, form: -1, frische: -2, motivation: 0} },
-            { id: 'zirkeltraining', name: 'Zirkeltraining', effect: '+3 Kondition, -2 Frische', impacts: {kondition: 3, form: 0, frische: -2, motivation: 0} },
-            { id: 'waldlauf', name: 'Waldlauf', effect: '+2 Kondition, -1 Frische, +1 Motivation', impacts: {kondition: 2, form: 0, frische: -1, motivation: 1} },
-            { id: 'zweikampf', name: 'Zweikampf', effect: '+2 Kondition, +1 Form, -2 Frische', impacts: {kondition: 2, form: 1, frische: -2, motivation: 0} },
-            { id: 'leichte_kondition', name: 'leichte Kondition', effect: '+1 Kondition', impacts: {kondition: 1, form: 0, frische: 0, motivation: 0} },
+            {
+                id: 'brutale_kondition',
+                name: 'Brutale Kondition',
+                effect: '+4 Kondition, -3 Frische',
+                impacts: {kondition: 4, form: -1, frische: -3, motivation: 0}
+            },
+            {
+                id: 'harte_kondition',
+                name: 'harte Kondition',
+                effect: '+3 Kondition, -2 Frische',
+                impacts: {kondition: 3, form: -1, frische: -2, motivation: 0}
+            },
+            {
+                id: 'zirkeltraining',
+                name: 'Zirkeltraining',
+                effect: '+3 Kondition, -2 Frische',
+                impacts: {kondition: 3, form: 0, frische: -2, motivation: 0}
+            },
+            {
+                id: 'waldlauf',
+                name: 'Waldlauf',
+                effect: '+2 Kondition, -1 Frische, +1 Motivation',
+                impacts: {kondition: 2, form: 0, frische: -1, motivation: 1}
+            },
+            {
+                id: 'zweikampf',
+                name: 'Zweikampf',
+                effect: '+2 Kondition, +1 Form, -2 Frische',
+                impacts: {kondition: 2, form: 1, frische: -2, motivation: 0}
+            },
+            {
+                id: 'leichte_kondition',
+                name: 'leichte Kondition',
+                effect: '+1 Kondition',
+                impacts: {kondition: 1, form: 0, frische: 0, motivation: 0}
+            },
         ]
     },
     technik: {
@@ -29,9 +59,24 @@ const trainingCategories = {
         icon: '⚽',
         color: '#ed8936',
         options: [
-            { id: 'balltechnik', name: 'Balltechnik', effect: '+2 Form, +3 Frische, -3 Kondition', impacts: {kondition: -3, form: 2, frische: 3, motivation: 0} },
-            { id: 'torschuss', name: 'Torschuss', effect: '+1 Frische, -1 Kondition', impacts: {kondition: -1, form: 0, frische: 1, motivation: 0} },
-            { id: 'standardsituationen', name: 'Standardsituationen', effect: '+1 Form', impacts: {kondition: 0, form: 1, frische: 0, motivation: 0} },
+            {
+                id: 'balltechnik',
+                name: 'Balltechnik',
+                effect: '+2 Form, +3 Frische, -3 Kondition',
+                impacts: {kondition: -3, form: 2, frische: 3, motivation: 0}
+            },
+            {
+                id: 'torschuss',
+                name: 'Torschuss',
+                effect: '+1 Frische, -1 Kondition',
+                impacts: {kondition: -1, form: 0, frische: 1, motivation: 0}
+            },
+            {
+                id: 'standardsituationen',
+                name: 'Standardsituationen',
+                effect: '+1 Form',
+                impacts: {kondition: 0, form: 1, frische: 0, motivation: 0}
+            },
         ]
     },
     taktik: {
@@ -39,8 +84,18 @@ const trainingCategories = {
         icon: '🧠',
         color: '#4299e1',
         options: [
-            { id: 'trainingsspiel', name: 'Trainingsspiel', effect: '+1 Kondition, +1 Form, -1 Frische', impacts: {kondition: 1, form: 1, frische: -1, motivation: 0} },
-            { id: 'viererkette', name: 'Viererkette', effect: '+1 Form, +1 Frische, -1 Kondition', impacts: {kondition: -1, form: 1, frische: 1, motivation: 0} },
+            {
+                id: 'trainingsspiel',
+                name: 'Trainingsspiel',
+                effect: '+1 Kondition, +1 Form, -1 Frische',
+                impacts: {kondition: 1, form: 1, frische: -1, motivation: 0}
+            },
+            {
+                id: 'viererkette',
+                name: 'Viererkette',
+                effect: '+1 Form, +1 Frische, -1 Kondition',
+                impacts: {kondition: -1, form: 1, frische: 1, motivation: 0}
+            },
         ]
     },
     regeneration: {
@@ -48,9 +103,24 @@ const trainingCategories = {
         icon: '😴',
         color: '#38b2ac',
         options: [
-            { id: 'regeneration', name: 'Regeneration', effect: '+4 Frische, -2 Kondition', impacts: {kondition: -2, form: 0, frische: 4, motivation: 0} },
-            { id: 'spritzigkeit', name: 'Spritzigkeit', effect: '+3 Frische, +1 Kondition', impacts: {kondition: 1, form: 0, frische: 3, motivation: 0} },
-            { id: 'freizeit', name: 'Freizeit', effect: '+1 Frische, +1 Motivation, -2 Kondition', impacts: {kondition: -2, form: 0, frische: 1, motivation: 1} },
+            {
+                id: 'regeneration',
+                name: 'Regeneration',
+                effect: '+4 Frische, -2 Kondition',
+                impacts: {kondition: -2, form: 0, frische: 4, motivation: 0}
+            },
+            {
+                id: 'spritzigkeit',
+                name: 'Spritzigkeit',
+                effect: '+3 Frische, +1 Kondition',
+                impacts: {kondition: 1, form: 0, frische: 3, motivation: 0}
+            },
+            {
+                id: 'freizeit',
+                name: 'Freizeit',
+                effect: '+1 Frische, +1 Motivation, -2 Kondition',
+                impacts: {kondition: -2, form: 0, frische: 1, motivation: 1}
+            },
         ]
     }
 };
@@ -65,7 +135,7 @@ const findTrainingById = (trainingId) => {
     for (const [catKey, category] of Object.entries(trainingCategories)) {
         const option = category.options.find(opt => opt.id === trainingId);
         if (option) {
-            return { ...option, color: category.color, icon: category.icon, categoryName: category.name };
+            return {...option, color: category.color, icon: category.icon, categoryName: category.name};
         }
     }
     return null;
@@ -81,7 +151,7 @@ const selectTrainingForDay = (trainingId, dayIndex) => {
     const training = findTrainingById(trainingId);
     if (!training) return;
 
-    selectedTrainings[dayIndex] = { id: trainingId, ...training };
+    selectedTrainings[dayIndex] = {id: trainingId, ...training};
     renderTimeline();
     renderTotalImpact();
     updateSaveButtonState();
@@ -109,7 +179,7 @@ const renderTotalImpact = () => {
         return;
     }
 
-    const total = { kondition: 0, form: 0, frische: 0, motivation: 0 };
+    const total = {kondition: 0, form: 0, frische: 0, motivation: 0};
 
     selectedTrainings.forEach(training => {
         if (training && training.impacts) {
@@ -216,8 +286,8 @@ const renderTimeline = () => {
 
 const saveTrainingPlan = async () => {
     const plan = {
-        trainings: selectedTrainings.filter(t => t !== null).map(t => ({ id: t.id, name: t.name })),
-        totalImpact: { kondition: 0, form: 0, frische: 0, motivation: 0 }
+        trainings: selectedTrainings.filter(t => t !== null).map(t => ({id: t.id, name: t.name})),
+        totalImpact: {kondition: 0, form: 0, frische: 0, motivation: 0}
     };
 
     selectedTrainings.forEach(t => {
@@ -246,18 +316,18 @@ let activeSlot = null;
 
 // FALLBACK: Spielerdaten direkt hier definieren, falls Config nicht geladen wurde
 const DEFAULT_PLAYERS = [
-    { id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8 },
-    { id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7 },
-    { id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9 },
-    { id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6 },
-    { id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8 },
-    { id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7 },
-    { id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8 },
-    { id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6 },
-    { id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7 },
-    { id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9 },
-    { id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8 },
-    { id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7 }
+    {id: 1, name: 'Max Müller', position: 'ST', strength: 85, kondition: 78, form: 7, frische: 92, motivation: 8},
+    {id: 2, name: 'Tim Schmidt', position: 'ZOM', strength: 79, kondition: 82, form: 6, frische: 88, motivation: 7},
+    {id: 3, name: 'Lukas Weber', position: 'IV', strength: 81, kondition: 75, form: 8, frische: 95, motivation: 9},
+    {id: 4, name: 'Felix Braun', position: 'TW', strength: 77, kondition: 80, form: 5, frische: 90, motivation: 6},
+    {id: 5, name: 'Jonas Fischer', position: 'LM', strength: 76, kondition: 85, form: 7, frische: 85, motivation: 8},
+    {id: 6, name: 'David Hoffmann', position: 'RM', strength: 74, kondition: 79, form: 6, frische: 91, motivation: 7},
+    {id: 7, name: 'Paul Wagner', position: 'ZDM', strength: 80, kondition: 77, form: 8, frische: 87, motivation: 8},
+    {id: 8, name: 'Leon Becker', position: 'LV', strength: 73, kondition: 83, form: 5, frische: 93, motivation: 6},
+    {id: 9, name: 'Finn Schulz', position: 'RV', strength: 72, kondition: 81, form: 6, frische: 89, motivation: 7},
+    {id: 10, name: 'Elias Koch', position: 'MS', strength: 83, kondition: 76, form: 9, frische: 82, motivation: 9},
+    {id: 11, name: 'Noah Richter', position: 'IV', strength: 78, kondition: 84, form: 7, frische: 94, motivation: 8},
+    {id: 12, name: 'Ben Klein', position: 'ZOM', strength: 75, kondition: 78, form: 6, frische: 88, motivation: 7}
 ];
 
 // Verwende SAMPLE_PLAYERS falls vorhanden, sonst Fallback
@@ -461,7 +531,7 @@ const selectPlayer = (playerId) => {
         }
     }
 
-    individualAssignments.set(activeSlot, { player, training: null });
+    individualAssignments.set(activeSlot, {player, training: null});
     closeModals();
     updateIndividualUI();
     saveIndividualToStorage();
@@ -652,7 +722,7 @@ const loadIndividualFromStorage = () => {
             const training = item.trainingId ? INDIVIDUAL_TRAINING_CONFIG.helpers.getTrainingById(item.trainingId) : null;
 
             if (player) {
-                individualAssignments.set(item.slotId, { player, training });
+                individualAssignments.set(item.slotId, {player, training});
             }
         });
 
@@ -676,7 +746,7 @@ const showToast = (message, type = 'info') => {
         document.body.appendChild(container);
     }
 
-    const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+    const icons = {success: '✓', error: '✕', warning: '⚠', info: 'ℹ'};
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;

@@ -97,7 +97,7 @@ const formatCurrency = (amount) => {
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 // =====================================================
@@ -161,7 +161,7 @@ const handleOpenChampionsCup = () => {
     // Methode 3: Custom Event dispatchen
     console.log('✓ Navigiere via Custom Event');
     window.dispatchEvent(new CustomEvent('navigate', {
-        detail: { page: 'championscup' }
+        detail: {page: 'championscup'}
     }));
 
     // Fallback: Info-Alert
@@ -180,8 +180,9 @@ const handleViewCCStats = () => {
 // =====================================================
 
 const handleViewECBracket = () => {
-    showNotification('🏆 K.o.-Baum', 'Der EuroCup K.o.-Baum wird geladen...');
-    // TODO: Modal oder neue Ansicht mit K.o.-Baum öffnen
+    if (typeof window.navigateTo === 'function') {
+        window.navigateTo('eurocup');
+    }
 };
 
 const handleViewECSchedule = () => {
@@ -276,7 +277,7 @@ export function cleanup() {
     console.log('Cup-Modul cleanup wird ausgeführt...');
 
     // Event Listeners entfernen
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

@@ -30,7 +30,7 @@ const moduleRegistry = {
         module: null
     },
     training: {
-        scripts: ['./individual-training-config.js','./training.js'],
+        scripts: ['./individual-training-config.js', './training.js'],
         css: ['css/training.css', 'css/training-individual.css'],
         cssElements: [],
         module: null
@@ -68,6 +68,12 @@ const moduleRegistry = {
     championscup: {
         scripts: ['./champions-cup.js'],
         css: ['css/champions-cup.css'],
+        cssElements: [],
+        module: null
+    },
+    eurocup: {
+        scripts: ['./euro-cup.js'],
+        css: ['css/euro-cup.css'],
         cssElements: [],
         module: null
     },

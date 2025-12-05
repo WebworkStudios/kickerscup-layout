@@ -1,0 +1,259 @@
+<!-- EURO CUP DEDICATED PAGE -->
+<div class="ec-header">
+    <div class="ec-header-content">
+        <div class="ec-logo">🥇</div>
+        <div class="ec-title-group">
+            <h1 class="ec-title">EUROCUP</h1>
+            <p class="ec-subtitle">Direkter K.o.-Wettbewerb • 64 Teams • Keine Rückspiele</p>
+        </div>
+    </div>
+
+    <div class="ec-status-bar">
+        <div class="status-item">
+            <span class="status-label">Aktuelle Runde:</span>
+            <span class="status-value" id="currentRound">Achtelfinale</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Dein Status:</span>
+            <span class="status-value qualified" id="userStatus">Qualifiziert</span>
+        </div>
+        <div class="status-item highlight">
+            <span class="status-label">Nächstes Spiel:</span>
+            <span class="status-value" id="nextMatch">Tag 18</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Overview Stats -->
+<div class="ec-overview glass">
+    <div class="overview-stats">
+        <div class="overview-stat">
+            <div class="stat-icon">⚽</div>
+            <div class="stat-content">
+                <span class="stat-label">Bisherige Siege</span>
+                <span class="stat-value">3 Spiele</span>
+            </div>
+        </div>
+        <div class="overview-stat">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <span class="stat-label">Geschossene Tore</span>
+                <span class="stat-value">8 Tore</span>
+            </div>
+        </div>
+        <div class="overview-stat">
+            <div class="stat-icon">🛡️</div>
+            <div class="stat-content">
+                <span class="stat-label">Gegentore</span>
+                <span class="stat-value">2 Tore</span>
+            </div>
+        </div>
+        <div class="overview-stat">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <span class="stat-label">Verbleibende Teams</span>
+                <span class="stat-value">16 Teams</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- K.o.-Baum Header -->
+<div class="knockout-header glass">
+    <h2 class="knockout-title">🏆 K.o.-Turnierbaum</h2>
+    <p class="knockout-subtitle">64 Teams • 6 Runden bis zum Finale</p>
+
+    <div class="knockout-controls">
+        <div class="zoom-controls">
+            <button class="zoom-btn" id="btnZoomOut" title="Verkleinern">
+                <span>−</span>
+            </button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" id="btnZoomIn" title="Vergrößern">
+                <span>+</span>
+            </button>
+        </div>
+
+        <button class="btn-reset-view" id="btnResetView">
+            <span class="btn-icon">🎯</span>
+            <span class="btn-text">Mein Team finden</span>
+        </button>
+    </div>
+</div>
+
+<!-- Stage Selector -->
+<div class="knockout-stage-selector">
+    <button class="stage-btn active" data-stage="all">Alle Runden</button>
+    <button class="stage-btn" data-stage="round64">Runde der letzten 64</button>
+    <button class="stage-btn" data-stage="round32">Runde der letzten 32</button>
+    <button class="stage-btn" data-stage="round16">Achtelfinale</button>
+    <button class="stage-btn" data-stage="quarter">Viertelfinale</button>
+    <button class="stage-btn" data-stage="semi">Halbfinale</button>
+    <button class="stage-btn" data-stage="final">Finale</button>
+</div>
+
+<!-- Bracket Container -->
+<div class="bracket-viewport" id="bracketViewport">
+    <div class="bracket-container" id="bracketContainer">
+
+        <!-- Runde der letzten 64 (32 Spiele) -->
+        <div class="bracket-round round-64">
+            <div class="round-header">
+                <h3 class="round-title">Runde der letzten 64</h3>
+                <span class="round-date">8. - 9. Dezember</span>
+            </div>
+            <div class="round-matches" id="round64Matches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Runde der letzten 32 (16 Spiele) -->
+        <div class="bracket-round round-32">
+            <div class="round-header">
+                <h3 class="round-title">Runde der letzten 32</h3>
+                <span class="round-date">11. - 12. Dezember</span>
+            </div>
+            <div class="round-matches" id="round32Matches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Achtelfinale (8 Spiele) -->
+        <div class="bracket-round round-16">
+            <div class="round-header">
+                <h3 class="round-title">Achtelfinale</h3>
+                <span class="round-date">14. - 15. Dezember</span>
+            </div>
+            <div class="round-matches" id="round16Matches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Viertelfinale (4 Spiele) -->
+        <div class="bracket-round round-quarter">
+            <div class="round-header">
+                <h3 class="round-title">Viertelfinale</h3>
+                <span class="round-date">17. Dezember</span>
+            </div>
+            <div class="round-matches" id="quarterMatches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Halbfinale (2 Spiele) -->
+        <div class="bracket-round round-semi">
+            <div class="round-header">
+                <h3 class="round-title">Halbfinale</h3>
+                <span class="round-date">19. Dezember</span>
+            </div>
+            <div class="round-matches" id="semiMatches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Finale (1 Spiel) + Spiel um Platz 3 -->
+        <div class="bracket-round round-final">
+            <div class="round-header">
+                <h3 class="round-title">Finale</h3>
+                <span class="round-date">22. Dezember</span>
+            </div>
+            <div class="round-matches" id="finalMatches">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Trophy -->
+        <div class="bracket-trophy">
+            <div class="trophy-icon">🥇</div>
+            <div class="trophy-label">EuroCup<br>Sieger</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="knockout-legend glass">
+    <h4 class="legend-title">Legende</h4>
+    <div class="legend-items">
+        <div class="legend-item">
+            <div class="legend-color user-team"></div>
+            <span class="legend-text">Dein Team</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color winner"></div>
+            <span class="legend-text">Sieger</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color upcoming"></div>
+            <span class="legend-text">Noch nicht gespielt</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Info -->
+<div class="ec-info-card glass">
+    <div class="card-header">
+        <h3 class="card-title">📖 Wettbewerbsformat</h3>
+    </div>
+
+    <div class="info-content">
+        <p class="info-text">
+            Der EuroCup ist ein reiner K.o.-Wettbewerb, der ohne Gruppenphase direkt mit spannenden
+            Duellen startet. 64 Teams treten in 6 Runden gegeneinander an, wobei jedes Spiel nur
+            einmal ausgetragen wird – es gibt keine Rückspiele!
+        </p>
+
+        <div class="info-rounds">
+            <div class="info-round-item">
+                <span class="round-icon">1️⃣</span>
+                <div class="round-info">
+                    <span class="round-name">Runde der letzten 64</span>
+                    <span class="round-detail">32 Spiele • 32 Teams qualifizieren sich</span>
+                </div>
+            </div>
+            <div class="info-round-item">
+                <span class="round-icon">2️⃣</span>
+                <div class="round-info">
+                    <span class="round-name">Runde der letzten 32</span>
+                    <span class="round-detail">16 Spiele • 16 Teams qualifizieren sich</span>
+                </div>
+            </div>
+            <div class="info-round-item">
+                <span class="round-icon">3️⃣</span>
+                <div class="round-info">
+                    <span class="round-name">Achtelfinale</span>
+                    <span class="round-detail">8 Spiele • 8 Teams qualifizieren sich</span>
+                </div>
+            </div>
+            <div class="info-round-item">
+                <span class="round-icon">4️⃣</span>
+                <div class="round-info">
+                    <span class="round-name">Viertelfinale</span>
+                    <span class="round-detail">4 Spiele • 4 Teams qualifizieren sich</span>
+                </div>
+            </div>
+            <div class="info-round-item">
+                <span class="round-icon">5️⃣</span>
+                <div class="round-info">
+                    <span class="round-name">Halbfinale</span>
+                    <span class="round-detail">2 Spiele • 2 Teams qualifizieren sich</span>
+                </div>
+            </div>
+            <div class="info-round-item">
+                <span class="round-icon">🏆</span>
+                <div class="round-info">
+                    <span class="round-name">Finale</span>
+                    <span class="round-detail">1 Spiel entscheidet über den EuroCup-Sieger</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="ec-back-action">
+    <button class="btn btn-back" id="btnBackToCup">
+        <span class="btn-icon">◀</span>
+        <span class="btn-text">Zurück zur Pokalübersicht</span>
+    </button>
+</div>

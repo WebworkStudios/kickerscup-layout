@@ -28,12 +28,12 @@ const MOCK_DATA = {
         current: 2485750,
         lastMonth: 2250000,
         history: [
-            { month: 'Aug 2024', value: 2000000 },
-            { month: 'Sep 2024', value: 2100000 },
-            { month: 'Okt 2024', value: 2300000 },
-            { month: 'Nov 2024', value: 2200000 },
-            { month: 'Dez 2024', value: 2500000 },
-            { month: 'Jan 2025', value: 2700000 }
+            {month: 'Aug 2024', value: 2000000},
+            {month: 'Sep 2024', value: 2100000},
+            {month: 'Okt 2024', value: 2300000},
+            {month: 'Nov 2024', value: 2200000},
+            {month: 'Dez 2024', value: 2500000},
+            {month: 'Jan 2025', value: 2700000}
         ]
     },
     season: {
@@ -45,28 +45,28 @@ const MOCK_DATA = {
     },
     categories: {
         income: {
-            zuschauer: { amount: 450000, count: 8, label: 'Heimspiele' },
-            praemien: { amount: 280000, count: 12, label: 'Prämien' },
-            sponsoren: { amount: 180000, count: 3, label: 'Raten' },
-            transfers_in: { amount: 50000, count: 1, label: 'Verkauf' },
-            sonstige_in: { amount: 20000, count: 4, label: 'Buchungen' }
+            zuschauer: {amount: 450000, count: 8, label: 'Heimspiele'},
+            praemien: {amount: 280000, count: 12, label: 'Prämien'},
+            sponsoren: {amount: 180000, count: 3, label: 'Raten'},
+            transfers_in: {amount: 50000, count: 1, label: 'Verkauf'},
+            sonstige_in: {amount: 20000, count: 4, label: 'Buchungen'}
         },
         expenses: {
-            gehaelter: { amount: 405000, count: 15, label: 'Tage' },
-            transfers_out: { amount: 65000, count: 1, label: 'Einkauf' },
-            stadion: { amount: 30000, count: 1, label: 'Projekt' },
-            sonstige_out: { amount: 20000, count: 3, label: 'Buchungen' }
+            gehaelter: {amount: 405000, count: 15, label: 'Tage'},
+            transfers_out: {amount: 65000, count: 1, label: 'Einkauf'},
+            stadion: {amount: 30000, count: 1, label: 'Projekt'},
+            sonstige_out: {amount: 20000, count: 3, label: 'Buchungen'}
         }
     },
     forecast: {
         income: {
-            zuschauer: { amount: 233100, count: 3, label: 'Spiele' },
-            sponsoren: { amount: 30000, count: 2, label: 'Raten' },
-            praemien: { amount: 224000, count: 0, label: 'geschätzt', estimated: true }
+            zuschauer: {amount: 233100, count: 3, label: 'Spiele'},
+            sponsoren: {amount: 30000, count: 2, label: 'Raten'},
+            praemien: {amount: 224000, count: 0, label: 'geschätzt', estimated: true}
         },
         expenses: {
-            gehaelter: { amount: 331200, count: 12, label: 'Tage' },
-            sonstige_out: { amount: 16000, count: 0, label: 'geschätzt', estimated: true }
+            gehaelter: {amount: 331200, count: 12, label: 'Tage'},
+            sonstige_out: {amount: 16000, count: 0, label: 'geschätzt', estimated: true}
         },
         result: {
             finalCapital: 2625650,
@@ -86,17 +86,17 @@ function generateMockTransactions() {
     const transactions = [];
     const categories = {
         income: {
-            zuschauer: { icon: '🏟️', label: 'Zuschauereinnahmen' },
-            praemien: { icon: '🏆', label: 'Prämieneinnahmen' },
-            sponsoren: { icon: '🤝', label: 'Sponsoreneinnahmen' },
-            transfers_in: { icon: '🔄', label: 'Transfereinnahmen' },
-            sonstige_in: { icon: '📦', label: 'Sonstige Einnahmen' }
+            zuschauer: {icon: '🏟️', label: 'Zuschauereinnahmen'},
+            praemien: {icon: '🏆', label: 'Prämieneinnahmen'},
+            sponsoren: {icon: '🤝', label: 'Sponsoreneinnahmen'},
+            transfers_in: {icon: '🔄', label: 'Transfereinnahmen'},
+            sonstige_in: {icon: '📦', label: 'Sonstige Einnahmen'}
         },
         expense: {
-            gehaelter: { icon: '💰', label: 'Spielergehälter' },
-            transfers_out: { icon: '🔄', label: 'Transferausgaben' },
-            stadion: { icon: '🏗️', label: 'Stadionausbau' },
-            sonstige_out: { icon: '📋', label: 'Sonstige Ausgaben' }
+            gehaelter: {icon: '💰', label: 'Spielergehälter'},
+            transfers_out: {icon: '🔄', label: 'Transferausgaben'},
+            stadion: {icon: '🏗️', label: 'Stadionausbau'},
+            sonstige_out: {icon: '📋', label: 'Sonstige Ausgaben'}
         }
     };
 
@@ -244,7 +244,7 @@ const calculatePercentChange = (current, previous) => {
 const addEventListener = (element, event, handler, options = false) => {
     if (!element) return;
     element.addEventListener(event, handler, options);
-    eventListeners.push({ element, event, handler, options });
+    eventListeners.push({element, event, handler, options});
 };
 
 /**
@@ -252,7 +252,7 @@ const addEventListener = (element, event, handler, options = false) => {
  */
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    const options = {day: '2-digit', month: 'short', year: 'numeric'};
     return date.toLocaleDateString('de-DE', options);
 };
 
@@ -312,7 +312,7 @@ const renderCapitalChart = (history) => {
     const minValue = Math.min(...values);
     const range = maxValue - minValue;
 
-    const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+    const padding = {top: 20, right: 20, bottom: 40, left: 60};
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -774,21 +774,21 @@ const renderTimeline = () => {
 const getCategoryData = (category, type) => {
     const categories = {
         income: {
-            zuschauer: { icon: '🏟️', label: 'Zuschauereinnahmen' },
-            praemien: { icon: '🏆', label: 'Prämieneinnahmen' },
-            sponsoren: { icon: '🤝', label: 'Sponsoreneinnahmen' },
-            transfers_in: { icon: '🔄', label: 'Transfereinnahmen' },
-            sonstige_in: { icon: '📦', label: 'Sonstige Einnahmen' }
+            zuschauer: {icon: '🏟️', label: 'Zuschauereinnahmen'},
+            praemien: {icon: '🏆', label: 'Prämieneinnahmen'},
+            sponsoren: {icon: '🤝', label: 'Sponsoreneinnahmen'},
+            transfers_in: {icon: '🔄', label: 'Transfereinnahmen'},
+            sonstige_in: {icon: '📦', label: 'Sonstige Einnahmen'}
         },
         expense: {
-            gehaelter: { icon: '💰', label: 'Spielergehälter' },
-            transfers_out: { icon: '🔄', label: 'Transferausgaben' },
-            stadion: { icon: '🏗️', label: 'Stadionausbau' },
-            sonstige_out: { icon: '📋', label: 'Sonstige Ausgaben' }
+            gehaelter: {icon: '💰', label: 'Spielergehälter'},
+            transfers_out: {icon: '🔄', label: 'Transferausgaben'},
+            stadion: {icon: '🏗️', label: 'Stadionausbau'},
+            sonstige_out: {icon: '📋', label: 'Sonstige Ausgaben'}
         }
     };
 
-    return categories[type]?.[category] || { icon: '📋', label: 'Unbekannt' };
+    return categories[type]?.[category] || {icon: '📋', label: 'Unbekannt'};
 };
 
 /**
@@ -935,7 +935,7 @@ export function cleanup() {
     }
 
     // Event Listeners entfernen
-    eventListeners.forEach(({ element, event, handler, options }) => {
+    eventListeners.forEach(({element, event, handler, options}) => {
         if (element) {
             element.removeEventListener(event, handler, options);
         }

@@ -73,6 +73,10 @@ const pages = {
         html: 'champions-cup.html',
         module: 'championscup'
     },
+    eurocup: {
+        html: 'euro-cup.html',
+        module: 'eurocup'
+    },
     settings: {
         html: 'pages/settings.html',
         module: 'settings'
