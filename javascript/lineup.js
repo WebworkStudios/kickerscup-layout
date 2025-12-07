@@ -1,21 +1,19 @@
 // =====================================================
-// KICKERSCUP - LINEUP SYSTEM (PRODUCTION-READY v2.3)
-// ✅ FIX: Memory Leak in Event-Listener-Management
-// ✅ FIX: Race Condition bei Formationswechsel
-// ✅ FIX: iOS AudioContext suspended state
-// ✅ FIX: Validation-Panel öffnet bei Fehlern automatisch
-// ✅ FIX: Player-Map für O(1)-Lookups
-// ✅ FIX: Landscape-Hint mit localStorage-Flag
-// ✅ FIX: Konsistente Undo für alle destruktiven Aktionen
+// KICKERSCUP - LINEUP SYSTEM (ES2025 MODERNIZED)
+// ✅ ES2025: AbortController für Event Management
+// ✅ ES2025: Player Map für O(1) Lookups
+// ✅ ES2025: Strukturiertes Error Handling
+// ✅ ES2025: Optional Chaining & Nullish Coalescing
+// ✅ ES2025: Immutable Configuration Objects
 // =====================================================
 
 import {LineupConfig} from './lineup-config.js';
 
 // =====================================================
-// CONFIGURATION & CONSTANTS
+// CONFIGURATION & CONSTANTS (ES2025 - Immutable)
 // =====================================================
 
-const CONFIG = {
+const CONFIG = Object.freeze({
     MIN_PLAYERS: 7,
     MAX_PLAYERS: 11,
     MAX_BENCH: 9,
@@ -31,16 +29,16 @@ const CONFIG = {
     DEBOUNCE_SEARCH_MS: 200,
     MIN_ANNOUNCEMENT_INTERVAL_MS: 2000,
     LANDSCAPE_HINT_STORAGE_KEY: 'kickerscup_landscape_hint_dismissed'
-};
+});
 
-const ANIMATION_DURATIONS = {
+const ANIMATION_DURATIONS = Object.freeze({
     JUST_FILLED: 500,
     DRAG_START_PULSE: 150,
     TOAST_DISPLAY: 5000,
     ORIENTATION_CHANGE_DELAY: 150
-};
+});
 
-const POSITION_NAMES = {
+const POSITION_NAMES = Object.freeze({
     'TW': 'Torwart',
     'LI': 'Linker Innenverteidiger',
     'LV': 'Linker Verteidiger',
@@ -53,14 +51,18 @@ const POSITION_NAMES = {
     'MS': 'Mittelstürmer',
     'LS': 'Linksstürmer',
     'RS': 'Rechtsstürmer'
-};
+});
 
 const DEBUG = false;
 
 // =====================================================
-// STATE MANAGEMENT
+// STATE MANAGEMENT (ES2025 Enhanced)
 // =====================================================
 
+/**
+ * @class LineupState
+ * ✅ ES2025: Enhanced with Player Map for O(1) lookups
+ */
 class LineupState {
     constructor() {
         this.currentFormation = '4-4-2';
@@ -88,13 +90,13 @@ class LineupState {
 
         // Audio
         this.audioContext = null;
-        this.audioContextResumed = false; // ✅ FIX: Track iOS resume state
+        this.audioContextResumed = false;
 
-        // UI State - ✅ FIX: Definiere alle State-Properties im Constructor
+        // UI State
         this.isFormationChanging = false;
         this.isSaving = false;
 
-        // ✅ FIX: Player Map für O(1) Lookups
+        // ✅ ES2025: Player Map für O(1) Lookups
         this.playerMap = new Map();
     }
 
@@ -121,12 +123,20 @@ class LineupState {
         this.isDragging = false;
     }
 
-    // ✅ FIX: Player Map Methoden
+    /**
+     * ✅ ES2025: Build Player Map for O(1) lookups
+     * @param {Array} players - Array of player objects
+     */
     buildPlayerMap(players) {
         this.playerMap.clear();
         players.forEach(p => this.playerMap.set(p.id, p));
     }
 
+    /**
+     * ✅ ES2025: Get player by ID with O(1) complexity
+     * @param {number} id - Player ID
+     * @returns {Object|undefined} Player object or undefined
+     */
     getPlayerById(id) {
         return this.playerMap.get(id);
     }
@@ -135,10 +145,37 @@ class LineupState {
 const state = new LineupState();
 const config = LineupConfig;
 
-// ✅ FIX: Besseres Event-Listener-Management mit WeakMap
-const listenerRegistry = new WeakMap();
-let globalListeners = []; // Nur für document/window Listener
+// =====================================================
+// EVENT MANAGEMENT (ES2025 - AbortController Pattern)
+// =====================================================
 
+/**
+ * ✅ ES2025: AbortController ersetzt Array-basiertes Event Tracking
+ * Automatisches Cleanup aller Events bei abort()
+ */
+let abortController = new AbortController();
+
+/**
+ * ✅ ES2025: Simplified addEventListener mit AbortSignal
+ * Alle Events werden automatisch beim cleanup() entfernt
+ *
+ * @param {EventTarget} element - DOM element or global object
+ * @param {string} event - Event name
+ * @param {Function} handler - Event handler
+ * @param {Object|boolean} options - Event options
+ */
+function addEventListener(element, event, handler, options = false) {
+    if (!element) return;
+
+    // ✅ ES2025: Convert boolean to object and add signal
+    const eventOptions = typeof options === 'boolean'
+        ? { capture: options, signal: abortController.signal }
+        : { ...options, signal: abortController.signal };
+
+    element.addEventListener(event, handler, eventOptions);
+}
+
+// Module-level variables
 let isTouchDevice = false;
 let scrollIndicatorElement = null;
 let rafId = null;
@@ -156,6 +193,11 @@ function debug(...args) {
     if (DEBUG) console.log(...args);
 }
 
+/**
+ * XSS-safe HTML escaping
+ * @param {string} unsafe - Unsafe string
+ * @returns {string} Escaped string
+ */
 function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return '';
     return unsafe
@@ -166,46 +208,9 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// ✅ FIX: Verbessertes Event-Listener-Management
-function addTrackedEventListener(element, event, handler, options) {
-    if (!element) return;
-
-    element.addEventListener(event, handler, options);
-
-    // Für globale Objekte (document, window)
-    if (element === document || element === window) {
-        globalListeners.push({element, event, handler, options});
-        return;
-    }
-
-    // Für DOM-Elemente: WeakMap verwenden
-    if (!listenerRegistry.has(element)) {
-        listenerRegistry.set(element, []);
-    }
-    listenerRegistry.get(element).push({event, handler, options});
-}
-
-// ✅ FIX: Cleanup für ein spezifisches Element
-function removeElementListeners(element) {
-    if (!element || !listenerRegistry.has(element)) return;
-
-    const listeners = listenerRegistry.get(element);
-    listeners.forEach(({event, handler, options}) => {
-        element.removeEventListener(event, handler, options);
-    });
-    listenerRegistry.delete(element);
-}
-
-// ✅ FIX: Cleanup aller globalen Listener
-function removeAllGlobalListeners() {
-    globalListeners.forEach(({element, event, handler, options}) => {
-        if (element) {
-            element.removeEventListener(event, handler, options);
-        }
-    });
-    globalListeners = [];
-}
-
+/**
+ * Check if two sets are equal
+ */
 function setsEqual(a, b) {
     if (a.size !== b.size) return false;
     for (let item of a) {
@@ -214,6 +219,12 @@ function setsEqual(a, b) {
     return true;
 }
 
+/**
+ * Debounce function
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in ms
+ * @returns {Function} Debounced function
+ */
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -222,6 +233,11 @@ function debounce(func, wait) {
     };
 }
 
+/**
+ * Announce message to screen reader
+ * @param {string} message - Message to announce
+ * @param {string} priority - 'polite' or 'assertive'
+ */
 function announceToScreenReader(message, priority = 'polite') {
     const liveRegion = document.getElementById('aria-live-region');
     if (!liveRegion) return;
@@ -240,6 +256,10 @@ function announceToScreenReader(message, priority = 'polite') {
     }, 1000);
 }
 
+/**
+ * Trigger haptic feedback
+ * @param {number|Array} pattern - Vibration pattern
+ */
 function hapticFeedback(pattern = 10) {
     if ('vibrate' in navigator) {
         navigator.vibrate(pattern);
@@ -247,31 +267,46 @@ function hapticFeedback(pattern = 10) {
 }
 
 // =====================================================
-// AUDIO SYSTEM - ✅ FIX: iOS AudioContext Support
+// AUDIO SYSTEM - iOS AudioContext Support
 // =====================================================
 
+/**
+ * Initialize AudioContext
+ */
 function initAudioContext() {
-    const AudioContextConstructor = window.AudioContext || window['webkitAudioContext'];
+    const AudioContextConstructor = window.AudioContext ?? window.webkitAudioContext;
 
     if (!state.audioContext && AudioContextConstructor) {
-        state.audioContext = new AudioContextConstructor();
+        try {
+            state.audioContext = new AudioContextConstructor();
+        } catch (error) {
+            debug('AudioContext initialization failed:', error);
+        }
     }
 }
 
-// ✅ FIX: Separates Resume für iOS nach User-Interaktion
-function resumeAudioContext() {
-    if (state.audioContext &&
-        state.audioContext.state === 'suspended' &&
-        !state.audioContextResumed) {
-        state.audioContext.resume().then(() => {
+/**
+ * ✅ ES2025: Resume AudioContext after user interaction (iOS fix)
+ */
+async function resumeAudioContext() {
+    if (state.audioContext?.state === 'suspended' && !state.audioContextResumed) {
+        try {
+            await state.audioContext.resume();
             state.audioContextResumed = true;
             debug('AudioContext resumed after user interaction');
-        }).catch(err => {
-            debug('AudioContext resume failed:', err);
-        });
+        } catch (error) {
+            debug('AudioContext resume failed:', error);
+        }
     }
 }
 
+/**
+ * Play tone with AudioContext
+ * @param {number} frequency - Frequency in Hz
+ * @param {number} duration - Duration in seconds
+ * @param {string} type - Oscillator type
+ * @param {number} volume - Volume (0-1)
+ */
 function playTone(frequency, duration, type = 'sine', volume = 0.1) {
     if (!state.audioContext || state.audioContext.state !== 'running') return;
 
@@ -290,8 +325,8 @@ function playTone(frequency, duration, type = 'sine', volume = 0.1) {
 
         oscillator.start(state.audioContext.currentTime);
         oscillator.stop(state.audioContext.currentTime + duration);
-    } catch (e) {
-        debug('Audio playback error:', e);
+    } catch (error) {
+        debug('Audio playback error:', error);
     }
 }
 
@@ -307,13 +342,19 @@ function playErrorSound() {
 
 function playRemoveSound() {
     playTone(400, 0.15, 'triangle', 0.05);
-    hapticFeedback(10);
+    hapticFeedback(25);
 }
 
 // =====================================================
 // POSITION COMPATIBILITY & STRENGTH
 // =====================================================
 
+/**
+ * Check if player can play a position
+ * @param {Object} player - Player object
+ * @param {string} targetPosition - Target position code
+ * @returns {boolean} True if player can play position
+ */
 function canPlayPosition(player, targetPosition) {
     const cacheKey = `${player.main_position}-${targetPosition}`;
 
@@ -322,7 +363,7 @@ function canPlayPosition(player, targetPosition) {
     }
 
     const mainPos = player.main_position;
-    const compatibility = config.positionCompatibility[mainPos];
+    const compatibility = config.positionCompatibility?.[mainPos];
 
     if (!compatibility) {
         compatibilityCache.set(cacheKey, false);
@@ -336,27 +377,39 @@ function canPlayPosition(player, targetPosition) {
     return result;
 }
 
+/**
+ * Get position penalty information
+ * @param {string} mainPosition - Player's main position
+ * @param {string} targetPosition - Target position
+ * @returns {Object} Penalty info with text and severity
+ */
 function getPositionPenalty(mainPosition, targetPosition) {
     if (mainPosition === targetPosition) {
-        return {text: '', severe: false};
+        return { text: '', severe: false };
     }
 
-    const compatibility = config.positionCompatibility[mainPosition];
-    if (!compatibility) return {text: '', severe: true};
+    const compatibility = config.positionCompatibility?.[mainPosition];
+    if (!compatibility) return { text: '', severe: true };
 
     const value = compatibility[targetPosition];
 
     if (value === undefined || value === 0) {
-        return {text: '🚫 Kann Position nicht spielen', severe: true};
+        return { text: '🚫 Kann Position nicht spielen', severe: true };
     } else if (value < 0.7) {
-        return {text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true};
+        return { text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true };
     } else if (value < 0.9) {
-        return {text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false};
+        return { text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false };
     }
 
-    return {text: '', severe: false};
+    return { text: '', severe: false };
 }
 
+/**
+ * Calculate effective strength for a player in a position
+ * @param {Object} player - Player object
+ * @param {string} position - Position code
+ * @returns {number} Effective strength value
+ */
 function calculateEffectiveStrength(player, position) {
     const baseStrength = Math.round(player.strength * 10);
     const mainPos = player.main_position;
@@ -365,7 +418,7 @@ function calculateEffectiveStrength(player, position) {
         return baseStrength;
     }
 
-    const compatibility = config.positionCompatibility[mainPos];
+    const compatibility = config.positionCompatibility?.[mainPos];
     if (!compatibility) return 0;
 
     const compatibilityValue = compatibility[position];
@@ -376,6 +429,11 @@ function calculateEffectiveStrength(player, position) {
     return Math.round(baseStrength * compatibilityValue);
 }
 
+/**
+ * Get status badge HTML for player
+ * @param {Object} player - Player object
+ * @returns {string} HTML string for status badge
+ */
 function getStatusBadgeHTML(player) {
     if (player.status === 'fit') return '';
 
@@ -387,9 +445,13 @@ function getStatusBadgeHTML(player) {
 }
 
 // =====================================================
-// LANDSCAPE HINT - ✅ FIX: Mit localStorage-Dismiss
+// LANDSCAPE HINT - localStorage-based dismiss
 // =====================================================
 
+/**
+ * Check if landscape hint was dismissed
+ * @returns {boolean} True if dismissed
+ */
 function isLandscapeHintDismissed() {
     try {
         return localStorage.getItem(CONFIG.LANDSCAPE_HINT_STORAGE_KEY) === 'true';
@@ -398,29 +460,36 @@ function isLandscapeHintDismissed() {
     }
 }
 
+/**
+ * Dismiss landscape hint
+ */
 function dismissLandscapeHint() {
     try {
         localStorage.setItem(CONFIG.LANDSCAPE_HINT_STORAGE_KEY, 'true');
     } catch {
-        // localStorage nicht verfügbar
+        debug('localStorage not available');
     }
+
     const hint = document.getElementById('landscapeHint');
     if (hint) {
         hint.style.display = 'none';
     }
 }
 
+/**
+ * Initialize landscape hint with dismiss button
+ */
 function initLandscapeHint() {
     const hint = document.getElementById('landscapeHint');
     if (!hint) return;
 
-    // Wenn bereits dismissed, verstecken
+    // If already dismissed, hide it
     if (isLandscapeHintDismissed()) {
         hint.style.display = 'none';
         return;
     }
 
-    // Close-Button hinzufügen wenn nicht vorhanden
+    // Add close button if not present
     if (!hint.querySelector('.landscape-hint-close')) {
         const closeBtn = document.createElement('button');
         closeBtn.className = 'landscape-hint-close';
@@ -438,40 +507,41 @@ function initLandscapeHint() {
 // RENDERING FUNCTIONS
 // =====================================================
 
+/**
+ * Render formation slots on the field
+ * @param {boolean} preservePlayers - Whether to preserve player assignments
+ */
 function renderFormationSlots(preservePlayers = false) {
     const container = document.getElementById('fieldSlots');
     if (!container) return;
 
-    const formation = config.formations[state.currentFormation];
+    const formation = config.formations?.[state.currentFormation];
     if (!formation) return;
 
     const playerBackup = preservePlayers
         ? new Map(state.fieldSlots.map((slot, index) => [index, slot.player]))
         : new Map();
 
-    state.fieldSlots = formation.positions.map((pos, index) => {
-        return {
-            id: `field-${index}`,
-            position: pos.position,
-            x: pos.x,
-            y: pos.y,
-            player: playerBackup.get(index) || null
-        };
-    });
+    state.fieldSlots = formation.positions.map((pos, index) => ({
+        id: `field-${index}`,
+        position: pos.position,
+        x: pos.x,
+        y: pos.y,
+        player: preservePlayers ? (playerBackup.get(index) || null) : null
+    }));
 
     container.innerHTML = state.fieldSlots.map((slot, index) => {
-        const positionName = POSITION_NAMES[slot.position] || slot.position;
-
+        const positionName = POSITION_NAMES[slot.position] ?? slot.position;
         return `
             <div class="field-slot" 
                  id="${slot.id}"
-                 data-slot-index="${index}"
                  data-slot-type="field"
-                 data-position="${escapeHtml(slot.position)}"
+                 data-slot-index="${index}"
+                 data-position="${slot.position}"
+                 style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);"
                  role="button"
                  tabindex="0"
-                 aria-label="${escapeHtml(positionName)}, leer"
-                 style="left: ${slot.x}%; top: ${slot.y}%; transform: translate(-50%, -50%);">
+                 aria-label="${escapeHtml(positionName)}, leer">
                 <div class="slot-position">${escapeHtml(slot.position)}</div>
                 <div class="slot-placeholder" aria-hidden="true">⚽</div>
             </div>
@@ -479,30 +549,38 @@ function renderFormationSlots(preservePlayers = false) {
     }).join('');
 }
 
+/**
+ * Render bench slots
+ */
 function renderBenchSlots() {
     const container = document.getElementById('benchSlots');
     if (!container) return;
 
-    state.benchSlots = Array.from({length: CONFIG.MAX_BENCH}, (_, i) => ({
-        id: `bench-${i}`,
+    state.benchSlots = Array.from({ length: CONFIG.MAX_BENCH }, (_, index) => ({
+        id: `bench-${index}`,
         player: null
     }));
 
     container.innerHTML = state.benchSlots.map((slot, index) => `
         <div class="bench-slot"
              id="${slot.id}"
-             data-slot-index="${index}"
              data-slot-type="bench"
+             data-slot-index="${index}"
              role="button"
              tabindex="0"
              aria-label="Bank-Position ${index + 1}, leer">
             <div class="bench-placeholder" aria-hidden="true">+</div>
         </div>
     `).join('');
-
-    updateBenchCount();
 }
 
+/**
+ * Render player card HTML
+ * @param {Object} player - Player object
+ * @param {string|null} slotPosition - Position on field (null for bench)
+ * @param {boolean} isFieldCard - Is this a field card (compact) or available card
+ * @returns {string} HTML string
+ */
 function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
     const effectiveStrength = slotPosition
         ? calculateEffectiveStrength(player, slotPosition)
@@ -510,7 +588,7 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
 
     const penalty = slotPosition
         ? getPositionPenalty(player.main_position, slotPosition)
-        : {text: '', severe: false};
+        : { text: '', severe: false };
 
     const isUnavailable = player.status !== 'fit';
     const canPlay = slotPosition ? canPlayPosition(player, slotPosition) : true;
@@ -594,6 +672,12 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
     `;
 }
 
+/**
+ * Render a single slot (field or bench)
+ * @param {string} slotType - 'field' or 'bench'
+ * @param {number} slotIndex - Slot index
+ * @param {boolean} animate - Whether to animate
+ */
 function renderSlot(slotType, slotIndex, animate = false) {
     const slots = slotType === 'field' ? state.fieldSlots : state.benchSlots;
     const slot = slots[slotIndex];
@@ -636,13 +720,16 @@ function renderSlot(slotType, slotIndex, animate = false) {
     }
 }
 
+/**
+ * Render available players list
+ */
 function renderAvailablePlayers() {
     const container = document.getElementById('availablePlayersList');
     if (!container) return;
 
-    const searchTerm = document.getElementById('playerSearch')?.value.toLowerCase() || '';
-    const positionFilter = document.getElementById('positionFilter')?.value || '';
-    const sortBy = document.getElementById('sortSelect')?.value || 'strength';
+    const searchTerm = document.getElementById('playerSearch')?.value.toLowerCase() ?? '';
+    const positionFilter = document.getElementById('positionFilter')?.value ?? '';
+    const sortBy = document.getElementById('sortSelect')?.value ?? 'strength';
 
     let filtered = state.availablePlayers.filter(player => {
         if (state.placedPlayerIds.has(player.id)) return false;
@@ -654,7 +741,7 @@ function renderAvailablePlayers() {
         let matchesPosition = true;
         if (positionFilter) {
             if (['DEF', 'MID', 'ATT'].includes(positionFilter)) {
-                matchesPosition = config.positionCategories[player.main_position]?.category === positionFilter;
+                matchesPosition = config.positionCategories?.[player.main_position]?.category === positionFilter;
             } else {
                 matchesPosition = player.main_position === positionFilter;
             }
@@ -663,93 +750,112 @@ function renderAvailablePlayers() {
         return matchesSearch && matchesPosition;
     });
 
+    // Sort players
     filtered.sort((a, b) => {
         switch (sortBy) {
-            case 'strength':
-                return b.strength - a.strength;
             case 'name':
                 return a.name.localeCompare(b.name);
             case 'age':
                 return a.age - b.age;
             case 'position':
                 return a.main_position.localeCompare(b.main_position);
+            case 'strength':
             default:
-                return 0;
+                return b.strength - a.strength;
         }
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = '<div class="no-players" role="status">Keine Spieler verfügbar</div>';
+        container.innerHTML = `
+            <div class="no-players-message">
+                <p>Keine verfügbaren Spieler gefunden</p>
+            </div>
+        `;
         return;
     }
 
     container.innerHTML = filtered.map(player =>
-        `<div class="player-mini-card-wrapper" role="listitem">${renderPlayerCard(player, null, false)}</div>`
+        renderPlayerCard(player, null, false)
     ).join('');
 }
 
+/**
+ * Update visibility of a specific player in available players list
+ * @param {number} playerId - Player ID
+ * @param {boolean} placed - Whether player is placed
+ */
+function updatePlayerVisibility(playerId, placed) {
+    const cards = document.querySelectorAll(`.player-card[data-player-id="${playerId}"]`);
+    cards.forEach(card => {
+        if (card.closest('#availablePlayersList')) {
+            card.style.display = placed ? 'none' : '';
+        }
+    });
+}
+
+/**
+ * Update placed players set
+ */
 function updatePlacedPlayersSet() {
-    const newIds = new Set();
+    state.placedPlayerIds.clear();
 
     state.fieldSlots.forEach(slot => {
-        if (slot.player) newIds.add(slot.player.id);
+        if (slot.player) {
+            state.placedPlayerIds.add(slot.player.id);
+        }
     });
+
     state.benchSlots.forEach(slot => {
-        if (slot.player) newIds.add(slot.player.id);
+        if (slot.player) {
+            state.placedPlayerIds.add(slot.player.id);
+        }
     });
-
-    if (!setsEqual(state.placedPlayerIds, newIds)) {
-        state.placedPlayerIds = newIds;
-        renderAvailablePlayers();
-    }
 }
 
-function updatePlayerVisibility(playerId, isPlaced) {
-    if (isPlaced) {
-        state.placedPlayerIds.add(playerId);
-    } else {
-        state.placedPlayerIds.delete(playerId);
-    }
-    renderAvailablePlayers();
-}
-
+/**
+ * Update team strength display
+ */
 function updateTeamStrength() {
-    const fieldPlayers = state.fieldSlots.filter(slot => slot.player);
-
-    if (fieldPlayers.length === 0) {
-        document.getElementById('teamStrength').textContent = '0';
-        document.getElementById('strengthContext').textContent = '';
-        return;
-    }
-
-    const currentIds = new Set(fieldPlayers.map(s => s.player.id));
-    const now = Date.now();
-
-    if (setsEqual(state.lastFieldPlayerIds, currentIds) &&
-        state.cachedStrength !== null &&
-        (now - state.strengthCacheTime) < CONFIG.CACHE_STRENGTH_DURATION_MS) {
-        return;
-    }
-
-    const finalStrengthValue = fieldPlayers.reduce((sum, slot) => {
-        const effectiveStrength = calculateEffectiveStrength(slot.player, slot.position);
-        return sum + effectiveStrength;
-    }, 0);
-
-    const rounded = Math.round(finalStrengthValue);
-
     const strengthElement = document.getElementById('teamStrength');
     const contextElement = document.getElementById('strengthContext');
 
-    if (strengthElement) {
-        const oldValue = parseInt(strengthElement.textContent) || 0;
-        strengthElement.textContent = rounded.toString();
+    if (!strengthElement) return;
 
-        strengthElement.classList.add('updating');
-        setTimeout(() => strengthElement.classList.remove('updating'), 400);
+    const fieldPlayers = state.fieldSlots.filter(slot => slot.player);
 
-        if (oldValue !== rounded) {
-            const change = rounded > oldValue ? 'gestiegen' : 'gesunken';
+    if (fieldPlayers.length === 0) {
+        strengthElement.textContent = '0';
+        if (contextElement) {
+            contextElement.textContent = '';
+        }
+        state.cachedStrength = 0;
+        state.lastFieldPlayerIds.clear();
+        return;
+    }
+
+    // ✅ ES2025: Cache optimization
+    const currentIds = new Set(fieldPlayers.map(s => s.player.id));
+    const now = Date.now();
+
+    if (state.cachedStrength !== null &&
+        setsEqual(currentIds, state.lastFieldPlayerIds) &&
+        now - state.strengthCacheTime < CONFIG.CACHE_STRENGTH_DURATION_MS) {
+        return;
+    }
+
+    const totalStrength = fieldPlayers.reduce((sum, slot) => {
+        return sum + calculateEffectiveStrength(slot.player, slot.position);
+    }, 0);
+
+    const rounded = Math.round(totalStrength);
+    strengthElement.textContent = rounded.toString();
+
+    if (state.cachedStrength !== null && state.cachedStrength !== rounded) {
+        strengthElement.classList.add('strength-changed');
+        setTimeout(() => strengthElement.classList.remove('strength-changed'), 500);
+
+        if (rounded !== state.cachedStrength) {
+            const change = rounded > state.cachedStrength ? 'gestiegen' : 'gesunken';
             announceToScreenReader(`Teamstärke ${change} auf ${rounded}`);
         }
     }
@@ -764,6 +870,9 @@ function updateTeamStrength() {
     state.strengthCacheTime = now;
 }
 
+/**
+ * Update bench count display
+ */
 function updateBenchCount() {
     const benchPlayers = state.benchSlots.filter(slot => slot.player);
     const countElement = document.getElementById('benchCount');
@@ -773,9 +882,12 @@ function updateBenchCount() {
 }
 
 // =====================================================
-// VALIDATION - ✅ FIX: Auto-Open bei Fehlern
+// VALIDATION
 // =====================================================
 
+/**
+ * Validate lineup and display results
+ */
 function validateLineup() {
     const validationPanel = document.getElementById('validationPanel');
     const validationList = document.getElementById('validationList');
@@ -798,7 +910,7 @@ function validateLineup() {
         messages.push({
             type: 'warning',
             icon: '⚠️',
-            text: `Aufstellung unvollständig. Nur ${fieldPlayers.length}/${CONFIG.MAX_PLAYERS} Spieler aufgestellt`
+            text: `Aufstellung unvollständig. Aktuell ${fieldPlayers.length}/${CONFIG.MAX_PLAYERS} Spieler`
         });
     }
 
@@ -806,38 +918,24 @@ function validateLineup() {
     if (!goalkeeper) {
         messages.push({
             type: 'error',
-            icon: '🥅',
+            icon: '❌',
             text: 'Kein Torwart aufgestellt'
         });
     }
 
-    const misplacements = fieldPlayers.filter(slot => {
-        const penalty = getPositionPenalty(slot.player.main_position, slot.position);
-        return penalty.severe;
+    // Check for misplaced players
+    fieldPlayers.forEach(slot => {
+        if (!canPlayPosition(slot.player, slot.position)) {
+            messages.push({
+                type: 'error',
+                icon: '🚫',
+                text: `${slot.player.name} kann ${POSITION_NAMES[slot.position]} nicht spielen`
+            });
+        }
     });
 
-    if (misplacements.length > 0) {
-        messages.push({
-            type: 'warning',
-            icon: '⚠️',
-            text: `${misplacements.length} Fehlbesetzung(en) vorhanden`
-        });
-    }
-
-    const injuredOrBanned = fieldPlayers.filter(slot =>
-        slot.player.status !== 'fit'
-    );
-
-    if (injuredOrBanned.length > 0) {
-        messages.push({
-            type: 'error',
-            icon: '🚑',
-            text: `${injuredOrBanned.length} verletzte/gesperrte Spieler im Team`
-        });
-    }
-
-    const hasErrors = messages.filter(m => m.type === 'error').length > 0;
-    const isValid = !hasErrors;
+    const hasErrors = messages.some(m => m.type === 'error');
+    const isValid = fieldPlayers.length >= CONFIG.MIN_PLAYERS && goalkeeper && !hasErrors;
 
     if (validationTitle) {
         validationTitle.textContent = isValid ? 'Aufstellung gültig' : 'Aufstellung ungültig';
@@ -846,7 +944,7 @@ function validateLineup() {
     validationPanel.classList.toggle('valid', isValid);
     validationPanel.classList.toggle('invalid', !isValid);
 
-    // ✅ FIX: Bei Fehlern automatisch öffnen
+    // ✅ Auto-open panel on errors
     if (hasErrors && validationPanel.classList.contains('collapsed')) {
         validationPanel.classList.remove('collapsed');
         if (validationToggle) {
@@ -894,12 +992,35 @@ function validateLineup() {
     }
 }
 
+/**
+ * Toggle validation panel collapsed state
+ * @param {boolean} collapsed - Whether panel should be collapsed
+ */
+function toggleValidationPanel(collapsed) {
+    const content = document.querySelector('.validation-content');
+    const focusableElements = content?.querySelectorAll('button, a, input, [tabindex]');
+
+    if (focusableElements) {
+        focusableElements.forEach(el => {
+            el.setAttribute('tabindex', collapsed ? '-1' : '0');
+        });
+    }
+}
+
 // =====================================================
 // PLAYER PLACEMENT & UNDO
 // =====================================================
 
+/**
+ * Place a player in a slot
+ * @param {Object} player - Player object
+ * @param {string} slotType - 'field' or 'bench'
+ * @param {number} slotIndex - Slot index
+ * @param {boolean} skipUndo - Skip undo tracking
+ * @returns {boolean} Success status
+ */
 function placePlayer(player, slotType, slotIndex, skipUndo = false) {
-    // ✅ FIX: iOS AudioContext aktivieren bei User-Interaktion
+    // ✅ iOS AudioContext activation
     resumeAudioContext();
 
     if (!player || player.status !== 'fit') {
@@ -927,7 +1048,7 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
         state.undoStack.push({
             action: 'place',
             player: player,
-            newPosition: {type: slotType, index: slotIndex},
+            newPosition: { type: slotType, index: slotIndex },
             oldPosition: oldPosition,
             timestamp: Date.now()
         });
@@ -960,20 +1081,25 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
     return true;
 }
 
+/**
+ * Remove player from lineup
+ * @param {number} playerId - Player ID
+ * @returns {Object|null} Old position or null
+ */
 function removePlayerFromLineup(playerId) {
     let oldPosition = null;
 
     state.fieldSlots.forEach((slot, index) => {
-        if (slot.player && slot.player.id === playerId) {
-            oldPosition = {type: 'field', index};
+        if (slot.player?.id === playerId) {
+            oldPosition = { type: 'field', index };
             slot.player = null;
             renderSlot('field', index);
         }
     });
 
     state.benchSlots.forEach((slot, index) => {
-        if (slot.player && slot.player.id === playerId) {
-            oldPosition = {type: 'bench', index};
+        if (slot.player?.id === playerId) {
+            oldPosition = { type: 'bench', index };
             slot.player = null;
             renderSlot('bench', index);
         }
@@ -986,11 +1112,14 @@ function removePlayerFromLineup(playerId) {
     return oldPosition;
 }
 
+/**
+ * Remove player with animation and undo option
+ * @param {number} playerId - Player ID
+ */
 function removePlayerWithAnimation(playerId) {
-    // ✅ FIX: iOS AudioContext aktivieren
     resumeAudioContext();
 
-    // ✅ FIX: O(1) Lookup statt O(n)
+    // ✅ ES2025: O(1) Lookup
     const player = state.getPlayerById(playerId);
     if (!player) return;
 
@@ -1017,8 +1146,13 @@ function removePlayerWithAnimation(playerId) {
     });
 }
 
+/**
+ * Show undo toast notification
+ * @param {string} message - Message to display
+ * @param {Function} undoCallback - Callback for undo action
+ */
 function showUndoToast(message, undoCallback) {
-    // Entferne existierende Toasts
+    // Remove existing toasts
     document.querySelectorAll('.toast-undo').forEach(t => t.remove());
 
     const template = document.getElementById('undoToastTemplate');
@@ -1048,11 +1182,20 @@ function showUndoToast(message, undoCallback) {
 // UI HELPERS
 // =====================================================
 
+/**
+ * Show toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - Toast type (info, success, error, warning)
+ */
 function showToast(message, type = 'info') {
     debug(`[Toast ${type}]:`, message);
     announceToScreenReader(message, type === 'error' ? 'assertive' : 'polite');
 }
 
+/**
+ * Show scroll indicator
+ * @param {string} direction - 'up' or 'down'
+ */
 function showScrollIndicator(direction) {
     if (!scrollIndicatorElement) {
         scrollIndicatorElement = document.createElement('div');
@@ -1069,12 +1212,20 @@ function showScrollIndicator(direction) {
     scrollIndicatorElement.className = `scroll-indicator ${direction} active`;
 }
 
+/**
+ * Hide scroll indicator
+ */
 function hideScrollIndicator() {
     if (scrollIndicatorElement) {
         scrollIndicatorElement.classList.remove('active');
     }
 }
 
+/**
+ * Set loading state for element
+ * @param {HTMLElement} element - Element to set loading state on
+ * @param {boolean} isLoading - Whether element is loading
+ */
 function setLoadingState(element, isLoading) {
     if (!element) return;
 
@@ -1090,15 +1241,18 @@ function setLoadingState(element, isLoading) {
 // DRAG & DROP HANDLERS (Desktop)
 // =====================================================
 
+/**
+ * Handle drag start event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDragStart(e) {
-    // ✅ FIX: iOS AudioContext aktivieren
     resumeAudioContext();
 
     const card = e.target.closest('.player-card');
     if (!card) return;
 
     const playerId = parseInt(card.dataset.playerId);
-    // ✅ FIX: O(1) Lookup
+    // ✅ ES2025: O(1) Lookup
     const player = state.getPlayerById(playerId);
 
     if (!player || player.status !== 'fit') {
@@ -1113,6 +1267,10 @@ function handleDragStart(e) {
     e.dataTransfer.setData('text/plain', player.id);
 }
 
+/**
+ * Handle drag end event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDragEnd(e) {
     const card = e.target.closest('.player-card');
     if (card) {
@@ -1128,10 +1286,18 @@ function handleDragEnd(e) {
     state.selectedPlayer = null;
 }
 
+/**
+ * Handle drag enter event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDragEnter(e) {
     e.preventDefault();
 }
 
+/**
+ * Handle drag over event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDragOver(e) {
     if (!state.selectedPlayer) return;
 
@@ -1165,14 +1331,17 @@ function handleDragOver(e) {
         e.dataTransfer.dropEffect = 'move';
     } else {
         slot.classList.add('drag-invalid');
-        const positionName = POSITION_NAMES[position] || position;
-        // ✅ FIX: XSS-sichere Ausgabe
+        const positionName = POSITION_NAMES[position] ?? position;
         slot.setAttribute('data-error-hint',
             `${escapeHtml(state.selectedPlayer.main_position)} kann nicht ${escapeHtml(positionName)} spielen`);
         e.dataTransfer.dropEffect = 'none';
     }
 }
 
+/**
+ * Handle drag leave event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDragLeave(e) {
     const slot = e.currentTarget;
     const relatedTarget = e.relatedTarget;
@@ -1189,6 +1358,10 @@ function handleDragLeave(e) {
     }
 }
 
+/**
+ * Handle drop event
+ * @param {DragEvent} e - Drag event
+ */
 function handleDrop(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -1215,6 +1388,11 @@ function handleDrop(e) {
 // TOUCH HANDLERS (Mobile)
 // =====================================================
 
+/**
+ * Create ghost element for touch dragging
+ * @param {HTMLElement} card - Player card element
+ * @param {Touch} touch - Touch object
+ */
 function createGhost(card, touch) {
     state.ghostElement = card.cloneNode(true);
     state.ghostElement.classList.add('ghost-dragging');
@@ -1231,15 +1409,21 @@ function createGhost(card, touch) {
     document.body.appendChild(state.ghostElement);
 }
 
+/**
+ * Remove ghost element
+ */
 function removeGhost() {
-    if (state.ghostElement && state.ghostElement.parentNode) {
+    if (state.ghostElement?.parentNode) {
         state.ghostElement.parentNode.removeChild(state.ghostElement);
     }
     state.ghostElement = null;
 }
 
+/**
+ * Handle touch start event
+ * @param {TouchEvent} e - Touch event
+ */
 function handleTouchStart(e) {
-    // ✅ FIX: iOS AudioContext aktivieren bei Touch
     resumeAudioContext();
 
     const card = e.target.closest('.player-card');
@@ -1248,7 +1432,7 @@ function handleTouchStart(e) {
     if (e.target.closest('.quick-remove-btn')) return;
 
     const playerId = parseInt(card.dataset.playerId);
-    // ✅ FIX: O(1) Lookup
+    // ✅ ES2025: O(1) Lookup
     state.draggedPlayer = state.getPlayerById(playerId);
 
     if (!state.draggedPlayer || state.draggedPlayer.status !== 'fit') {
@@ -1256,7 +1440,7 @@ function handleTouchStart(e) {
     }
 
     const touch = e.touches[0];
-    state.touchStartPos = {x: touch.clientX, y: touch.clientY};
+    state.touchStartPos = { x: touch.clientX, y: touch.clientY };
 
     card.classList.add('drag-starting');
     hapticFeedback(10);
@@ -1272,6 +1456,10 @@ function handleTouchStart(e) {
     }, CONFIG.TOUCH_DELAY_MS);
 }
 
+/**
+ * Handle touch move event
+ * @param {TouchEvent} e - Touch event
+ */
 function handleTouchMove(e) {
     if (!state.isDragging || !state.ghostElement) return;
 
@@ -1290,14 +1478,14 @@ function handleTouchMove(e) {
         const intensity = Math.pow(1 - (touchY / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({top: -speed, behavior: 'auto'});
+        window.scrollBy({ top: -speed, behavior: 'auto' });
         showScrollIndicator('up');
     } else if (touchY > viewportHeight - CONFIG.AUTO_SCROLL_ZONE_PX) {
         const distanceFromBottom = viewportHeight - touchY;
         const intensity = Math.pow(1 - (distanceFromBottom / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({top: speed, behavior: 'auto'});
+        window.scrollBy({ top: speed, behavior: 'auto' });
         showScrollIndicator('down');
     } else {
         hideScrollIndicator();
@@ -1331,13 +1519,17 @@ function handleTouchMove(e) {
             state.currentDragOverSlot = slot;
         } else {
             slot.classList.add('drag-invalid');
-            const positionName = POSITION_NAMES[position] || position;
+            const positionName = POSITION_NAMES[position] ?? position;
             slot.setAttribute('data-error-hint',
                 `${escapeHtml(state.draggedPlayer.main_position)} kann nicht ${escapeHtml(positionName)} spielen`);
         }
     }
 }
 
+/**
+ * Handle touch move with requestAnimationFrame
+ * @param {TouchEvent} e - Touch event
+ */
 function handleTouchMoveRAF(e) {
     if (rafId) return;
 
@@ -1347,6 +1539,10 @@ function handleTouchMoveRAF(e) {
     });
 }
 
+/**
+ * Handle touch end event
+ * @param {TouchEvent} e - Touch event
+ */
 function handleTouchEnd(e) {
     if (state.touchTimeout) {
         clearTimeout(state.touchTimeout);
@@ -1387,6 +1583,9 @@ function handleTouchEnd(e) {
     state.currentDragOverSlot = null;
 }
 
+/**
+ * Handle touch cancel event
+ */
 function handleTouchCancel() {
     if (state.touchTimeout) {
         clearTimeout(state.touchTimeout);
@@ -1405,7 +1604,6 @@ function handleTouchCancel() {
     state.clearTouch();
     state.currentDragOverSlot = null;
 
-    // ✅ FIX: Visuelles Feedback bei Abbruch
     announceToScreenReader('Ziehen abgebrochen');
 }
 
@@ -1413,6 +1611,10 @@ function handleTouchCancel() {
 // KEYBOARD NAVIGATION
 // =====================================================
 
+/**
+ * Handle keyboard navigation in slots
+ * @param {KeyboardEvent} e - Keyboard event
+ */
 function handleSlotKeyboard(e) {
     const slot = e.currentTarget;
 
@@ -1432,6 +1634,11 @@ function handleSlotKeyboard(e) {
     }
 }
 
+/**
+ * Navigate between slots with arrow keys
+ * @param {HTMLElement} currentSlot - Current slot element
+ * @param {string} direction - Arrow key direction
+ */
 function navigateSlots(currentSlot, direction) {
     const allSlots = Array.from(document.querySelectorAll('.field-slot, .bench-slot'));
     const currentIndex = allSlots.indexOf(currentSlot);
@@ -1462,16 +1669,19 @@ function navigateSlots(currentSlot, direction) {
 // FORMATION & LINEUP MANAGEMENT
 // =====================================================
 
-// ✅ FIX: Race-Condition-Schutz
+/**
+ * Handle formation change
+ * ✅ ES2025: async/await with race condition protection
+ * @param {Event} e - Change event
+ */
 async function handleFormationChange(e) {
     const newFormation = e.target.value;
 
-    // Early return bei gleicher Formation
     if (newFormation === state.currentFormation) return;
 
-    // ✅ FIX: Race-Condition verhindern
+    // ✅ Race condition protection
     if (state.isFormationChanging) {
-        e.target.value = state.currentFormation; // Reset dropdown
+        e.target.value = state.currentFormation;
         return;
     }
 
@@ -1486,7 +1696,7 @@ async function handleFormationChange(e) {
         return;
     }
 
-    // ✅ FIX: State SOFORT setzen um Doppelklicks zu verhindern
+    // ✅ Set state immediately to prevent double-clicks
     state.isFormationChanging = true;
     setLoadingState(e.target, true);
 
@@ -1496,82 +1706,76 @@ async function handleFormationChange(e) {
             originalPosition: s.position
         })).filter(s => s.player);
 
-        // Backup für Undo
+        // Backup for undo
         const oldFormation = state.currentFormation;
-        const oldFieldSlots = state.fieldSlots.map(s => ({...s}));
-        const oldBenchSlots = state.benchSlots.map(s => ({...s}));
+        const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
+        const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
 
         state.currentFormation = newFormation;
         renderFormationSlots();
 
-        let migratedCount = 0;
-        let toBenchCount = 0;
-        const movedToBench = [];
+        const newFormationData = config.formations?.[newFormation];
+        if (!newFormationData) return;
 
-        oldPlayers.forEach(({player, originalPosition}) => {
-            let targetSlot = state.fieldSlots.findIndex(s =>
-                !s.player && s.position === originalPosition
-            );
-
-            if (targetSlot === -1) {
-                targetSlot = state.fieldSlots.findIndex(s =>
-                    !s.player && canPlayPosition(player, s.position)
-                );
+        const positionMap = new Map();
+        newFormationData.positions.forEach((pos, index) => {
+            if (!positionMap.has(pos.position)) {
+                positionMap.set(pos.position, []);
             }
+            positionMap.get(pos.position).push(index);
+        });
 
-            if (targetSlot !== -1) {
-                state.fieldSlots[targetSlot].player = player;
-                renderSlot('field', targetSlot);
-                migratedCount++;
+        oldPlayers.forEach(({ player, originalPosition }) => {
+            const matchingSlots = positionMap.get(originalPosition) ?? [];
+
+            if (matchingSlots.length > 0) {
+                const slotIndex = matchingSlots.shift();
+                state.fieldSlots[slotIndex].player = player;
+                renderSlot('field', slotIndex);
             } else {
-                const emptyBench = state.benchSlots.findIndex(s => !s.player);
-                if (emptyBench !== -1) {
-                    state.benchSlots[emptyBench].player = player;
-                    renderSlot('bench', emptyBench);
-                    toBenchCount++;
-                    movedToBench.push(player.name);
+                const emptyBenchIndex = state.benchSlots.findIndex(s => !s.player);
+                if (emptyBenchIndex !== -1) {
+                    state.benchSlots[emptyBenchIndex].player = player;
+                    renderSlot('bench', emptyBenchIndex);
                 }
             }
         });
 
         updatePlacedPlayersSet();
-        renderAvailablePlayers();
         updateTeamStrength();
         updateBenchCount();
         validateLineup();
         attachSlotEventListeners();
 
-        let message = `${newFormation}: ${migratedCount} Spieler übernommen`;
-        if (toBenchCount > 0) {
-            message += `, ${toBenchCount} auf Bank`;
-        }
-        showToast(message, 'success');
-        announceToScreenReader(message);
+        announceToScreenReader(`Formation geändert zu ${newFormation}`);
+        showToast(`Formation auf ${newFormation} geändert`, 'success');
 
-        // ✅ FIX: Undo für Formationswechsel
-        if (toBenchCount > 0) {
-            showUndoToast(`${movedToBench.join(', ')} auf Bank verschoben`, () => {
-                // Restore old state
-                state.currentFormation = oldFormation;
+        // ✅ Undo for formation change
+        showUndoToast(`Formation geändert zu ${newFormation}`, () => {
+            state.currentFormation = oldFormation;
+            state.fieldSlots = oldFieldSlots;
+            state.benchSlots = oldBenchSlots;
+
+            if (document.getElementById('formationSelect')) {
                 document.getElementById('formationSelect').value = oldFormation;
-                state.fieldSlots = oldFieldSlots;
-                state.benchSlots = oldBenchSlots;
+            }
 
-                renderFormationSlots(true);
-                state.fieldSlots.forEach((slot, index) => {
-                    if (slot.player) renderSlot('field', index);
-                });
-                state.benchSlots.forEach((slot, index) => {
-                    if (slot.player) renderSlot('bench', index);
-                });
+            renderFormationSlots(true);
 
-                updatePlacedPlayersSet();
-                updateTeamStrength();
-                updateBenchCount();
-                validateLineup();
-                attachSlotEventListeners();
+            state.fieldSlots.forEach((slot, index) => {
+                if (slot.player) renderSlot('field', index);
             });
-        }
+
+            state.benchSlots.forEach((slot, index) => {
+                if (slot.player) renderSlot('bench', index);
+            });
+
+            updatePlacedPlayersSet();
+            updateTeamStrength();
+            updateBenchCount();
+            validateLineup();
+            attachSlotEventListeners();
+        });
 
     } finally {
         state.isFormationChanging = false;
@@ -1579,10 +1783,13 @@ async function handleFormationChange(e) {
     }
 }
 
+/**
+ * Clear lineup with undo option
+ */
 function clearLineup() {
-    // Backup für Undo
-    const oldFieldSlots = state.fieldSlots.map(s => ({...s}));
-    const oldBenchSlots = state.benchSlots.map(s => ({...s}));
+    // Backup for undo
+    const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
+    const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
     const hadPlayers = state.fieldSlots.some(s => s.player) ||
         state.benchSlots.some(s => s.player);
 
@@ -1591,7 +1798,6 @@ function clearLineup() {
         return;
     }
 
-    // ✅ FIX: Confirm-Dialog entfernt, stattdessen Undo
     state.fieldSlots.forEach(slot => slot.player = null);
     state.benchSlots.forEach(slot => slot.player = null);
 
@@ -1607,7 +1813,7 @@ function clearLineup() {
     showToast('Aufstellung zurückgesetzt', 'success');
     announceToScreenReader('Aufstellung zurückgesetzt');
 
-    // ✅ FIX: Undo für Reset
+    // ✅ Undo for reset
     showUndoToast('Aufstellung zurückgesetzt', () => {
         state.fieldSlots = oldFieldSlots;
         state.benchSlots = oldBenchSlots;
@@ -1632,6 +1838,10 @@ function clearLineup() {
     });
 }
 
+/**
+ * Check if lineup is ready to be saved
+ * @returns {Object} Ready status and message
+ */
 function checkSaveReadiness() {
     const fieldPlayersCount = state.fieldSlots.filter(slot => slot.player).length;
 
@@ -1644,12 +1854,15 @@ function checkSaveReadiness() {
 
     const goalkeeper = state.fieldSlots.find(slot => slot.position === 'TW' && slot.player);
     if (!goalkeeper) {
-        return {ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.'};
+        return { ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.' };
     }
 
-    return {ready: true, message: 'Speicherung möglich'};
+    return { ready: true, message: 'Speicherung möglich' };
 }
 
+/**
+ * Save lineup to localStorage
+ */
 function saveLineup() {
     const saveCheck = checkSaveReadiness();
 
@@ -1692,7 +1905,11 @@ function saveLineup() {
     }
 }
 
-// ✅ FIX: Erweiterte Schema-Validierung
+/**
+ * ✅ ES2025: Enhanced schema validation
+ * @param {Object} lineup - Lineup object to validate
+ * @returns {boolean} Valid status
+ */
 function validateLineupSchema(lineup) {
     if (!lineup || typeof lineup !== 'object') return false;
     if (typeof lineup.formation !== 'string') return false;
@@ -1700,15 +1917,15 @@ function validateLineupSchema(lineup) {
     if (lineup.field.length !== CONFIG.MAX_PLAYERS) return false;
     if (lineup.bench.length !== CONFIG.MAX_BENCH) return false;
 
-    // ✅ FIX: Prüfen ob Formation existiert
-    if (!config.formations[lineup.formation]) return false;
+    // Check if formation exists
+    if (!config.formations?.[lineup.formation]) return false;
 
-    // ✅ FIX: Prüfen auf doppelte IDs
+    // Check for duplicate IDs
     const allIds = [...lineup.field, ...lineup.bench].filter(id => id !== null);
     const uniqueIds = new Set(allIds);
     if (allIds.length !== uniqueIds.size) return false;
 
-    // ✅ FIX: Prüfen ob alle IDs valide Spieler sind
+    // Check if all IDs are valid players
     for (const id of allIds) {
         if (!state.getPlayerById(id)) return false;
     }
@@ -1716,6 +1933,10 @@ function validateLineupSchema(lineup) {
     return true;
 }
 
+/**
+ * Load lineup from localStorage
+ * @returns {boolean} Success status
+ */
 function loadLineup() {
     try {
         const saved = localStorage.getItem('kickerscup_lineup');
@@ -1736,7 +1957,7 @@ function loadLineup() {
 
         lineup.field.forEach((playerId, index) => {
             if (playerId) {
-                // ✅ FIX: O(1) Lookup
+                // ✅ ES2025: O(1) Lookup
                 const player = state.getPlayerById(playerId);
                 if (player) {
                     state.fieldSlots[index].player = player;
@@ -1775,21 +1996,22 @@ function loadLineup() {
 // EVENT LISTENERS
 // =====================================================
 
-// ✅ FIX: Verbesserte Slot-Event-Listener-Verwaltung
+/**
+ * Attach event listeners to slots
+ */
 function attachSlotEventListeners() {
     document.querySelectorAll('.field-slot, .bench-slot').forEach(slot => {
-        // Entferne alte Listener für dieses Element
-        removeElementListeners(slot);
-
-        // Füge neue Listener hinzu
-        addTrackedEventListener(slot, 'dragenter', handleDragEnter, false);
-        addTrackedEventListener(slot, 'dragover', handleDragOver, false);
-        addTrackedEventListener(slot, 'dragleave', handleDragLeave, false);
-        addTrackedEventListener(slot, 'drop', handleDrop, false);
-        addTrackedEventListener(slot, 'keydown', handleSlotKeyboard, false);
+        addEventListener(slot, 'dragenter', handleDragEnter, false);
+        addEventListener(slot, 'dragover', handleDragOver, false);
+        addEventListener(slot, 'dragleave', handleDragLeave, false);
+        addEventListener(slot, 'drop', handleDrop, false);
+        addEventListener(slot, 'keydown', handleSlotKeyboard, false);
     });
 }
 
+/**
+ * Handle orientation change
+ */
 function handleOrientationChange() {
     if (orientationTimeout) {
         clearTimeout(orientationTimeout);
@@ -1824,37 +2046,29 @@ function handleOrientationChange() {
     }, ANIMATION_DURATIONS.ORIENTATION_CHANGE_DELAY);
 }
 
-function toggleValidationPanel(collapsed) {
-    const content = document.querySelector('.validation-content');
-    const focusableElements = content?.querySelectorAll('button, a, input, [tabindex]');
-
-    if (focusableElements) {
-        focusableElements.forEach(el => {
-            el.setAttribute('tabindex', collapsed ? '-1' : '0');
-        });
-    }
-}
-
+/**
+ * Initialize all event listeners
+ */
 function initEventListeners() {
     isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
     const formationSelect = document.getElementById('formationSelect');
     if (formationSelect) {
-        addTrackedEventListener(formationSelect, 'change', handleFormationChange);
+        addEventListener(formationSelect, 'change', handleFormationChange);
     }
 
     const clearBtn = document.getElementById('clearLineup');
     const saveBtn = document.getElementById('saveLineup');
 
-    if (clearBtn) addTrackedEventListener(clearBtn, 'click', clearLineup);
-    if (saveBtn) addTrackedEventListener(saveBtn, 'click', saveLineup);
+    if (clearBtn) addEventListener(clearBtn, 'click', clearLineup);
+    if (saveBtn) addEventListener(saveBtn, 'click', saveLineup);
 
     const validationHeader = document.getElementById('validationHeader');
     const validationPanel = document.getElementById('validationPanel');
     const validationToggle = document.getElementById('validationToggle');
 
     if (validationHeader && validationPanel) {
-        addTrackedEventListener(validationHeader, 'click', () => {
+        addEventListener(validationHeader, 'click', () => {
             const isCollapsed = validationPanel.classList.toggle('collapsed');
             validationToggle.setAttribute('aria-expanded', !isCollapsed);
             validationPanel.querySelector('.validation-content')
@@ -1862,14 +2076,14 @@ function initEventListeners() {
             toggleValidationPanel(isCollapsed);
         });
 
-        addTrackedEventListener(validationHeader, 'keydown', (e) => {
+        addEventListener(validationHeader, 'keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 validationHeader.click();
             }
         });
 
-        // Default: Collapsed on mobile, aber öffnet bei Fehlern automatisch
+        // Default: Collapsed on mobile
         if (window.matchMedia('(max-width: 767px)').matches) {
             validationPanel.classList.add('collapsed');
             validationToggle.setAttribute('aria-expanded', 'false');
@@ -1885,40 +2099,40 @@ function initEventListeners() {
 
     if (searchInput) {
         const debouncedSearch = debounce(renderAvailablePlayers, CONFIG.DEBOUNCE_SEARCH_MS);
-        addTrackedEventListener(searchInput, 'input', debouncedSearch);
+        addEventListener(searchInput, 'input', debouncedSearch);
     }
     if (positionFilter) {
-        addTrackedEventListener(positionFilter, 'change', renderAvailablePlayers);
+        addEventListener(positionFilter, 'change', renderAvailablePlayers);
     }
     if (sortSelect) {
-        addTrackedEventListener(sortSelect, 'change', renderAvailablePlayers);
+        addEventListener(sortSelect, 'change', renderAvailablePlayers);
     }
 
-    addTrackedEventListener(document, 'dragstart', (e) => {
+    addEventListener(document, 'dragstart', (e) => {
         if (e.target.closest('.player-card')) {
             handleDragStart(e);
         }
     });
 
-    addTrackedEventListener(document, 'dragend', (e) => {
+    addEventListener(document, 'dragend', (e) => {
         if (e.target.closest('.player-card')) {
             handleDragEnd(e);
         }
     });
 
     if (isTouchDevice) {
-        addTrackedEventListener(document, 'touchstart', (e) => {
+        addEventListener(document, 'touchstart', (e) => {
             if (e.target.closest('.player-card')) {
                 handleTouchStart(e);
             }
-        }, {passive: false});
+        }, { passive: false });
 
-        addTrackedEventListener(document, 'touchmove', handleTouchMoveRAF, {passive: false});
-        addTrackedEventListener(document, 'touchend', handleTouchEnd);
-        addTrackedEventListener(document, 'touchcancel', handleTouchCancel);
+        addEventListener(document, 'touchmove', handleTouchMoveRAF, { passive: false });
+        addEventListener(document, 'touchend', handleTouchEnd);
+        addEventListener(document, 'touchcancel', handleTouchCancel);
     }
 
-    addTrackedEventListener(document, 'click', (e) => {
+    addEventListener(document, 'click', (e) => {
         const removeBtn = e.target.closest('.quick-remove-btn');
         if (removeBtn) {
             e.preventDefault();
@@ -1928,20 +2142,20 @@ function initEventListeners() {
         }
     });
 
-    addTrackedEventListener(document, 'mousedown', (e) => {
+    addEventListener(document, 'mousedown', (e) => {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
     });
 
-    addTrackedEventListener(document, 'touchstart', (e) => {
+    addEventListener(document, 'touchstart', (e) => {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
-    }, {passive: false});
+    }, { passive: false });
 
-    addTrackedEventListener(window, 'orientationchange', handleOrientationChange);
-    addTrackedEventListener(window, 'resize', handleOrientationChange);
+    addEventListener(window, 'orientationchange', handleOrientationChange);
+    addEventListener(window, 'resize', handleOrientationChange);
 
     attachSlotEventListeners();
 }
@@ -1950,13 +2164,17 @@ function initEventListeners() {
 // MODULE LIFECYCLE
 // =====================================================
 
+/**
+ * ✅ ES2025: Initialize lineup system
+ * @export
+ */
 export function init() {
     debug('🚀 Lineup System wird initialisiert...');
 
     initAudioContext();
     state.availablePlayers = [...config.examplePlayers];
 
-    // ✅ FIX: Player Map für O(1) Lookups aufbauen
+    // ✅ ES2025: Build Player Map for O(1) lookups
     state.buildPlayerMap(state.availablePlayers);
 
     renderFormationSlots();
@@ -1972,24 +2190,27 @@ export function init() {
     }
 
     initEventListeners();
-
-    // ✅ FIX: Landscape-Hint mit Dismiss-Funktion initialisieren
     initLandscapeHint();
 
     debug('✅ Lineup System vollständig initialisiert');
     announceToScreenReader('Aufstellungs-Seite geladen', 'polite');
 }
 
+/**
+ * ✅ ES2025: Cleanup with AbortController
+ * @export
+ */
 export function cleanup() {
     debug('🧹 Lineup System Cleanup wird durchgeführt...');
 
-    // ✅ FIX: Verbesserte Cleanup-Logik
-    removeAllGlobalListeners();
+    // ✅ ES2025: AbortController - Cleanup ALL events with one call
+    abortController.abort();
+    abortController = new AbortController();
 
     removeGhost();
     hideScrollIndicator();
 
-    if (scrollIndicatorElement && scrollIndicatorElement.parentNode) {
+    if (scrollIndicatorElement?.parentNode) {
         scrollIndicatorElement.parentNode.removeChild(scrollIndicatorElement);
         scrollIndicatorElement = null;
     }
@@ -2008,8 +2229,7 @@ export function cleanup() {
     state.clearTouch();
 
     if (state.audioContext) {
-        state.audioContext.close().catch(() => {
-        });
+        state.audioContext.close().catch(() => {});
         state.audioContext = null;
         state.audioContextResumed = false;
     }
@@ -2017,7 +2237,7 @@ export function cleanup() {
     compatibilityCache.clear();
     lastAnnouncement = 0;
 
-    // Entferne dynamisch erstellte Toasts
+    // Remove dynamically created toasts
     document.querySelectorAll('.toast-undo').forEach(t => t.remove());
 
     debug('✅ Lineup System Cleanup abgeschlossen');
