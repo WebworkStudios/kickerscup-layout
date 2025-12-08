@@ -1,7 +1,13 @@
 // =====================================================
-// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (V2.1 - SAFARI FIX)
+// KICKERSCUP - STADIUM MANAGEMENT SYSTEM (V3.0 - ES2025)
 // Stadion-Verwaltung mit Block-Click-Modals + Pitch-Renovation
-// ✅ V2.1: Safari-kompatibler DOM-Cache, verzögertes Rendering
+// ✅ V3.0: Vollständige ES2025-Modernisierung
+// ✅ AbortController für Event Cleanup
+// ✅ Promise.allSettled für robuste Operations
+// ✅ Error Causes für strukturiertes Debugging
+// ✅ Immutable Configuration mit Object.freeze
+// ✅ Optional Chaining & Nullish Coalescing
+// ✅ Konsistentes DOM-Handling ohne Caching
 // =====================================================
 
 import {
@@ -45,22 +51,65 @@ import {
 } from './stadium-sponsors-ui.js';
 
 // =====================================================
-// PERFORMANCE UTILITIES
+// IMMUTABLE CONFIGURATION
+// ✅ ES2025: Object.freeze für Configuration
 // =====================================================
 
+const CONFIG = Object.freeze({
+    STORAGE_KEY: 'kickerscup_stadium_state',
+    DEBOUNCE_DELAY: 150,
+    SLIDER_THROTTLE: 16,
+    RENDER_BATCH_SIZE: 10
+});
+
+const TIMING = Object.freeze({
+    GAME_SEASON: Object.freeze({
+        START_DAY: 1,
+        END_DAY: 27
+    }),
+    MAX_PARALLEL_BUILDS: 2
+});
+
+// =====================================================
+// PERFORMANCE UTILITIES
+// ✅ ES2025: WeakMap für besseres Memory Management
+// =====================================================
+
+const debouncedFunctions = new WeakMap();
+const throttledFunctions = new WeakMap();
+
+/**
+ * Debounce mit WeakMap-Caching
+ * ✅ ES2025: Verhindert Duplicate Wrappers
+ */
 const debounce = (fn, delay) => {
+    if (debouncedFunctions.has(fn)) {
+        return debouncedFunctions.get(fn);
+    }
+
     let timeoutId;
-    return (...args) => {
+    const debounced = (...args) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn(...args), delay);
     };
+
+    debouncedFunctions.set(fn, debounced);
+    return debounced;
 };
 
+/**
+ * Throttle mit WeakMap-Caching
+ * ✅ ES2025: Optimiertes Rate-Limiting
+ */
 const throttle = (fn, limit) => {
+    if (throttledFunctions.has(fn)) {
+        return throttledFunctions.get(fn);
+    }
+
     let inThrottle = false;
     let lastArgs = null;
 
-    return (...args) => {
+    const throttled = (...args) => {
         lastArgs = args;
 
         if (!inThrottle) {
@@ -76,8 +125,15 @@ const throttle = (fn, limit) => {
             }, limit);
         }
     };
+
+    throttledFunctions.set(fn, throttled);
+    return throttled;
 };
 
+/**
+ * RequestAnimationFrame-basiertes Batching
+ * ✅ ES2025: Optimiertes DOM-Update-Batching
+ */
 const batchDOMUpdates = (() => {
     let scheduled = false;
     let updates = [];
@@ -93,7 +149,13 @@ const batchDOMUpdates = (() => {
                 scheduled = false;
 
                 for (const fn of toExecute) {
-                    fn();
+                    try {
+                        fn();
+                    } catch (error) {
+                        const batchError = new Error('DOM batch update failed');
+                        batchError.cause = error;
+                        console.error('❌ Batch update error:', batchError);
+                    }
                 }
             });
         }
@@ -101,72 +163,18 @@ const batchDOMUpdates = (() => {
 })();
 
 // =====================================================
-// CONSTANTS
-// =====================================================
-
-const STORAGE_KEY = 'kickerscup_stadium_state';
-const DEBOUNCE_DELAY = 150;
-const SLIDER_THROTTLE = 16;
-
-// =====================================================
 // PRIVATE STATE
+// ✅ ES2025: Klare Trennung zwischen Config (frozen) und State (mutable)
 // =====================================================
 
 let stadiumState = null;
 let currentModal = null;
 let isInitialized = false;
+
+// ✅ ES2025: AbortController für Event Cleanup
 let eventController = new AbortController();
 
-// =====================================================
-// DOM CACHING - SAFARI FIX
-// =====================================================
-
-// SAFARI FIX: Kein Cache für DOM-Elemente mehr
-// Stattdessen: Direkter Zugriff mit Null-Check
-
-/**
- * Holt DOM-Element sicher (Safari-kompatibel)
- * Kein Caching mehr, da Safari timing-sensitiv ist
- */
-const getElement = (id) => {
-    return document.getElementById(id);
-};
-
-/**
- * Holt Block-Element sicher
- */
-const getBlockElement = (block, type) => {
-    const idMap = {
-        capacity: `block${block}Capacity`,
-        roof: `block${block}Roof`,
-        ad: `block${block}Ad`
-    };
-
-    if (type === 'element') {
-        return document.querySelector(`.stadium-block[data-block="${block}"]`);
-    }
-
-    return document.getElementById(idMap[type]);
-};
-
-/**
- * Sicheres Text-Update mit Null-Check
- */
-const safeSetText = (element, text) => {
-    if (element && element.textContent !== undefined) {
-        element.textContent = text;
-    }
-};
-
-/**
- * Sicheres Style-Update mit Null-Check
- */
-const safeSetStyle = (element, property, value) => {
-    if (element && element.style) {
-        element.style[property] = value;
-    }
-};
-
+// Mock für Testing/Development
 const currentSeasonStats = {
     gamesPlayed: 12,
     goals: 23,
@@ -177,18 +185,23 @@ const currentSeasonStats = {
 
 // =====================================================
 // STATE MANAGEMENT
+// ✅ ES2025: Strukturiertes Error Handling mit Error Causes
 // =====================================================
 
+/**
+ * Lädt Stadium State aus LocalStorage
+ * ✅ ES2025: Error Causes für besseres Debugging
+ */
 const loadStadiumState = () => {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(CONFIG.STORAGE_KEY);
 
         if (stored) {
             const parsed = JSON.parse(stored);
             const validation = validateState(parsed);
 
             if (!validation.valid) {
-                console.warn('State validation failed:', validation.errors);
+                console.warn('⚠️ State validation failed:', validation.errors);
                 stadiumState = repairState(parsed);
                 saveStadiumStateImmediate();
             } else {
@@ -197,7 +210,9 @@ const loadStadiumState = () => {
             return stadiumState;
         }
     } catch (error) {
-        console.error('❌ Fehler beim Laden:', error);
+        const loadError = new Error('Failed to load stadium state');
+        loadError.cause = error;
+        console.error('❌ Load error:', loadError);
     }
 
     stadiumState = createInitialState();
@@ -205,39 +220,138 @@ const loadStadiumState = () => {
     return stadiumState;
 };
 
+/**
+ * Speichert State debounced
+ * ✅ ES2025: Optimiertes Debouncing
+ */
 const saveStadiumState = debounce(() => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stadiumState));
+        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(stadiumState));
     } catch (error) {
-        console.error('❌ Fehler beim Speichern:', error);
+        const saveError = new Error('Failed to save stadium state');
+        saveError.cause = error;
+        console.error('❌ Save error:', saveError);
     }
-}, DEBOUNCE_DELAY);
+}, CONFIG.DEBOUNCE_DELAY);
 
+/**
+ * Speichert State sofort (für kritische Operations)
+ */
 const saveStadiumStateImmediate = () => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stadiumState));
+        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(stadiumState));
     } catch (error) {
-        console.error('❌ Fehler beim Speichern:', error);
+        const saveError = new Error('Failed to save stadium state immediately');
+        saveError.cause = error;
+        console.error('❌ Immediate save error:', saveError);
     }
+};
+
+// =====================================================
+// DOM UTILITIES
+// ✅ ES2025: Kein Caching, Optional Chaining für Safety
+// =====================================================
+
+/**
+ * Sicheres Text-Update mit Optional Chaining
+ * ✅ ES2025: Defensive DOM-Manipulation
+ */
+const safeSetText = (id, text) => {
+    const element = document.getElementById(id);
+    if (element?.textContent !== undefined) {
+        element.textContent = text;
+    }
+};
+
+/**
+ * Sicheres Style-Update mit Optional Chaining
+ * ✅ ES2025: Defensive Style-Manipulation
+ */
+const safeSetStyle = (id, property, value) => {
+    const element = document.getElementById(id);
+    if (element?.style) {
+        element.style[property] = value;
+    }
+};
+
+/**
+ * Sicheres HTML-Update mit Optional Chaining
+ * ✅ ES2025: Defensive HTML-Manipulation
+ */
+const safeSetHTML = (id, html) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.innerHTML = html;
+    }
+};
+
+/**
+ * Batch-Update mehrerer Text-Elemente
+ * ✅ ES2025: Optimiertes Multi-Element Update
+ */
+const batchSetText = (updates) => {
+    batchDOMUpdates(() => {
+        for (const [id, text] of updates) {
+            safeSetText(id, text);
+        }
+    });
 };
 
 // =====================================================
 // BAUZEITEN-SYSTEM
+// ✅ ES2025: Strukturierte Error Recovery
 // =====================================================
 
+/**
+ * Prüft ob Spielsaison aktiv ist
+ * ✅ ES2025: Nullish Coalescing für Default Values
+ */
 const isGameSeasonActive = () => {
-    const {currentDay} = stadiumState;
-    const {START_DAY, END_DAY} = TIMING_CONFIG.GAME_SEASON;
-    return currentDay >= START_DAY && currentDay <= END_DAY;
+    const currentDay = stadiumState?.currentDay ?? 1;
+    return currentDay >= TIMING.GAME_SEASON.START_DAY
+        && currentDay <= TIMING.GAME_SEASON.END_DAY;
 };
 
-const tickBuildTimer = () => {
+/**
+ * Aktualisiert Rasen-Typ basierend auf Condition
+ * ✅ FIX: British -> Normal -> Dirt (Kuhkoppel)
+ */
+const updatePitchType = () => {
+    const condition = stadiumState?.features?.pitch?.condition ?? 100;
+
+    // Bestimme Rasen-Typ basierend auf Condition
+    let pitchType;
+    if (condition >= 70) {
+        pitchType = 'british'; // Premium-Rasen
+    } else if (condition >= 40) {
+        pitchType = 'normal';  // Standard-Rasen
+    } else {
+        pitchType = 'dirt';    // Kuhkoppel
+    }
+
+    // Speichere Typ im State (für Persistenz)
+    if (!stadiumState.features.pitch.type) {
+        stadiumState.features.pitch.type = pitchType;
+    } else if (stadiumState.features.pitch.type !== pitchType) {
+        stadiumState.features.pitch.type = pitchType;
+        console.log(`🌱 Rasen-Typ geändert: ${pitchType} (${condition}%)`);
+    }
+};
+
+/**
+ * Tick des Build-Timers
+ * ✅ ES2025: Promise.allSettled für robuste Completion Handling
+ */
+const tickBuildTimer = async () => {
     if (!isGameSeasonActive()) return;
 
-    const {queue} = stadiumState.construction;
+    const queue = stadiumState?.construction?.queue;
+    if (!queue?.length) return;
+
     let hasChanges = false;
     const completedProjects = [];
 
+    // Tick active projects
     for (let i = queue.length - 1; i >= 0; i--) {
         const project = queue[i];
 
@@ -253,8 +367,19 @@ const tickBuildTimer = () => {
         }
     }
 
-    for (const project of completedProjects) {
-        completeConstruction(project);
+    // ✅ ES2025: Promise.allSettled für parallele Completions
+    if (completedProjects.length > 0) {
+        const completionResults = await Promise.allSettled(
+            completedProjects.map(project => completeConstruction(project))
+        );
+
+        // Log failures but continue
+        for (const [index, result] of completionResults.entries()) {
+            if (result.status === 'rejected') {
+                const project = completedProjects[index];
+                console.error(`❌ Failed to complete ${project.name}:`, result.reason);
+            }
+        }
     }
 
     startQueuedProjects();
@@ -268,9 +393,13 @@ const tickBuildTimer = () => {
     }
 };
 
+/**
+ * Startet wartende Projekte
+ * ✅ ES2025: Nullish Coalescing
+ */
 const startQueuedProjects = () => {
-    const {queue, active} = stadiumState.construction;
-    const slotsAvailable = TIMING_CONFIG.MAX_PARALLEL_BUILDS - active;
+    const {queue, active} = stadiumState?.construction ?? {queue: [], active: 0};
+    const slotsAvailable = TIMING.MAX_PARALLEL_BUILDS - active;
 
     if (slotsAvailable <= 0) return;
 
@@ -285,36 +414,63 @@ const startQueuedProjects = () => {
     }
 };
 
-const completeConstruction = (project) => {
-    const handlers = {
-        roof: () => {
-            stadiumState.features.roofs[project.block] = true;
-        },
-        floodlight: () => {
-            stadiumState.features.floodlight = project.targetStage;
-        },
-        pitch_renovation: () => {
-            stadiumState.features.pitch.condition = 100;
-        },
-        advertising: () => {
-            stadiumState.features.advertising[project.block] = true;
-        },
-        expansion: () => applyExpansion(project)
-    };
+/**
+ * Schließt Bauprojekt ab
+ * ✅ ES2025: Error Causes für strukturiertes Error Handling
+ */
+const completeConstruction = async (project) => {
+    try {
+        const handlers = new Map([
+            ['roof', () => {
+                stadiumState.features.roofs[project.block] = true;
+            }],
+            ['floodlight', () => {
+                stadiumState.features.floodlight = project.targetStage;
+            }],
+            ['pitch_renovation', () => {
+                stadiumState.features.pitch.condition = 100;
+                // ✅ FIX: Rasen-Typ zurücksetzen auf British
+                stadiumState.features.pitch.type = 'british';
+            }],
+            ['advertising', () => {
+                stadiumState.features.advertising[project.block] = true;
+            }],
+            ['expansion', () => applyExpansion(project)]
+        ]);
 
-    const handler = handlers[project.type];
-    if (handler) handler();
+        const handler = handlers.get(project.type);
 
-    if (project.type === 'expansion') {
-        clearAllCaches();
+        if (!handler) {
+            throw new Error(`Unknown project type: ${project.type}`);
+        }
+
+        handler();
+
+        if (project.type === 'expansion') {
+            clearAllCaches();
+        }
+
+        showNotification(`✅ ${project.name} abgeschlossen!`);
+
+    } catch (error) {
+        const contextError = new Error(`Failed to complete construction: ${project.name}`);
+        contextError.cause = error;
+        console.error('❌ Construction completion error:', contextError);
+        throw contextError;
     }
-
-    showNotification(`✅ ${project.name} abgeschlossen!`);
 };
 
+/**
+ * Wendet Tribünen-Ausbau an
+ * ✅ ES2025: Optional Chaining für sichere Property Access
+ */
 const applyExpansion = (project) => {
     const {block, additionalSeats} = project;
-    const dist = stadiumState.capacity.distribution[block];
+    const dist = stadiumState?.capacity?.distribution?.[block];
+
+    if (!dist) {
+        throw new Error(`Invalid block distribution: ${block}`);
+    }
 
     dist.capacity += additionalSeats;
 
@@ -325,23 +481,31 @@ const applyExpansion = (project) => {
     recalculateTotalCapacity();
 };
 
+/**
+ * Berechnet Gesamt-Kapazität neu
+ * ✅ ES2025: Array.reduce für elegantere Summierung
+ */
 const recalculateTotalCapacity = () => {
-    let total = 0, standing = 0, seated = 0, boxes = 0;
-
-    for (const block of BLOCKS) {
+    const totals = BLOCKS.reduce((acc, block) => {
         const dist = stadiumState.capacity.distribution[block];
-        total += dist.capacity;
-        standing += dist.standing;
-        seated += dist.seated;
-        boxes += dist.boxes || 0;
-    }
+        return {
+            total: acc.total + dist.capacity,
+            standing: acc.standing + dist.standing,
+            seated: acc.seated + dist.seated,
+            boxes: acc.boxes + (dist.boxes ?? 0)
+        };
+    }, {total: 0, standing: 0, seated: 0, boxes: 0});
 
-    Object.assign(stadiumState.capacity, {total, standing, seated});
-    stadiumState.capacity.boxes.total = boxes;
+    Object.assign(stadiumState.capacity, totals);
+    stadiumState.capacity.boxes.total = totals.boxes;
 };
 
+/**
+ * Fügt Bauprojekt zur Queue hinzu
+ * ✅ ES2025: Strukturierte Project-Erstellung
+ */
 const addConstructionProject = (projectData) => {
-    const canStartImmediately = stadiumState.construction.active < TIMING_CONFIG.MAX_PARALLEL_BUILDS;
+    const canStartImmediately = stadiumState.construction.active < TIMING.MAX_PARALLEL_BUILDS;
 
     const project = {
         id: `${projectData.type}_${Date.now()}`,
@@ -377,29 +541,65 @@ const showNotification = (message) => {
 
 // =====================================================
 // MODAL SYSTEM
+// ✅ ES2025: Error Handling mit Error Causes
 // =====================================================
 
+/**
+ * Öffnet Block-Ausbau Modal
+ * ✅ ES2025: Strukturierte Validation
+ */
 const openBlockExpansionModal = (block) => {
-    if (!isValidBlock(block)) return;
+    try {
+        if (!isValidBlock(block)) {
+            throw new Error(`Invalid block: ${block}`);
+        }
 
-    const dist = stadiumState.capacity.distribution[block];
-    const currentCapacity = dist.capacity;
-    const maxCapacity = CAPACITY_CONFIG.MAX_CAPACITY / 4;
+        const dist = stadiumState?.capacity?.distribution?.[block];
+        if (!dist) {
+            throw new Error(`Block distribution not found: ${block}`);
+        }
 
-    if (currentCapacity >= maxCapacity) {
-        showNotification(`❌ ${UI_TEXTS.blocks[block]} ist bereits maximal ausgebaut!`);
-        return;
+        const currentCapacity = dist.capacity;
+        const maxCapacity = CAPACITY_CONFIG.MAX_CAPACITY / 4;
+
+        if (currentCapacity >= maxCapacity) {
+            showNotification(`❌ ${UI_TEXTS.blocks[block]} ist bereits maximal ausgebaut!`);
+            return;
+        }
+
+        const {minStep, maxStep: configMaxStep} = EXPANSION_CONFIG;
+        const maxStep = Math.min(configMaxStep, maxCapacity - currentCapacity);
+        const initialValue = Math.min(1000, maxStep);
+
+        const modal = document.createElement('div');
+        modal.className = 'stadium-modal';
+        modal.id = 'blockExpansionModal';
+
+        modal.innerHTML = renderBlockExpansionModalContent(block, dist, initialValue, maxStep);
+
+        document.body.appendChild(modal);
+        currentModal = modal;
+
+        setupBlockExpansionModal(modal, block, currentCapacity, maxStep);
+
+        requestAnimationFrame(() => modal.classList.add('active'));
+
+    } catch (error) {
+        const modalError = new Error('Failed to open block expansion modal');
+        modalError.cause = error;
+        console.error('❌ Modal error:', modalError);
+        showNotification('❌ Fehler beim Öffnen des Ausbau-Menüs');
     }
+};
 
-    const {minStep, maxStep: configMaxStep} = EXPANSION_CONFIG;
-    const maxStep = Math.min(configMaxStep, maxCapacity - currentCapacity);
-    const initialValue = Math.min(1000, maxStep);
+/**
+ * Rendert Block-Ausbau Modal Content
+ * ✅ ES2025: Template-basiertes Rendering
+ */
+const renderBlockExpansionModalContent = (block, dist, initialValue, maxStep) => {
+    const {minStep} = EXPANSION_CONFIG;
 
-    const modal = document.createElement('div');
-    modal.className = 'stadium-modal';
-    modal.id = 'blockExpansionModal';
-
-    modal.innerHTML = `
+    return `
         <div class="stadium-modal-content">
             <div class="stadium-modal-header">
                 <h2>🏗️ ${UI_TEXTS.blocks[block]} ausbauen</h2>
@@ -408,10 +608,24 @@ const openBlockExpansionModal = (block) => {
             
             <div class="stadium-modal-body">
                 <div class="block-info-section">
-                    <div class="block-info-row"><span class="block-info-label">Kapazität:</span><span class="block-info-value">${formatCapacity(currentCapacity)}</span></div>
-                    <div class="block-info-row"><span class="block-info-label">Stehplätze:</span><span class="block-info-value">${formatCapacity(dist.standing)}</span></div>
-                    <div class="block-info-row"><span class="block-info-label">Sitzplätze:</span><span class="block-info-value">${formatCapacity(dist.seated)}</span></div>
-                    ${dist.boxes > 0 ? `<div class="block-info-row"><span class="block-info-label">Logen:</span><span class="block-info-value">${formatCapacity(dist.boxes)}</span></div>` : ''}
+                    <div class="block-info-row">
+                        <span class="block-info-label">Kapazität:</span>
+                        <span class="block-info-value">${formatCapacity(dist.capacity)}</span>
+                    </div>
+                    <div class="block-info-row">
+                        <span class="block-info-label">Stehplätze:</span>
+                        <span class="block-info-value">${formatCapacity(dist.standing)}</span>
+                    </div>
+                    <div class="block-info-row">
+                        <span class="block-info-label">Sitzplätze:</span>
+                        <span class="block-info-value">${formatCapacity(dist.seated)}</span>
+                    </div>
+                    ${dist.boxes > 0 ? `
+                        <div class="block-info-row">
+                            <span class="block-info-label">Logen:</span>
+                            <span class="block-info-value">${formatCapacity(dist.boxes)}</span>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div class="expansion-slider-section">
@@ -439,37 +653,44 @@ const openBlockExpansionModal = (block) => {
             </div>
         </div>
     `;
+};
 
-    document.body.appendChild(modal);
-    currentModal = modal;
-
+/**
+ * Setup Block-Ausbau Modal Events
+ * ✅ ES2025: Throttled Updates mit WeakMap-Caching
+ */
+const setupBlockExpansionModal = (modal, block, currentCapacity, maxStep) => {
     const slider = modal.querySelector('#capacitySlider');
     const confirmBtn = modal.querySelector('#confirmExpansionBtn');
 
-    // Throttled Slider Update
-    const throttledUpdatePreview = throttle(() => {
-        const additionalSeats = parseInt(slider.value, 10);
-        updateExpansionPreview(block, currentCapacity, additionalSeats, maxStep);
-    }, SLIDER_THROTTLE);
+    if (!slider || !confirmBtn) {
+        console.error('❌ Modal elements not found');
+        return;
+    }
 
-    slider.addEventListener('input', throttledUpdatePreview, {signal: eventController.signal});
+    // ✅ ES2025: Throttled Update für bessere Performance
+    const updatePreview = (additionalSeats) => {
+        updateExpansionPreview(block, currentCapacity, additionalSeats, maxStep);
+    };
+    const throttledUpdate = throttle(updatePreview, CONFIG.SLIDER_THROTTLE);
+
+    slider.addEventListener('input', () => {
+        throttledUpdate(parseInt(slider.value, 10));
+    }, {signal: eventController.signal});
 
     confirmBtn.addEventListener('click', () => {
         confirmBlockExpansion(block, parseInt(slider.value, 10));
     }, {signal: eventController.signal});
 
-    updateExpansionPreview(block, currentCapacity, initialValue, maxStep);
-
-    requestAnimationFrame(() => modal.classList.add('active'));
+    // Initial preview
+    updatePreview(parseInt(slider.value, 10));
 };
 
+/**
+ * Aktualisiert Expansion Preview
+ * ✅ ES2025: Batch DOM Updates
+ */
 const updateExpansionPreview = (block, currentCapacity, additionalSeats, maxStep) => {
-    const previewEl = document.getElementById('expansionPreview');
-    const sliderValueEl = document.getElementById('sliderValue');
-    const slider = document.getElementById('capacitySlider');
-
-    if (!previewEl || !sliderValueEl || !slider) return;
-
     const newCapacity = currentCapacity + additionalSeats;
     const cost = calculateExpansionCost(block, additionalSeats);
     const buildWeeks = calculateExpansionBuildWeeks(additionalSeats);
@@ -479,27 +700,59 @@ const updateExpansionPreview = (block, currentCapacity, additionalSeats, maxStep
     const newDist = calculateCapacityDistribution(newCapacity, hasBoxes);
 
     batchDOMUpdates(() => {
-        sliderValueEl.textContent = `+${formatCapacity(additionalSeats)}`;
-        slider.style.setProperty('--slider-progress', `${(additionalSeats / maxStep) * 100}%`);
+        safeSetText('sliderValue', `+${formatCapacity(additionalSeats)}`);
 
-        previewEl.innerHTML = `
+        const slider = document.getElementById('capacitySlider');
+        if (slider) {
+            slider.style.setProperty('--slider-progress', `${(additionalSeats / maxStep) * 100}%`);
+        }
+
+        const previewHTML = `
             <h3>📊 Vorschau</h3>
-            <div class="preview-row"><span class="preview-label">Neue Kapazität:</span><span class="preview-value highlight">${formatCapacity(currentCapacity)} → ${formatCapacity(newCapacity)}</span></div>
-            <div class="preview-row"><span class="preview-label">Stehplätze:</span><span class="preview-value">${formatCapacity(newDist.standing)}</span></div>
-            <div class="preview-row"><span class="preview-label">Sitzplätze:</span><span class="preview-value">${formatCapacity(newDist.seated)}</span></div>
-            ${newDist.boxes > 0 ? `<div class="preview-row"><span class="preview-label">Logen:</span><span class="preview-value">${formatCapacity(newDist.boxes)}</span></div>` : ''}
-            <div class="preview-row"><span class="preview-label">Kosten:</span><span class="preview-value highlight">${formatCurrency(cost)}</span></div>
-            <div class="preview-row"><span class="preview-label">Bauzeit:</span><span class="preview-value">${buildWeeks} SW (${buildDays} Tage)</span></div>
+            <div class="preview-row">
+                <span class="preview-label">Neue Kapazität:</span>
+                <span class="preview-value highlight">${formatCapacity(currentCapacity)} → ${formatCapacity(newCapacity)}</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Stehplätze:</span>
+                <span class="preview-value">${formatCapacity(newDist.standing)}</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Sitzplätze:</span>
+                <span class="preview-value">${formatCapacity(newDist.seated)}</span>
+            </div>
+            ${newDist.boxes > 0 ? `
+                <div class="preview-row">
+                    <span class="preview-label">Logen:</span>
+                    <span class="preview-value">${formatCapacity(newDist.boxes)}</span>
+                </div>
+            ` : ''}
+            <div class="preview-row">
+                <span class="preview-label">Kosten:</span>
+                <span class="preview-value highlight">${formatCurrency(cost)}</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Bauzeit:</span>
+                <span class="preview-value">${buildWeeks} SW (${buildDays} Tage)</span>
+            </div>
         `;
+
+        safeSetHTML('expansionPreview', previewHTML);
     });
 };
 
+/**
+ * Bestätigt Block-Ausbau
+ * ✅ ES2025: Strukturierte Confirmation
+ */
 const confirmBlockExpansion = (block, additionalSeats) => {
     const cost = calculateExpansionCost(block, additionalSeats);
     const buildWeeks = calculateExpansionBuildWeeks(additionalSeats);
     const buildDays = calculateBuildDays(buildWeeks);
 
-    if (!confirm(`Tribünen-Ausbau ${UI_TEXTS.blocks[block]}?\n\n+${formatCapacity(additionalSeats)} Plätze\n${formatCurrency(cost)}\n${buildDays} Tage`)) {
+    const confirmMessage = `Tribünen-Ausbau ${UI_TEXTS.blocks[block]}?\n\n+${formatCapacity(additionalSeats)} Plätze\n${formatCurrency(cost)}\n${buildDays} Tage`;
+
+    if (!confirm(confirmMessage)) {
         return;
     }
 
@@ -516,18 +769,49 @@ const confirmBlockExpansion = (block, additionalSeats) => {
     showNotification(`🔨 Tribünen-Ausbau gestartet!`);
 };
 
+/**
+ * Öffnet Pitch-Renovation Modal
+ * ✅ ES2025: Strukturiertes Modal Rendering
+ */
 const openPitchRenovationModal = () => {
-    const {condition} = stadiumState.features.pitch;
-    const {cost, buildWeeks} = PITCH_CONFIG.renovation;
-    const buildDays = calculateBuildDays(buildWeeks);
+    try {
+        const condition = stadiumState?.features?.pitch?.condition ?? 100;
+        const {cost, buildWeeks} = PITCH_CONFIG.renovation;
+        const buildDays = calculateBuildDays(buildWeeks);
 
-    const conditionClass = condition >= 70 ? 'excellent' : condition >= 40 ? 'good' : 'poor';
+        const conditionClass = condition >= 70 ? 'excellent'
+            : condition >= 40 ? 'good'
+                : 'poor';
 
-    const modal = document.createElement('div');
-    modal.className = 'stadium-modal';
-    modal.id = 'pitchRenovationModal';
+        const modal = document.createElement('div');
+        modal.className = 'stadium-modal';
+        modal.id = 'pitchRenovationModal';
 
-    modal.innerHTML = `
+        modal.innerHTML = renderPitchRenovationModalContent(condition, conditionClass, cost, buildDays);
+
+        document.body.appendChild(modal);
+        currentModal = modal;
+
+        // ✅ ES2025: Optional Chaining für Event Setup
+        const confirmBtn = modal.querySelector('#confirmRenovationBtn');
+        confirmBtn?.addEventListener('click', confirmPitchRenovation, {signal: eventController.signal});
+
+        requestAnimationFrame(() => modal.classList.add('active'));
+
+    } catch (error) {
+        const modalError = new Error('Failed to open pitch renovation modal');
+        modalError.cause = error;
+        console.error('❌ Modal error:', modalError);
+        showNotification('❌ Fehler beim Öffnen des Rasen-Menüs');
+    }
+};
+
+/**
+ * Rendert Pitch-Renovation Modal Content
+ * ✅ ES2025: Template-basiertes Rendering
+ */
+const renderPitchRenovationModalContent = (condition, conditionClass, cost, buildDays) => {
+    return `
         <div class="stadium-modal-content">
             <div class="stadium-modal-header">
                 <h2>🌱 Rasen-Renovation</h2>
@@ -572,18 +856,11 @@ const openPitchRenovationModal = () => {
             </div>
         </div>
     `;
-
-    document.body.appendChild(modal);
-    currentModal = modal;
-
-    const confirmBtn = modal.querySelector('#confirmRenovationBtn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', confirmPitchRenovation, {signal: eventController.signal});
-    }
-
-    requestAnimationFrame(() => modal.classList.add('active'));
 };
 
+/**
+ * Bestätigt Pitch-Renovation
+ */
 const confirmPitchRenovation = () => {
     const {cost, buildWeeks} = PITCH_CONFIG.renovation;
     const buildDays = calculateBuildDays(buildWeeks);
@@ -603,10 +880,15 @@ const confirmPitchRenovation = () => {
     showNotification(`🔨 Rasen-Renovation gestartet!`);
 };
 
+/**
+ * Schließt Stadium Modal
+ * ✅ ES2025: Optional Chaining für sichere DOM-Manipulation
+ */
 const closeStadiumModal = () => {
     if (!currentModal) return;
 
     currentModal.classList.remove('active');
+
     setTimeout(() => {
         currentModal?.remove();
         currentModal = null;
@@ -615,81 +897,159 @@ const closeStadiumModal = () => {
 
 // =====================================================
 // FEATURE MANAGEMENT
+// ✅ ES2025: Map für strukturierte Handler
 // =====================================================
 
+/**
+ * Baut Dach für Block
+ */
 const buildRoof = (block) => {
-    if (!isValidBlock(block)) return;
+    try {
+        if (!isValidBlock(block)) {
+            throw new Error(`Invalid block: ${block}`);
+        }
 
-    if (stadiumState.features.roofs[block]) {
-        showNotification(`❌ ${UI_TEXTS.blocks[block]} hat bereits ein Dach!`);
-        return;
+        if (stadiumState?.features?.roofs?.[block]) {
+            showNotification(`❌ ${UI_TEXTS.blocks[block]} hat bereits ein Dach!`);
+            return;
+        }
+
+        const {cost, buildWeeks} = ROOF_CONFIG;
+        const duration = calculateBuildDays(buildWeeks);
+
+        if (!confirm(`Dach für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) {
+            return;
+        }
+
+        addConstructionProject({
+            type: 'roof',
+            name: `Dach ${UI_TEXTS.blocks[block]}`,
+            block,
+            duration,
+            cost
+        });
+
+        showNotification(`🔨 Dachbau gestartet!`);
+
+    } catch (error) {
+        const roofError = new Error('Failed to build roof');
+        roofError.cause = error;
+        console.error('❌ Roof construction error:', roofError);
+        showNotification('❌ Fehler beim Dachbau');
     }
-
-    const {cost, buildWeeks} = ROOF_CONFIG;
-    const duration = calculateBuildDays(buildWeeks);
-
-    if (!confirm(`Dach für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) return;
-
-    addConstructionProject({type: 'roof', name: `Dach ${UI_TEXTS.blocks[block]}`, block, duration, cost});
-    showNotification(`🔨 Dachbau gestartet!`);
 };
 
+/**
+ * Upgraded Flutlicht
+ */
 const upgradeFloodlight = () => {
-    const nextStage = stadiumState.features.floodlight + 1;
+    try {
+        const currentStage = stadiumState?.features?.floodlight ?? 0;
+        const nextStage = currentStage + 1;
 
-    if (nextStage >= FLOODLIGHT_CONFIG.stages.length) {
-        showNotification('❌ Flutlicht bereits maximal!');
-        return;
+        if (nextStage >= FLOODLIGHT_CONFIG.stages.length) {
+            showNotification('❌ Flutlicht bereits maximal!');
+            return;
+        }
+
+        const stage = FLOODLIGHT_CONFIG.stages[nextStage];
+        const duration = calculateBuildDays(stage.buildWeeks);
+        const tvBonus = ((stage.tvRevenueMultiplier - 1) * 100).toFixed(0);
+
+        if (!confirm(`Flutlicht → "${stage.name}"?\n\n${formatCurrency(stage.cost)}\n${duration} Tage\n+${tvBonus}% TV`)) {
+            return;
+        }
+
+        addConstructionProject({
+            type: 'floodlight',
+            name: `Flutlicht: ${stage.name}`,
+            targetStage: nextStage,
+            duration,
+            cost: stage.cost
+        });
+
+        showNotification(`🔨 Flutlicht-Upgrade gestartet!`);
+
+    } catch (error) {
+        const floodlightError = new Error('Failed to upgrade floodlight');
+        floodlightError.cause = error;
+        console.error('❌ Floodlight upgrade error:', floodlightError);
+        showNotification('❌ Fehler beim Flutlicht-Upgrade');
     }
-
-    const stage = FLOODLIGHT_CONFIG.stages[nextStage];
-    const duration = calculateBuildDays(stage.buildWeeks);
-
-    if (!confirm(`Flutlicht → "${stage.name}"?\n\n${formatCurrency(stage.cost)}\n${duration} Tage\n+${((stage.tvRevenueMultiplier - 1) * 100).toFixed(0)}% TV`)) return;
-
-    addConstructionProject({
-        type: 'floodlight',
-        name: `Flutlicht: ${stage.name}`,
-        targetStage: nextStage,
-        duration,
-        cost: stage.cost
-    });
-    showNotification(`🔨 Flutlicht-Upgrade gestartet!`);
 };
 
+/**
+ * Installiert Werbebande
+ */
 const installAdvertising = (block) => {
-    if (!isValidBlock(block)) return;
+    try {
+        if (!isValidBlock(block)) {
+            throw new Error(`Invalid block: ${block}`);
+        }
 
-    if (stadiumState.features.advertising[block]) {
-        showNotification(`❌ ${UI_TEXTS.blocks[block]} hat bereits Werbung!`);
-        return;
+        if (stadiumState?.features?.advertising?.[block]) {
+            showNotification(`❌ ${UI_TEXTS.blocks[block]} hat bereits Werbung!`);
+            return;
+        }
+
+        const {cost, buildWeeks} = ADVERTISING_CONFIG;
+        const duration = calculateBuildDays(buildWeeks);
+
+        if (!confirm(`Werbung für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) {
+            return;
+        }
+
+        addConstructionProject({
+            type: 'advertising',
+            name: `Werbung ${UI_TEXTS.blocks[block]}`,
+            block,
+            duration,
+            cost
+        });
+
+        showNotification(`🔨 Werbeinstallation gestartet!`);
+
+    } catch (error) {
+        const adError = new Error('Failed to install advertising');
+        adError.cause = error;
+        console.error('❌ Advertising installation error:', adError);
+        showNotification('❌ Fehler bei Werbeinstallation');
     }
-
-    const {cost, buildWeeks} = ADVERTISING_CONFIG;
-    const duration = calculateBuildDays(buildWeeks);
-
-    if (!confirm(`Werbung für ${UI_TEXTS.blocks[block]}?\n\n${formatCurrency(cost)}\n${duration} Tage`)) return;
-
-    addConstructionProject({type: 'advertising', name: `Werbung ${UI_TEXTS.blocks[block]}`, block, duration, cost});
-    showNotification(`🔨 Werbeinstallation gestartet!`);
 };
 
+/**
+ * Öffnet Sponsor-Verwaltung
+ */
 const manageSponsor = (block) => {
-    if (!isValidBlock(block)) return;
+    try {
+        if (!isValidBlock(block)) {
+            throw new Error(`Invalid block: ${block}`);
+        }
 
-    if (!hasBlockAdvertising(stadiumState, block)) {
-        showNotification(`❌ Bitte zuerst Werbebande installieren!`);
-        return;
+        if (!hasBlockAdvertising(stadiumState, block)) {
+            showNotification(`❌ Bitte zuerst Werbebande installieren!`);
+            return;
+        }
+
+        if (hasBlockSponsor(stadiumState, block)) {
+            showNotification(`ℹ️ ${UI_TEXTS.blocks[block]} hat bereits einen Sponsor.`);
+            return;
+        }
+
+        openSponsorSelectionModal(block, stadiumState);
+
+    } catch (error) {
+        const sponsorError = new Error('Failed to manage sponsor');
+        sponsorError.cause = error;
+        console.error('❌ Sponsor management error:', sponsorError);
+        showNotification('❌ Fehler bei Sponsor-Verwaltung');
     }
-
-    if (hasBlockSponsor(stadiumState, block)) {
-        showNotification(`ℹ️ ${UI_TEXTS.blocks[block]} hat bereits einen Sponsor.`);
-        return;
-    }
-
-    openSponsorSelectionModal(block, stadiumState);
 };
 
+/**
+ * Finalisiert Sponsor-Buchung
+ * ✅ ES2025: Strukturiertes Error Handling
+ */
 const finalizeSponsorBooking = (sponsorId) => {
     const block = getCurrentBlock();
 
@@ -700,6 +1060,7 @@ const finalizeSponsorBooking = (sponsorId) => {
             saveStadiumStateImmediate();
             showSuccessModal(result.sponsor, result.initialPayment);
 
+            // Deferred UI update nach Modal-Animation
             setTimeout(() => {
                 batchDOMUpdates(() => {
                     renderStadiumOverview();
@@ -711,106 +1072,149 @@ const finalizeSponsorBooking = (sponsorId) => {
             }, 500);
         }
     } catch (error) {
+        const bookingError = new Error('Failed to finalize sponsor booking');
+        bookingError.cause = error;
+        console.error('❌ Sponsor booking error:', bookingError);
         showNotification(`❌ ${error.message}`);
         closeModal();
     }
 };
 
 // =====================================================
-// RENDERING - SAFARI FIX
+// RENDERING
+// ✅ ES2025: Batch-Updates mit Optional Chaining
 // =====================================================
 
 /**
- * SAFARI FIX: Direkter DOM-Zugriff ohne Caching
- * Jeder Aufruf holt frische Element-Referenzen
+ * Rendert Stadium Overview
+ * ✅ FIX: Pitch Type wird jetzt dynamisch gesetzt
  */
 const renderStadiumOverview = () => {
-    const {capacity, features} = stadiumState;
-    const stage = FLOODLIGHT_CONFIG.stages[features.floodlight];
-    const condition = features.pitch.condition;
-    const conditionColor = condition > 70 ? '#68d391' : condition > 40 ? '#f6ad55' : '#fc8181';
-
-    // SAFARI FIX: Direkte getElementById-Aufrufe statt gecachte Referenzen
-    batchDOMUpdates(() => {
-        // Hauptkapazitäten
-        safeSetText(getElement('totalCapacity'), formatCapacity(capacity.total));
-        safeSetText(getElement('standingCapacity'), formatCapacity(capacity.standing));
-        safeSetText(getElement('seatedCapacity'), formatCapacity(capacity.seated));
-        safeSetText(getElement('boxesCapacity'), formatCapacity(capacity.boxes.total));
-
-        // Flutlicht & Rasen
-        safeSetText(getElement('floodlightStage'), stage.name);
-        safeSetText(getElement('floodlightStage2'), stage.name);
-        safeSetText(getElement('pitchType'), 'British');
-
-        const pitchConditionEl = getElement('pitchCondition');
-        if (pitchConditionEl) {
-            pitchConditionEl.textContent = `${condition}%`;
-            pitchConditionEl.style.color = conditionColor;
+    try {
+        const {capacity, features} = stadiumState ?? {};
+        if (!capacity || !features) {
+            console.warn('⚠️ Invalid stadium state for rendering');
+            return;
         }
 
-        // Block-Kapazitäten - SAFARI FIX: Jedes Element einzeln abrufen
-        for (const block of BLOCKS) {
-            const dist = capacity.distribution[block];
+        const stage = FLOODLIGHT_CONFIG.stages[features.floodlight];
+        const condition = features.pitch?.condition ?? 100;
 
-            // Kapazität
-            const capacityEl = getElement(`block${block}Capacity`);
-            if (capacityEl) {
-                capacityEl.textContent = formatCapacity(dist.capacity);
-            }
-
-            // Dach-Status
-            const roofEl = getElement(`block${block}Roof`);
-            if (roofEl) {
-                roofEl.textContent = features.roofs[block] ? '✅ Ja' : '❌ Nein';
-            }
-
-            // Werbung-Status
-            const adEl = getElement(`block${block}Ad`);
-            if (adEl) {
-                adEl.textContent = features.advertising[block] ? '✅ Ja' : '❌ Nein';
-            }
+        // ✅ FIX: Pitch Type Name basierend auf Condition
+        let pitchTypeName;
+        if (condition >= 70) {
+            pitchTypeName = 'British Premium';
+        } else if (condition >= 40) {
+            pitchTypeName = 'Normal';
+        } else {
+            pitchTypeName = 'Kuhkoppel';
         }
-    });
 
-    // Visualisierung separat aktualisieren
-    batchDOMUpdates(() => {
+        // ✅ FIX: Condition Color
+        const conditionColor = condition > 70 ? '#68d391'
+            : condition > 40 ? '#f6ad55'
+                : '#fc8181';
+
+        // ✅ ES2025: Batch alle Updates zusammen
+        batchDOMUpdates(() => {
+            // Hauptkapazitäten
+            const capacityUpdates = [
+                ['totalCapacity', formatCapacity(capacity.total)],
+                ['standingCapacity', formatCapacity(capacity.standing)],
+                ['seatedCapacity', formatCapacity(capacity.seated)],
+                ['boxesCapacity', formatCapacity(capacity.boxes?.total ?? 0)],
+                ['floodlightStage', stage.name],
+                ['floodlightStage2', stage.name],
+                ['pitchType', pitchTypeName] // ✅ FIX: Dynamischer Name
+            ];
+
+            batchSetText(capacityUpdates);
+
+            // ✅ FIX: Pitch Condition mit Style
+            const pitchConditionEl = document.getElementById('pitchCondition');
+            if (pitchConditionEl) {
+                pitchConditionEl.textContent = `${condition}%`;
+                pitchConditionEl.style.color = conditionColor;
+            }
+
+            // Block-Updates
+            for (const block of BLOCKS) {
+                const dist = capacity.distribution[block];
+
+                safeSetText(`block${block}Capacity`, formatCapacity(dist.capacity));
+                safeSetText(`block${block}Roof`, features.roofs[block] ? '✅ Ja' : '❌ Nein');
+                safeSetText(`block${block}Ad`, features.advertising[block] ? '✅ Ja' : '❌ Nein');
+            }
+        });
+
+        // ✅ FIX: Visualisierung aktualisieren (inkl. Pitch Type)
         updateStadiumVisualization();
-    });
+
+    } catch (error) {
+        const renderError = new Error('Failed to render stadium overview');
+        renderError.cause = error;
+        console.error('❌ Render error:', renderError);
+    }
 };
 
+/**
+ * Aktualisiert Stadium-Visualisierung
+ * ✅ FIX: Pitch Type CSS-Klasse wird jetzt dynamisch gesetzt
+ */
 const updateStadiumVisualization = () => {
-    const {features} = stadiumState;
+    const {features} = stadiumState ?? {};
+    if (!features) return;
 
     for (const block of BLOCKS) {
         const blockEl = document.querySelector(`.stadium-block[data-block="${block}"]`);
         if (!blockEl) continue;
 
+        // Roof Icon
         const roofIcon = blockEl.querySelector('.roof-icon');
-        if (roofIcon) roofIcon.style.display = features.roofs[block] ? 'block' : 'none';
+        if (roofIcon) {
+            roofIcon.style.display = features.roofs[block] ? 'block' : 'none';
+        }
 
+        // Boxes Icon (nur SUED)
         const boxesIcon = blockEl.querySelector('.boxes-icon');
         if (boxesIcon && block === CAPACITY_CONFIG.FIXED_BOX_BLOCK) {
             boxesIcon.style.display = 'block';
         }
 
+        // Advertising Class
         blockEl.classList.toggle('has-advertising', features.advertising[block]);
     }
 
+    // ✅ FIX: Pitch Type dynamisch basierend auf Condition
     const pitchEl = document.querySelector('.stadium-pitch');
     if (pitchEl) {
-        pitchEl.classList.remove('pitch-normal', 'pitch-dirt');
-        pitchEl.classList.add('pitch-british');
+        const condition = features.pitch?.condition ?? 100;
+
+        // Entferne alle Pitch-Type Klassen
+        pitchEl.classList.remove('pitch-british', 'pitch-normal', 'pitch-dirt');
+
+        // Setze richtige Klasse basierend auf Condition
+        if (condition >= 70) {
+            pitchEl.classList.add('pitch-british');
+        } else if (condition >= 40) {
+            pitchEl.classList.add('pitch-normal');
+        } else {
+            pitchEl.classList.add('pitch-dirt');
+        }
     }
 };
 
+/**
+ * Rendert Construction Queue
+ * ✅ ES2025: Template-basiertes Rendering
+ */
 const renderConstructionQueue = () => {
-    const queueContainer = getElement('constructionQueue');
+    const queueContainer = document.getElementById('constructionQueue');
     if (!queueContainer) return;
 
-    const {queue} = stadiumState.construction;
+    const queue = stadiumState?.construction?.queue ?? [];
 
-    if (!queue.length) {
+    if (queue.length === 0) {
         queueContainer.innerHTML = '<p class="no-construction">Keine laufenden Bauprojekte</p>';
         return;
     }
@@ -826,8 +1230,14 @@ const renderConstructionQueue = () => {
                     <span class="construction-status ${project.status}">${statusText}</span>
                 </div>
                 <div class="construction-details">
-                    <div class="detail-row"><span>Verbleibend:</span><span>${project.remainingDays} Tage</span></div>
-                    <div class="detail-row"><span>Kosten:</span><span>${formatCurrency(project.cost)}</span></div>
+                    <div class="detail-row">
+                        <span>Verbleibend:</span>
+                        <span>${project.remainingDays} Tage</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Kosten:</span>
+                        <span>${formatCurrency(project.cost)}</span>
+                    </div>
                 </div>
                 <div class="progress-bar-container">
                     <div class="progress-bar-fill" style="width:${progress}%"></div>
@@ -842,6 +1252,10 @@ const renderConstructionQueue = () => {
     });
 };
 
+/**
+ * Wechselt Feature-Tab
+ * ✅ ES2025: Batch DOM Updates
+ */
 const switchFeatureTab = (tabName) => {
     const tabIdMap = {
         blocks: 'tabBlocks',
@@ -851,18 +1265,22 @@ const switchFeatureTab = (tabName) => {
     };
 
     batchDOMUpdates(() => {
+        // Update buttons
         document.querySelectorAll('.feature-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
+        // Hide all content
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
         });
 
+        // Show target content
         const targetContent = document.getElementById(tabIdMap[tabName]);
         if (targetContent) {
             targetContent.classList.add('active');
 
+            // Lazy-load sponsor overview
             if (tabName === 'sponsors') {
                 const container = document.getElementById('sponsorOverviewContainer');
                 if (container) {
@@ -875,183 +1293,270 @@ const switchFeatureTab = (tabName) => {
 
 // =====================================================
 // EVENT HANDLING
+// ✅ ES2025: Map für strukturierte Action Handlers
 // =====================================================
 
-const actionHandlers = {
-    openBlockExpansion: (target) => openBlockExpansionModal(target.dataset.block),
-    openPitchRenovation: () => openPitchRenovationModal(),
-    closeStadiumModal: () => closeStadiumModal(),
-    buildRoof: (target) => buildRoof(target.dataset.block),
-    upgradeFloodlight: () => upgradeFloodlight(),
-    installAdvertising: (target) => installAdvertising(target.dataset.block),
-    manageSponsor: (target) => manageSponsor(target.dataset.block),
-    openSponsorSelection: (target) => openSponsorSelectionModal(target.dataset.block, stadiumState),
-    showSponsorDetails: (target) => showSponsorDetailsModal(parseInt(target.dataset.sponsorId, 10), stadiumState),
-    confirmBooking: (target) => showConfirmationModal(parseInt(target.dataset.sponsorId, 10), stadiumState),
-    finalizeBooking: (target) => finalizeSponsorBooking(parseInt(target.dataset.sponsorId, 10)),
-    toggleComparisonMode: () => {
+const ACTION_HANDLERS = new Map([
+    ['openBlockExpansion', (target) => openBlockExpansionModal(target.dataset.block)],
+    ['openPitchRenovation', () => openPitchRenovationModal()],
+    ['closeStadiumModal', () => closeStadiumModal()],
+    ['buildRoof', (target) => buildRoof(target.dataset.block)],
+    ['upgradeFloodlight', () => upgradeFloodlight()],
+    ['installAdvertising', (target) => installAdvertising(target.dataset.block)],
+    ['manageSponsor', (target) => manageSponsor(target.dataset.block)],
+    ['openSponsorSelection', (target) => openSponsorSelectionModal(target.dataset.block, stadiumState)],
+    ['showSponsorDetails', (target) => showSponsorDetailsModal(parseInt(target.dataset.sponsorId, 10), stadiumState)],
+    ['confirmBooking', (target) => showConfirmationModal(parseInt(target.dataset.sponsorId, 10), stadiumState)],
+    ['finalizeBooking', (target) => finalizeSponsorBooking(parseInt(target.dataset.sponsorId, 10))],
+    ['toggleComparisonMode', () => {
         toggleComparisonMode();
         refreshSponsorSelectionModal(stadiumState);
-    },
-    toggleComparison: (target) => {
+    }],
+    ['toggleComparison', (target) => {
         const sponsorId = parseInt(target.dataset.sponsorId, 10);
         if (toggleSponsorForComparison(sponsorId)) {
             showComparisonModal(getSelectedForComparison(), stadiumState);
         } else {
             refreshSponsorSelectionModal(stadiumState);
         }
-    },
-    closeModal: () => closeModal(),
-    closeModalAndRefresh: () => {
+    }],
+    ['closeModal', () => closeModal()],
+    ['closeModalAndRefresh', () => {
         closeModal();
         renderStadiumOverview();
         switchFeatureTab('sponsors');
-    },
-    backToSelection: () => {
+    }],
+    ['backToSelection', () => {
         closeModal(false);
         setTimeout(() => openSponsorSelectionModal(getCurrentBlock(), stadiumState), 100);
-    },
-    backToDetails: (target) => {
+    }],
+    ['backToDetails', (target) => {
         closeModal(false);
         setTimeout(() => showSponsorDetailsModal(parseInt(target.dataset.sponsorId, 10), stadiumState), 100);
-    },
-    goToSponsorOverview: () => {
+    }],
+    ['goToSponsorOverview', () => {
         closeModal();
         switchFeatureTab('sponsors');
-    },
-    simulateDay: () => simulateDay()
-};
+    }],
+    ['simulateDay', () => simulateDay()]
+]);
 
+/**
+ * Globaler Click-Handler
+ * ✅ ES2025: Map-basierte Handler-Lookup
+ */
 const handleClick = (e) => {
+    // Tab-Switching
     const tabTarget = e.target.closest('[data-tab]');
     if (tabTarget) {
         switchFeatureTab(tabTarget.dataset.tab);
         return;
     }
 
+    // Action-Handler
     const actionTarget = e.target.closest('[data-action]');
     if (!actionTarget) return;
 
-    const handler = actionHandlers[actionTarget.dataset.action];
+    const action = actionTarget.dataset.action;
+    const handler = ACTION_HANDLERS.get(action);
+
     if (handler) {
-        handler(actionTarget);
+        try {
+            handler(actionTarget);
+        } catch (error) {
+            const handlerError = new Error(`Action handler failed: ${action}`);
+            handlerError.cause = error;
+            console.error('❌ Handler error:', handlerError);
+            showNotification('❌ Aktion fehlgeschlagen');
+        }
+    } else {
+        console.warn(`⚠️ Unknown action: ${action}`);
     }
 };
 
-const simulateDay = () => {
-    stadiumState.currentDay++;
+/**
+ * Simuliert einen Tag
+ * ✅ ES2025: Async/Await für Tick-Timer
+ */
+/**
+ * Simuliert einen Tag
+ * ✅ FIX: Render Stadium Overview nach Rasen-Abnutzung
+ */
+const simulateDay = async () => {
+    try {
+        stadiumState.currentDay++;
 
-    if (stadiumState.currentDay > 31) {
-        stadiumState.currentDay = 1;
-        stadiumState.currentMonth++;
-    }
+        if (stadiumState.currentDay > 31) {
+            stadiumState.currentDay = 1;
+            stadiumState.currentMonth++;
+        }
 
-    if (stadiumState.currentDay % 7 === 0) {
-        const roofCount = Object.values(stadiumState.features.roofs).filter(Boolean).length;
-        const wearReduction = roofCount * ROOF_CONFIG.pitchWearReduction;
-        const actualWear = PITCH_CONFIG.BASE_WEAR_PER_MATCH * (1 - wearReduction);
+        // Rasen-Abnutzung bei Spieltagen
+        if (stadiumState.currentDay % 7 === 0) {
+            const roofCount = Object.values(stadiumState.features.roofs).filter(Boolean).length;
+            const wearReduction = roofCount * ROOF_CONFIG.pitchWearReduction;
+            const actualWear = PITCH_CONFIG.BASE_WEAR_PER_MATCH * (1 - wearReduction);
 
-        stadiumState.features.pitch.condition = Math.max(0, stadiumState.features.pitch.condition - actualWear);
-    }
+            stadiumState.features.pitch.condition = Math.max(
+                0,
+                stadiumState.features.pitch.condition - actualWear
+            );
 
-    tickBuildTimer();
-    saveStadiumState();
+            // ✅ FIX: Rasen-Typ basierend auf Condition aktualisieren
+            updatePitchType();
+        }
 
-    const currentDayEl = getElement('currentDay');
-    if (currentDayEl) {
-        currentDayEl.textContent = stadiumState.currentDay;
+        await tickBuildTimer();
+        saveStadiumState();
+
+        // ✅ FIX: Stadium Overview neu rendern um Rasen-Zustand zu zeigen
+        safeSetText('currentDay', stadiumState.currentDay);
+        renderStadiumOverview();
+
+    } catch (error) {
+        const simulateError = new Error('Failed to simulate day');
+        simulateError.cause = error;
+        console.error('❌ Simulation error:', simulateError);
+        showNotification('❌ Tag-Simulation fehlgeschlagen');
     }
 };
 
 // =====================================================
-// MODULE LIFECYCLE - SAFARI FIX
+// MODULE LIFECYCLE
+// ✅ ES2025: AbortController für Event Cleanup
 // =====================================================
 
+/**
+ * Initialisiert Stadium-Modul
+ * ✅ ES2025: Strukturiertes Init mit Error Handling
+ */
 export function init() {
     if (isInitialized) {
-        console.warn('Stadium-Modul bereits initialisiert');
+        console.warn('⚠️ Stadium-Modul bereits initialisiert');
         return;
     }
 
-    console.log('🎬 Initialisiere Stadium-Modul (V2.1 Safari Fix)');
+    console.log('🎬 Initialisiere Stadium-Modul (V3.0 ES2025)');
 
-    if (eventController.signal.aborted) {
-        eventController = new AbortController();
-    }
+    try {
+        // ✅ ES2025: Reset AbortController wenn aborted
+        if (eventController.signal.aborted) {
+            eventController = new AbortController();
+        }
 
-    loadStadiumState();
+        // Load state
+        loadStadiumState();
 
-    // SAFARI FIX: Verzögertes Rendering, um sicherzustellen dass DOM bereit ist
-    // Safari braucht manchmal etwas länger, bis alle Elemente verfügbar sind
-    const doInitialRender = () => {
-        batchDOMUpdates(() => {
-            renderStadiumOverview();
-            renderConstructionQueue();
-        });
-    };
-
-    // Prüfen ob DOM-Elemente bereits verfügbar sind
-    const testElement = document.getElementById('totalCapacity');
-
-    if (testElement) {
-        // DOM ist bereit - sofort rendern
-        doInitialRender();
-    } else {
-        // SAFARI FIX: DOM noch nicht bereit - mit kleiner Verzögerung versuchen
-        console.log('⏳ Safari-Modus: Warte auf DOM...');
-
-        // Mehrere Versuche mit steigender Verzögerung
-        let attempts = 0;
-        const maxAttempts = 5;
-
-        const tryRender = () => {
-            attempts++;
-            const el = document.getElementById('totalCapacity');
-
-            if (el || attempts >= maxAttempts) {
-                if (el) {
-                    console.log(`✅ DOM bereit nach ${attempts} Versuch(en)`);
-                } else {
-                    console.warn('⚠️ DOM-Elemente nicht gefunden - rendere trotzdem');
-                }
-                doInitialRender();
-            } else {
-                // Exponentielles Backoff: 10ms, 20ms, 40ms, 80ms, 160ms
-                setTimeout(tryRender, 10 * Math.pow(2, attempts));
+        // ✅ ES2025: Delayed rendering für Safari-Kompatibilität
+        const doInitialRender = () => {
+            try {
+                batchDOMUpdates(() => {
+                    renderStadiumOverview();
+                    renderConstructionQueue();
+                });
+            } catch (error) {
+                const renderError = new Error('Initial render failed');
+                renderError.cause = error;
+                console.error('❌ Initial render error:', renderError);
+                throw renderError;
             }
         };
 
-        // Ersten Versuch nach 10ms starten
-        setTimeout(tryRender, 10);
+        // Check if DOM ready
+        const testElement = document.getElementById('totalCapacity');
+
+        if (testElement) {
+            doInitialRender();
+        } else {
+            // ✅ ES2025: Exponential backoff für DOM-Readiness
+            console.log('⏳ Warte auf DOM-Bereitschaft...');
+
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            const tryRender = () => {
+                attempts++;
+                const el = document.getElementById('totalCapacity');
+
+                if (el || attempts >= maxAttempts) {
+                    if (el) {
+                        console.log(`✅ DOM bereit nach ${attempts} Versuch(en)`);
+                    } else {
+                        console.warn('⚠️ DOM-Elemente nicht gefunden - rendere trotzdem');
+                    }
+                    doInitialRender();
+                } else {
+                    setTimeout(tryRender, 10 * Math.pow(2, attempts));
+                }
+            };
+
+            setTimeout(tryRender, 10);
+        }
+
+        // ✅ ES2025: Event Listener mit AbortController
+        const signal = eventController.signal;
+        document.addEventListener('click', handleClick, {signal});
+
+        isInitialized = true;
+        console.log('✅ Stadium-Modul bereit (V3.0 ES2025)');
+
+    } catch (error) {
+        const initError = new Error('Stadium module initialization failed');
+        initError.cause = error;
+        console.error('❌ Critical init error:', initError);
+        throw initError;
     }
-
-    document.addEventListener('click', handleClick, {signal: eventController.signal});
-
-    isInitialized = true;
-    console.log('✅ Stadium-Modul bereit (V2.1 Safari Fix)');
 }
 
+/**
+ * Cleanup Stadium-Modul
+ * ✅ ES2025: Vollständiger Cleanup mit AbortController
+ */
 export function cleanup() {
-    console.log('🧹 Cleanup Stadium-Modul');
+    console.log('🧹 Cleanup Stadium-Modul (V3.0)');
 
-    eventController.abort();
+    try {
+        // ✅ ES2025: Ein Aufruf entfernt ALLE Events
+        eventController.abort();
+        eventController = new AbortController();
 
-    closeStadiumModal();
-    closeModal();
+        closeStadiumModal();
+        closeModal();
 
-    clearAllCaches();
-    clearTemplateCache();
+        clearAllCaches();
+        clearTemplateCache();
 
-    stadiumState = null;
-    currentModal = null;
-    isInitialized = false;
+        // Clear WeakMaps (GC will handle cleanup)
+        debouncedFunctions.clear?.();
+        throttledFunctions.clear?.();
+
+        stadiumState = null;
+        currentModal = null;
+        isInitialized = false;
+
+        console.log('✅ Stadium-Modul cleanup abgeschlossen');
+
+    } catch (error) {
+        const cleanupError = new Error('Stadium cleanup failed');
+        cleanupError.cause = error;
+        console.error('❌ Cleanup error:', cleanupError);
+    }
 }
 
+/**
+ * Performance Stats für Debugging
+ * ✅ ES2025: Strukturierte Stats
+ */
 export const getPerformanceStats = () => ({
     isInitialized,
-    stateLoaded: stadiumState !== null
+    stateLoaded: stadiumState !== null,
+    modalOpen: currentModal !== null,
+    constructionActive: stadiumState?.construction?.active ?? 0,
+    constructionQueued: stadiumState?.construction?.queue?.length ?? 0,
+    eventControllerAborted: eventController.signal.aborted
 });
 
+// Debug-Funktion global verfügbar machen
 if (typeof window !== 'undefined') {
     window.getStadiumStats = getPerformanceStats;
 }
