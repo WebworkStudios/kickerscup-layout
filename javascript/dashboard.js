@@ -49,7 +49,7 @@ const addEventListener = (element, event, handler, options = false) => {
     if (typeof options === 'object' && !options.signal) {
         options.signal = dashboardAbortController.signal;
     } else if (options === false || options === true) {
-        options = { capture: options, signal: dashboardAbortController.signal };
+        options = {capture: options, signal: dashboardAbortController.signal};
     }
 
     element.addEventListener(event, handler, options);
@@ -347,7 +347,7 @@ const initNewsFilter = () => {
                 currentFilter = filter;
                 filterNews(filter);
 
-                log.debug('FilterButton', 'Filter changed', { filter });
+                log.debug('FilterButton', 'Filter changed', {filter});
             });
         });
 
@@ -372,7 +372,7 @@ const initNewsFilter = () => {
  */
 const handleMatchAction = (action) => {
     try {
-        log.debug('MatchAction', 'Button clicked', { action });
+        log.debug('MatchAction', 'Button clicked', {action});
 
         if (action.includes('Taktik')) {
             navigateTo('tactics');
@@ -381,7 +381,7 @@ const handleMatchAction = (action) => {
         } else if (action.includes('Analyse')) {
             alert('📊 Match-Analyse\n\nDetaillierte Spielanalyse wird geladen...');
         } else {
-            log.debug('MatchAction', 'Unknown action', { action });
+            log.debug('MatchAction', 'Unknown action', {action});
         }
     } catch (error) {
         const contextError = new Error('Failed to handle match action');
@@ -401,7 +401,7 @@ const handleStatClick = (label) => {
     try {
         const normalizedLabel = label.toLowerCase().trim();
 
-        log.debug('StatClick', 'Stat clicked', { label, normalized: normalizedLabel });
+        log.debug('StatClick', 'Stat clicked', {label, normalized: normalizedLabel});
 
         switch (true) {
             case normalizedLabel.includes('tabellenplatz'):
@@ -413,7 +413,7 @@ const handleStatClick = (label) => {
                 navigateTo('team');
                 break;
             default:
-                log.debug('StatClick', 'No handler for stat', { label: normalizedLabel });
+                log.debug('StatClick', 'No handler for stat', {label: normalizedLabel});
         }
     } catch (error) {
         const contextError = new Error('Failed to handle stat click');

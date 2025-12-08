@@ -80,155 +80,507 @@ const mockPlayers = Object.freeze([
         id: 1, firstName: 'Max', lastName: 'Müller', position: 'TW', age: 28,
         strength: 8, stamina: 90, form: 25, freshness: 95, motivation: 10,
         contractYears: 3, gamesPlayed: 145, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 0, assists: 8, yellowCards: 23, yellowRedCards: 1, redCards: 0, games: 145, minutes: 13050})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 1,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 0,
+            assists: 8,
+            yellowCards: 23,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 145,
+            minutes: 13050
+        })
     }),
     Object.freeze({
         id: 2, firstName: 'Tom', lastName: 'Schmidt', position: 'LV', age: 25,
         strength: 7, stamina: 85, form: 22, freshness: 90, motivation: 9,
         contractYears: 2, gamesPlayed: 98, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 11, minutes: 945}),
-        careerStats: Object.freeze({goals: 4, assists: 18, yellowCards: 32, yellowRedCards: 2, redCards: 1, games: 98, minutes: 8234})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 3,
+            yellowCards: 3,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 11,
+            minutes: 945
+        }),
+        careerStats: Object.freeze({
+            goals: 4,
+            assists: 18,
+            yellowCards: 32,
+            yellowRedCards: 2,
+            redCards: 1,
+            games: 98,
+            minutes: 8234
+        })
     }),
     Object.freeze({
         id: 3, firstName: 'Leon', lastName: 'Wagner', position: 'IV', age: 29,
         strength: 9, stamina: 82, form: 27, freshness: 88, motivation: 10,
         contractYears: 4, gamesPlayed: 187, status: 'OK', isStarter: true, isCaptain: true,
-        seasonStats: Object.freeze({goals: 2, assists: 0, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 12, assists: 5, yellowCards: 54, yellowRedCards: 3, redCards: 2, games: 187, minutes: 16245})
+        seasonStats: Object.freeze({
+            goals: 2,
+            assists: 0,
+            yellowCards: 4,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 12,
+            assists: 5,
+            yellowCards: 54,
+            yellowRedCards: 3,
+            redCards: 2,
+            games: 187,
+            minutes: 16245
+        })
     }),
     Object.freeze({
         id: 4, firstName: 'Felix', lastName: 'Fischer', position: 'IV', age: 27,
         strength: 8, stamina: 84, form: 24, freshness: 92, motivation: 9,
         contractYears: 3, gamesPlayed: 142, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 1, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 8, assists: 7, yellowCards: 41, yellowRedCards: 1, redCards: 1, games: 142, minutes: 12456})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 1,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 8,
+            assists: 7,
+            yellowCards: 41,
+            yellowRedCards: 1,
+            redCards: 1,
+            games: 142,
+            minutes: 12456
+        })
     }),
     Object.freeze({
         id: 5, firstName: 'Lukas', lastName: 'Becker', position: 'RV', age: 24,
         strength: 7, stamina: 88, form: 21, freshness: 93, motivation: 9,
         contractYears: 2, gamesPlayed: 76, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 4, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 2, assists: 14, yellowCards: 18, yellowRedCards: 0, redCards: 0, games: 76, minutes: 6345})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 4,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 2,
+            assists: 14,
+            yellowCards: 18,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 76,
+            minutes: 6345
+        })
     }),
     Object.freeze({
         id: 6, firstName: 'Jonas', lastName: 'Hoffmann', position: 'DM', age: 26,
         strength: 8, stamina: 86, form: 23, freshness: 89, motivation: 9,
         contractYears: 3, gamesPlayed: 112, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 2, yellowCards: 5, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 6, assists: 15, yellowCards: 38, yellowRedCards: 2, redCards: 0, games: 112, minutes: 9567})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 2,
+            yellowCards: 5,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 6,
+            assists: 15,
+            yellowCards: 38,
+            yellowRedCards: 2,
+            redCards: 0,
+            games: 112,
+            minutes: 9567
+        })
     }),
     Object.freeze({
         id: 7, firstName: 'Tim', lastName: 'Weber', position: 'DM', age: 28,
         strength: 8, stamina: 84, form: 24, freshness: 87, motivation: 10,
         contractYears: 4, gamesPlayed: 156, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 2, assists: 3, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 11, assists: 22, yellowCards: 45, yellowRedCards: 1, redCards: 1, games: 156, minutes: 13234})
+        seasonStats: Object.freeze({
+            goals: 2,
+            assists: 3,
+            yellowCards: 3,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 11,
+            assists: 22,
+            yellowCards: 45,
+            yellowRedCards: 1,
+            redCards: 1,
+            games: 156,
+            minutes: 13234
+        })
     }),
     Object.freeze({
         id: 8, firstName: 'Paul', lastName: 'Schneider', position: 'LM', age: 23,
         strength: 7, stamina: 89, form: 20, freshness: 94, motivation: 8,
         contractYears: 2, gamesPlayed: 54, status: 'verletzt', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 3, assists: 5, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 9, minutes: 687}),
-        careerStats: Object.freeze({goals: 14, assists: 18, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 54, minutes: 4234})
+        seasonStats: Object.freeze({
+            goals: 3,
+            assists: 5,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 9,
+            minutes: 687
+        }),
+        careerStats: Object.freeze({
+            goals: 14,
+            assists: 18,
+            yellowCards: 12,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 54,
+            minutes: 4234
+        })
     }),
     Object.freeze({
         id: 9, firstName: 'David', lastName: 'Richter', position: 'OM', age: 27,
         strength: 9, stamina: 83, form: 26, freshness: 88, motivation: 10,
         contractYears: 3, gamesPlayed: 134, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 5, assists: 8, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 34, assists: 45, yellowCards: 28, yellowRedCards: 1, redCards: 0, games: 134, minutes: 11456})
+        seasonStats: Object.freeze({
+            goals: 5,
+            assists: 8,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 34,
+            assists: 45,
+            yellowCards: 28,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 134,
+            minutes: 11456
+        })
     }),
     Object.freeze({
         id: 10, firstName: 'Marco', lastName: 'Klein', position: 'RM', age: 25,
         strength: 7, stamina: 87, form: 22, freshness: 91, motivation: 9,
         contractYears: 2, gamesPlayed: 89, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 2, assists: 6, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 18, assists: 23, yellowCards: 19, yellowRedCards: 0, redCards: 0, games: 89, minutes: 7234})
+        seasonStats: Object.freeze({
+            goals: 2,
+            assists: 6,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 18,
+            assists: 23,
+            yellowCards: 19,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 89,
+            minutes: 7234
+        })
     }),
     Object.freeze({
         id: 11, firstName: 'Kevin', lastName: 'Krause', position: 'ST', age: 29,
         strength: 9, stamina: 81, form: 28, freshness: 86, motivation: 11,
         contractYears: 4, gamesPlayed: 189, status: 'OK', isStarter: true, isCaptain: false,
-        seasonStats: Object.freeze({goals: 9, assists: 4, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 12, minutes: 1080}),
-        careerStats: Object.freeze({goals: 87, assists: 28, yellowCards: 34, yellowRedCards: 2, redCards: 1, games: 189, minutes: 15678})
+        seasonStats: Object.freeze({
+            goals: 9,
+            assists: 4,
+            yellowCards: 3,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 12,
+            minutes: 1080
+        }),
+        careerStats: Object.freeze({
+            goals: 87,
+            assists: 28,
+            yellowCards: 34,
+            yellowRedCards: 2,
+            redCards: 1,
+            games: 189,
+            minutes: 15678
+        })
     }),
     Object.freeze({
         id: 12, firstName: 'Jan', lastName: 'Meyer', position: 'TW', age: 22,
         strength: 6, stamina: 88, form: 18, freshness: 96, motivation: 8,
         contractYears: 1, gamesPlayed: 23, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 0, minutes: 0}),
-        careerStats: Object.freeze({goals: 0, assists: 2, yellowCards: 3, yellowRedCards: 0, redCards: 0, games: 23, minutes: 2070})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 0,
+            yellowCards: 0,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 0,
+            minutes: 0
+        }),
+        careerStats: Object.freeze({
+            goals: 0,
+            assists: 2,
+            yellowCards: 3,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 23,
+            minutes: 2070
+        })
     }),
     Object.freeze({
         id: 13, firstName: 'Niklas', lastName: 'Koch', position: 'IV', age: 24,
         strength: 7, stamina: 85, form: 19, freshness: 92, motivation: 8,
         contractYears: 2, gamesPlayed: 67, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 0, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 3, minutes: 124}),
-        careerStats: Object.freeze({goals: 3, assists: 2, yellowCards: 15, yellowRedCards: 1, redCards: 0, games: 67, minutes: 5234})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 0,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 3,
+            minutes: 124
+        }),
+        careerStats: Object.freeze({
+            goals: 3,
+            assists: 2,
+            yellowCards: 15,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 67,
+            minutes: 5234
+        })
     }),
     Object.freeze({
         id: 14, firstName: 'Ben', lastName: 'Wolf', position: 'DM', age: 21,
         strength: 6, stamina: 90, form: 17, freshness: 97, motivation: 7,
         contractYears: 1, gamesPlayed: 12, status: 'gesperrt', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 1, yellowCards: 2, yellowRedCards: 1, redCards: 0, games: 5, minutes: 234}),
-        careerStats: Object.freeze({goals: 1, assists: 2, yellowCards: 4, yellowRedCards: 1, redCards: 0, games: 12, minutes: 876})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 1,
+            yellowCards: 2,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 5,
+            minutes: 234
+        }),
+        careerStats: Object.freeze({
+            goals: 1,
+            assists: 2,
+            yellowCards: 4,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 12,
+            minutes: 876
+        })
     }),
     Object.freeze({
         id: 15, firstName: 'Erik', lastName: 'Braun', position: 'OM', age: 23,
         strength: 7, stamina: 86, form: 19, freshness: 93, motivation: 8,
         contractYears: 2, gamesPlayed: 45, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 2, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 6, minutes: 345}),
-        careerStats: Object.freeze({goals: 8, assists: 12, yellowCards: 9, yellowRedCards: 0, redCards: 0, games: 45, minutes: 3234})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 2,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 6,
+            minutes: 345
+        }),
+        careerStats: Object.freeze({
+            goals: 8,
+            assists: 12,
+            yellowCards: 9,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 45,
+            minutes: 3234
+        })
     }),
     Object.freeze({
         id: 16, firstName: 'Noah', lastName: 'Lang', position: 'ST', age: 22,
         strength: 7, stamina: 88, form: 20, freshness: 94, motivation: 9,
         contractYears: 1, gamesPlayed: 38, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 3, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456}),
-        careerStats: Object.freeze({goals: 12, assists: 5, yellowCards: 6, yellowRedCards: 0, redCards: 0, games: 38, minutes: 2567})
+        seasonStats: Object.freeze({
+            goals: 3,
+            assists: 1,
+            yellowCards: 0,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 8,
+            minutes: 456
+        }),
+        careerStats: Object.freeze({
+            goals: 12,
+            assists: 5,
+            yellowCards: 6,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 38,
+            minutes: 2567
+        })
     }),
     Object.freeze({
         id: 17, firstName: 'Fabian', lastName: 'Schulz', position: 'LV', age: 20,
         strength: 6, stamina: 91, form: 16, freshness: 98, motivation: 7,
         contractYears: 1, gamesPlayed: 8, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 0, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 1, minutes: 45}),
-        careerStats: Object.freeze({goals: 0, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 8, minutes: 456})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 0,
+            yellowCards: 0,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 1,
+            minutes: 45
+        }),
+        careerStats: Object.freeze({
+            goals: 0,
+            assists: 1,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 8,
+            minutes: 456
+        })
     }),
     Object.freeze({
         id: 18, firstName: 'Moritz', lastName: 'Zimmermann', position: 'RV', age: 27,
         strength: 7, stamina: 83, form: 21, freshness: 88, motivation: 9,
         contractYears: 3, gamesPlayed: 98, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 2, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 4, minutes: 278}),
-        careerStats: Object.freeze({goals: 5, assists: 11, yellowCards: 24, yellowRedCards: 1, redCards: 0, games: 98, minutes: 7654})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 2,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 4,
+            minutes: 278
+        }),
+        careerStats: Object.freeze({
+            goals: 5,
+            assists: 11,
+            yellowCards: 24,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 98,
+            minutes: 7654
+        })
     }),
     Object.freeze({
         id: 19, firstName: 'Simon', lastName: 'Vogel', position: 'LM', age: 21,
         strength: 6, stamina: 92, form: 17, freshness: 95, motivation: 8,
         contractYears: 1, gamesPlayed: 15, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 0, assists: 1, yellowCards: 0, yellowRedCards: 0, redCards: 0, games: 3, minutes: 123}),
-        careerStats: Object.freeze({goals: 2, assists: 4, yellowCards: 2, yellowRedCards: 0, redCards: 0, games: 15, minutes: 987})
+        seasonStats: Object.freeze({
+            goals: 0,
+            assists: 1,
+            yellowCards: 0,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 3,
+            minutes: 123
+        }),
+        careerStats: Object.freeze({
+            goals: 2,
+            assists: 4,
+            yellowCards: 2,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 15,
+            minutes: 987
+        })
     }),
     Object.freeze({
         id: 20, firstName: 'Alexander', lastName: 'König', position: 'RM', age: 26,
         strength: 7, stamina: 85, form: 21, freshness: 90, motivation: 9,
         contractYears: 2, gamesPlayed: 72, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 3, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 5, minutes: 312}),
-        careerStats: Object.freeze({goals: 9, assists: 15, yellowCards: 14, yellowRedCards: 0, redCards: 0, games: 72, minutes: 5678})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 3,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 5,
+            minutes: 312
+        }),
+        careerStats: Object.freeze({
+            goals: 9,
+            assists: 15,
+            yellowCards: 14,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 72,
+            minutes: 5678
+        })
     }),
     Object.freeze({
         id: 21, firstName: 'Julian', lastName: 'Herrmann', position: 'ST', age: 24,
         strength: 8, stamina: 84, form: 22, freshness: 91, motivation: 9,
         contractYears: 2, gamesPlayed: 67, status: 'OK', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 2, assists: 1, yellowCards: 1, yellowRedCards: 0, redCards: 0, games: 7, minutes: 423}),
-        careerStats: Object.freeze({goals: 23, assists: 8, yellowCards: 12, yellowRedCards: 0, redCards: 0, games: 67, minutes: 4987})
+        seasonStats: Object.freeze({
+            goals: 2,
+            assists: 1,
+            yellowCards: 1,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 7,
+            minutes: 423
+        }),
+        careerStats: Object.freeze({
+            goals: 23,
+            assists: 8,
+            yellowCards: 12,
+            yellowRedCards: 0,
+            redCards: 0,
+            games: 67,
+            minutes: 4987
+        })
     }),
     Object.freeze({
         id: 22, firstName: 'Patrick', lastName: 'Lange', position: 'OM', age: 30,
         strength: 8, stamina: 78, form: 20, freshness: 83, motivation: 8,
         contractYears: 1, gamesPlayed: 156, status: 'gesperrt', isStarter: false, isCaptain: false,
-        seasonStats: Object.freeze({goals: 1, assists: 4, yellowCards: 3, yellowRedCards: 1, redCards: 0, games: 10, minutes: 678}),
-        careerStats: Object.freeze({goals: 28, assists: 52, yellowCards: 48, yellowRedCards: 3, redCards: 1, games: 156, minutes: 12345})
+        seasonStats: Object.freeze({
+            goals: 1,
+            assists: 4,
+            yellowCards: 3,
+            yellowRedCards: 1,
+            redCards: 0,
+            games: 10,
+            minutes: 678
+        }),
+        careerStats: Object.freeze({
+            goals: 28,
+            assists: 52,
+            yellowCards: 48,
+            yellowRedCards: 3,
+            redCards: 1,
+            games: 156,
+            minutes: 12345
+        })
     })
 ]);
 
@@ -249,7 +601,7 @@ const addEventListener = (element, event, handler, options = false) => {
         if (typeof options === 'object' && !options.signal) {
             options.signal = teamAbortController.signal;
         } else if (options === false || options === true) {
-            options = { capture: options, signal: teamAbortController.signal };
+            options = {capture: options, signal: teamAbortController.signal};
         }
 
         element.addEventListener(event, handler, options);
@@ -272,7 +624,7 @@ const addEventListener = (element, event, handler, options = false) => {
 const buildPlayerMap = () => {
     try {
         playerMap = new Map(players.map(p => [p.id, p]));
-        log.debug('BuildPlayerMap', 'Player map built', { size: playerMap.size });
+        log.debug('BuildPlayerMap', 'Player map built', {size: playerMap.size});
     } catch (error) {
         const contextError = new Error('Failed to build player map');
         contextError.cause = error;
@@ -393,7 +745,7 @@ const formatMinutes = (minutes) => {
     try {
         return minutes?.toLocaleString('de-DE') ?? '0';
     } catch (error) {
-        log.error('FormatMinutes', new Error('Format failed', { cause: error }));
+        log.error('FormatMinutes', new Error('Format failed', {cause: error}));
         return String(minutes ?? 0);
     }
 };
@@ -525,14 +877,14 @@ const renderPlayers = () => {
 
                 fragment.appendChild(card);
             } catch (error) {
-                log.error('RenderPlayer', new Error(`Failed to render player ${player.id}`, { cause: error }));
+                log.error('RenderPlayer', new Error(`Failed to render player ${player.id}`, {cause: error}));
             }
         });
 
         grid.innerHTML = '';
         grid.appendChild(fragment);
 
-        log.debug('RenderPlayers', 'Players rendered', { count: sortedPlayers.length });
+        log.debug('RenderPlayers', 'Players rendered', {count: sortedPlayers.length});
     } catch (error) {
         const contextError = new Error('Failed to render players');
         contextError.cause = error;
@@ -549,7 +901,7 @@ const updateTeamStats = () => {
         // ✅ ES2025: Single-Pass Categorization
         const stats = players.reduce((acc, player) => {
             const perf = calculatePerformance(player);
-            const { GK, DEF, MID, ATT } = TEAM_CONFIG.POSITION_GROUPS;
+            const {GK, DEF, MID, ATT} = TEAM_CONFIG.POSITION_GROUPS;
 
             if (GK.includes(player.position)) acc.gk += perf;
             else if (DEF.includes(player.position)) acc.def += perf;
@@ -558,7 +910,7 @@ const updateTeamStats = () => {
 
             acc.total += perf;
             return acc;
-        }, { gk: 0, def: 0, mid: 0, att: 0, total: 0 });
+        }, {gk: 0, def: 0, mid: 0, att: 0, total: 0});
 
         // ✅ ES2025: Safe Element Updates (ESLint-compatible)
         const statGK = document.getElementById('statGK');
@@ -707,7 +1059,7 @@ const showPlayerDetail = (playerId) => {
             throw new Error('Player modal element not found');
         }
 
-        log.debug('ShowPlayerDetail', 'Modal opened', { playerId, player: player.lastName });
+        log.debug('ShowPlayerDetail', 'Modal opened', {playerId, player: player.lastName});
     } catch (error) {
         const contextError = new Error('Failed to show player detail');
         contextError.cause = error;
@@ -734,7 +1086,7 @@ const switchTab = (tabName) => {
             content.classList.toggle('active', content.id === `tab${capitalizedTabName}`);
         });
 
-        log.debug('SwitchTab', 'Tab switched', { tabName });
+        log.debug('SwitchTab', 'Tab switched', {tabName});
     } catch (error) {
         const contextError = new Error('Failed to switch tab');
         contextError.cause = error;
@@ -780,7 +1132,7 @@ const sortBy = (type) => {
         });
 
         renderPlayers();
-        log.info('Sort', 'Players sorted', { sortType: type });
+        log.info('Sort', 'Players sorted', {sortType: type});
     } catch (error) {
         const contextError = new Error('Failed to sort players');
         contextError.cause = error;
@@ -807,7 +1159,7 @@ const extendAllContracts = () => {
         renderPlayers();
 
         alert('✅ Alle Verträge wurden um eine Saison verlängert!');
-        log.info('ExtendContracts', 'All contracts extended', { playerCount: players.length });
+        log.info('ExtendContracts', 'All contracts extended', {playerCount: players.length});
     } catch (error) {
         const contextError = new Error('Failed to extend contracts');
         contextError.cause = error;
@@ -836,7 +1188,7 @@ const payTeamBonus = () => {
         updateTeamStats();
 
         alert('💰 Teamprämie ausgezahlt! Motivation aller Spieler wurde gesteigert.');
-        log.info('PayBonus', 'Team bonus paid', { playerCount: players.length });
+        log.info('PayBonus', 'Team bonus paid', {playerCount: players.length});
     } catch (error) {
         const contextError = new Error('Failed to pay team bonus');
         contextError.cause = error;

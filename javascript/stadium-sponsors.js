@@ -66,7 +66,7 @@ const validateCache = (stadiumState) => {
         }
     } catch (error) {
         const cacheError = new Error('Cache validation failed');
-        cacheError.cause = { error, stadiumState };
+        cacheError.cause = {error, stadiumState};
         console.warn('⚠️ Cache validation error:', cacheError);
         clearAllCaches();
     }
@@ -103,7 +103,7 @@ const addToCache = (cache, key, value, maxSize) => {
         return value;
     } catch (error) {
         const cacheError = new Error('Failed to add to cache');
-        cacheError.cause = { error, key, cacheSize: cache.size, maxSize };
+        cacheError.cause = {error, key, cacheSize: cache.size, maxSize};
         console.warn('⚠️ Cache add error:', cacheError);
         return value;
     }
@@ -147,7 +147,7 @@ export const getAvailableSponsors = (currentCapacity) => {
         });
     } catch (error) {
         const availableError = new Error('Failed to get available sponsors');
-        availableError.cause = { error, currentCapacity };
+        availableError.cause = {error, currentCapacity};
         console.error('❌ Available sponsors error:', availableError);
         return [];
     }
@@ -168,7 +168,7 @@ export const calculateAdjustedPayment = (sponsor, leaguePosition) => {
 
     if (!sponsor?.basePayment) {
         const error = new Error('Invalid sponsor data for payment calculation');
-        error.cause = { sponsor, leaguePosition, missingField: 'basePayment' };
+        error.cause = {sponsor, leaguePosition, missingField: 'basePayment'};
         console.warn('⚠️ Payment calculation fallback:', error);
         return defaultPayment;
     }
@@ -195,7 +195,7 @@ export const calculateAdjustedPayment = (sponsor, leaguePosition) => {
         return result;
     } catch (error) {
         const calcError = new Error('Adjusted payment calculation failed');
-        calcError.cause = { error, sponsor, leaguePosition };
+        calcError.cause = {error, sponsor, leaguePosition};
         console.error('❌ Adjusted payment error:', calcError);
         return defaultPayment;
     }
@@ -275,7 +275,7 @@ export const calculateSponsorPrognosis = (sponsor, previousSeasonData, leaguePos
         return addToCache(sessionCache.prognosis, cacheKey, result, CACHE_CONFIG.MAX_PROGNOSIS_ENTRIES);
     } catch (error) {
         const prognosisError = new Error('Sponsor prognosis calculation failed');
-        prognosisError.cause = { error, sponsor, previousSeasonData, leaguePosition };
+        prognosisError.cause = {error, sponsor, previousSeasonData, leaguePosition};
         console.error('❌ Prognosis error:', prognosisError);
         return null;
     }
@@ -301,7 +301,7 @@ export const calculateAllPrognoses = (sponsors, previousSeasonData, leaguePositi
             }
         } catch (error) {
             const batchError = new Error('Batch prognosis calculation failed for sponsor');
-            batchError.cause = { error, sponsorId: sponsor?.id };
+            batchError.cause = {error, sponsorId: sponsor?.id};
             console.warn('⚠️ Skipping sponsor in batch:', batchError);
         }
     }
@@ -365,7 +365,7 @@ export const getActiveSponsors = (stadiumState) => {
             }
         } catch (error) {
             const blockError = new Error('Failed to get active sponsor for block');
-            blockError.cause = { error, block };
+            blockError.cause = {error, block};
             console.warn('⚠️ Skipping block:', blockError);
         }
     }
@@ -407,7 +407,7 @@ export const calculateTotalSponsorRevenue = (stadiumState, currentSeasonStats) =
             if (stats.cupTitle) totals.titles += adjusted.cupTitle;
         } catch (error) {
             const revenueError = new Error('Failed to calculate revenue for sponsor');
-            revenueError.cause = { error, sponsorId: sponsor?.id };
+            revenueError.cause = {error, sponsorId: sponsor?.id};
             console.warn('⚠️ Skipping sponsor revenue:', revenueError);
         }
     }
@@ -461,7 +461,7 @@ export const calculateSeasonProjection = (stadiumState, currentSeasonStats) => {
         };
     } catch (error) {
         const projectionError = new Error('Season projection calculation failed');
-        projectionError.cause = { error, stadiumState, currentSeasonStats };
+        projectionError.cause = {error, stadiumState, currentSeasonStats};
         console.error('❌ Projection error:', projectionError);
         return null;
     }
@@ -479,7 +479,7 @@ export const calculateSeasonProjection = (stadiumState, currentSeasonStats) => {
 export const bookSponsor = (stadiumState, block, sponsorId) => {
     if (!isValidBlock(block)) {
         const error = new Error(`Ungültiger Block: ${block}`);
-        error.cause = { block, validBlocks: BLOCKS };
+        error.cause = {block, validBlocks: BLOCKS};
         throw error;
     }
 
@@ -494,14 +494,14 @@ export const bookSponsor = (stadiumState, block, sponsorId) => {
 
     if (!hasBlockAdvertising(stadiumState, block)) {
         const error = new Error(`Werbebande für ${block} nicht installiert!`);
-        error.cause = { block };
+        error.cause = {block};
         throw error;
     }
 
     const sponsor = getSponsorById(sponsorId);
     if (!sponsor) {
         const error = new Error(`Sponsor mit ID ${sponsorId} nicht gefunden!`);
-        error.cause = { sponsorId };
+        error.cause = {sponsorId};
         throw error;
     }
 
@@ -538,7 +538,7 @@ export const bookSponsor = (stadiumState, block, sponsorId) => {
         };
     } catch (error) {
         const bookingError = new Error('Failed to complete sponsor booking');
-        bookingError.cause = { error, block, sponsorId, sponsor };
+        bookingError.cause = {error, block, sponsorId, sponsor};
         console.error('❌ Booking error:', bookingError);
         throw bookingError;
     }
@@ -575,7 +575,7 @@ export const registerGoalBonus = (stadiumState, block, matchId, goals) => {
         return {sponsor: sponsor.name, goals, amount};
     } catch (error) {
         const bonusError = new Error('Failed to register goal bonus');
-        bonusError.cause = { error, block, matchId, goals };
+        bonusError.cause = {error, block, matchId, goals};
         console.error('❌ Goal bonus error:', bonusError);
         return null;
     }
@@ -611,7 +611,7 @@ export const registerWinBonus = (stadiumState, block, matchId) => {
         return {sponsor: sponsor.name, amount};
     } catch (error) {
         const bonusError = new Error('Failed to register win bonus');
-        bonusError.cause = { error, block, matchId };
+        bonusError.cause = {error, block, matchId};
         console.error('❌ Win bonus error:', bonusError);
         return null;
     }
@@ -651,7 +651,7 @@ export const registerTitleBonus = (stadiumState, block, titleType) => {
         return {sponsor: sponsor.name, titleType, amount};
     } catch (error) {
         const bonusError = new Error('Failed to register title bonus');
-        bonusError.cause = { error, block, titleType };
+        bonusError.cause = {error, block, titleType};
         console.error('❌ Title bonus error:', bonusError);
         return null;
     }
@@ -713,7 +713,7 @@ export const getSponsorBalance = (stadiumState, block) => {
         };
     } catch (error) {
         const balanceError = new Error('Failed to get sponsor balance');
-        balanceError.cause = { error, block };
+        balanceError.cause = {error, block};
         console.error('❌ Balance error:', balanceError);
         return null;
     }
@@ -793,7 +793,7 @@ export const filterSponsors = (sponsors, filters, stadiumState = null) => {
         return addToCache(sessionCache.filtered, cacheKey, filtered, CACHE_CONFIG.MAX_FILTERED_ENTRIES);
     } catch (error) {
         const filterError = new Error('Sponsor filtering failed');
-        filterError.cause = { error, filters, sponsorCount: sponsors?.length };
+        filterError.cause = {error, filters, sponsorCount: sponsors?.length};
         console.error('❌ Filter error:', filterError);
         return sponsors;
     }
@@ -863,7 +863,7 @@ export const sortSponsors = (sponsors, sortBy, previousSeasonData, leaguePositio
         return sorted;
     } catch (error) {
         const sortError = new Error('Sponsor sorting failed');
-        sortError.cause = { error, sortBy, sponsorCount: sponsors?.length };
+        sortError.cause = {error, sortBy, sponsorCount: sponsors?.length};
         console.error('❌ Sort error:', sortError);
         return sponsors;
     }
@@ -889,7 +889,7 @@ export const getAvailableIndustries = (sponsors) => {
         return [...industries].sort((a, b) => a.localeCompare(b, 'de'));
     } catch (error) {
         const industriesError = new Error('Failed to get available industries');
-        industriesError.cause = { error, sponsorCount: sponsors?.length };
+        industriesError.cause = {error, sponsorCount: sponsors?.length};
         console.error('❌ Industries error:', industriesError);
         return [];
     }
@@ -924,7 +924,7 @@ export const prepareSponsorComparison = (sponsors, previousSeasonData, leaguePos
             }
         } catch (error) {
             const compError = new Error('Failed to prepare sponsor for comparison');
-            compError.cause = { error, sponsorId: sponsor?.id };
+            compError.cause = {error, sponsorId: sponsor?.id};
             console.warn('⚠️ Skipping sponsor in comparison:', compError);
         }
     }
@@ -975,7 +975,7 @@ export const findBestValues = (comparisonData) => {
         };
     } catch (error) {
         const bestValuesError = new Error('Failed to find best values');
-        bestValuesError.cause = { error, dataCount: comparisonData?.length };
+        bestValuesError.cause = {error, dataCount: comparisonData?.length};
         console.error('❌ Best values error:', bestValuesError);
         return null;
     }
@@ -1041,7 +1041,7 @@ export const getSponsorRecommendation = (sponsors, previousSeasonData, leaguePos
         };
     } catch (error) {
         const recommendationError = new Error('Failed to get sponsor recommendation');
-        recommendationError.cause = { error, previousSeasonData, leaguePosition };
+        recommendationError.cause = {error, previousSeasonData, leaguePosition};
         console.error('❌ Recommendation error:', recommendationError);
         return null;
     }

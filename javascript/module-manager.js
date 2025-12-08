@@ -145,7 +145,7 @@ async function loadStyle(href, moduleName) {
         link.onerror = () => {
             const error = new Error(`CSS load failed: ${href}`);
             // @ts-ignore - Error cause is ES2022+ feature
-            error.cause = { href, moduleName };
+            error.cause = {href, moduleName};
             console.error(`❌ CSS fehlgeschlagen: ${href}`);
             reject(error);
         };

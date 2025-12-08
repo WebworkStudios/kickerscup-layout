@@ -169,8 +169,8 @@ function addEventListener(element, event, handler, options = false) {
 
     // ✅ ES2025: Convert boolean to object and add signal
     const eventOptions = typeof options === 'boolean'
-        ? { capture: options, signal: abortController.signal }
-        : { ...options, signal: abortController.signal };
+        ? {capture: options, signal: abortController.signal}
+        : {...options, signal: abortController.signal};
 
     element.addEventListener(event, handler, eventOptions);
 }
@@ -385,23 +385,23 @@ function canPlayPosition(player, targetPosition) {
  */
 function getPositionPenalty(mainPosition, targetPosition) {
     if (mainPosition === targetPosition) {
-        return { text: '', severe: false };
+        return {text: '', severe: false};
     }
 
     const compatibility = config.positionCompatibility?.[mainPosition];
-    if (!compatibility) return { text: '', severe: true };
+    if (!compatibility) return {text: '', severe: true};
 
     const value = compatibility[targetPosition];
 
     if (value === undefined || value === 0) {
-        return { text: '🚫 Kann Position nicht spielen', severe: true };
+        return {text: '🚫 Kann Position nicht spielen', severe: true};
     } else if (value < 0.7) {
-        return { text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true };
+        return {text: `⚠️ Fehlbesetzung (${Math.round(value * 100 - 100)}%)`, severe: true};
     } else if (value < 0.9) {
-        return { text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false };
+        return {text: `⚠️ Leicht abgestraft (-${Math.round((1 - value) * 100)}%)`, severe: false};
     }
 
-    return { text: '', severe: false };
+    return {text: '', severe: false};
 }
 
 /**
@@ -556,7 +556,7 @@ function renderBenchSlots() {
     const container = document.getElementById('benchSlots');
     if (!container) return;
 
-    state.benchSlots = Array.from({ length: CONFIG.MAX_BENCH }, (_, index) => ({
+    state.benchSlots = Array.from({length: CONFIG.MAX_BENCH}, (_, index) => ({
         id: `bench-${index}`,
         player: null
     }));
@@ -588,7 +588,7 @@ function renderPlayerCard(player, slotPosition = null, isFieldCard = false) {
 
     const penalty = slotPosition
         ? getPositionPenalty(player.main_position, slotPosition)
-        : { text: '', severe: false };
+        : {text: '', severe: false};
 
     const isUnavailable = player.status !== 'fit';
     const canPlay = slotPosition ? canPlayPosition(player, slotPosition) : true;
@@ -1048,7 +1048,7 @@ function placePlayer(player, slotType, slotIndex, skipUndo = false) {
         state.undoStack.push({
             action: 'place',
             player: player,
-            newPosition: { type: slotType, index: slotIndex },
+            newPosition: {type: slotType, index: slotIndex},
             oldPosition: oldPosition,
             timestamp: Date.now()
         });
@@ -1091,7 +1091,7 @@ function removePlayerFromLineup(playerId) {
 
     state.fieldSlots.forEach((slot, index) => {
         if (slot.player?.id === playerId) {
-            oldPosition = { type: 'field', index };
+            oldPosition = {type: 'field', index};
             slot.player = null;
             renderSlot('field', index);
         }
@@ -1099,7 +1099,7 @@ function removePlayerFromLineup(playerId) {
 
     state.benchSlots.forEach((slot, index) => {
         if (slot.player?.id === playerId) {
-            oldPosition = { type: 'bench', index };
+            oldPosition = {type: 'bench', index};
             slot.player = null;
             renderSlot('bench', index);
         }
@@ -1440,7 +1440,7 @@ function handleTouchStart(e) {
     }
 
     const touch = e.touches[0];
-    state.touchStartPos = { x: touch.clientX, y: touch.clientY };
+    state.touchStartPos = {x: touch.clientX, y: touch.clientY};
 
     card.classList.add('drag-starting');
     hapticFeedback(10);
@@ -1478,14 +1478,14 @@ function handleTouchMove(e) {
         const intensity = Math.pow(1 - (touchY / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({ top: -speed, behavior: 'auto' });
+        window.scrollBy({top: -speed, behavior: 'auto'});
         showScrollIndicator('up');
     } else if (touchY > viewportHeight - CONFIG.AUTO_SCROLL_ZONE_PX) {
         const distanceFromBottom = viewportHeight - touchY;
         const intensity = Math.pow(1 - (distanceFromBottom / CONFIG.AUTO_SCROLL_ZONE_PX), 2);
         const speed = Math.ceil(CONFIG.AUTO_SCROLL_BASE_SPEED +
             (CONFIG.AUTO_SCROLL_MAX_SPEED - CONFIG.AUTO_SCROLL_BASE_SPEED) * intensity);
-        window.scrollBy({ top: speed, behavior: 'auto' });
+        window.scrollBy({top: speed, behavior: 'auto'});
         showScrollIndicator('down');
     } else {
         hideScrollIndicator();
@@ -1708,8 +1708,8 @@ async function handleFormationChange(e) {
 
         // Backup for undo
         const oldFormation = state.currentFormation;
-        const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
-        const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
+        const oldFieldSlots = state.fieldSlots.map(s => ({...s}));
+        const oldBenchSlots = state.benchSlots.map(s => ({...s}));
 
         state.currentFormation = newFormation;
         renderFormationSlots();
@@ -1725,7 +1725,7 @@ async function handleFormationChange(e) {
             positionMap.get(pos.position).push(index);
         });
 
-        oldPlayers.forEach(({ player, originalPosition }) => {
+        oldPlayers.forEach(({player, originalPosition}) => {
             const matchingSlots = positionMap.get(originalPosition) ?? [];
 
             if (matchingSlots.length > 0) {
@@ -1788,8 +1788,8 @@ async function handleFormationChange(e) {
  */
 function clearLineup() {
     // Backup for undo
-    const oldFieldSlots = state.fieldSlots.map(s => ({ ...s }));
-    const oldBenchSlots = state.benchSlots.map(s => ({ ...s }));
+    const oldFieldSlots = state.fieldSlots.map(s => ({...s}));
+    const oldBenchSlots = state.benchSlots.map(s => ({...s}));
     const hadPlayers = state.fieldSlots.some(s => s.player) ||
         state.benchSlots.some(s => s.player);
 
@@ -1854,10 +1854,10 @@ function checkSaveReadiness() {
 
     const goalkeeper = state.fieldSlots.find(slot => slot.position === 'TW' && slot.player);
     if (!goalkeeper) {
-        return { ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.' };
+        return {ready: false, message: 'Es muss mindestens ein Torwart aufgestellt sein.'};
     }
 
-    return { ready: true, message: 'Speicherung möglich' };
+    return {ready: true, message: 'Speicherung möglich'};
 }
 
 /**
@@ -2125,9 +2125,9 @@ function initEventListeners() {
             if (e.target.closest('.player-card')) {
                 handleTouchStart(e);
             }
-        }, { passive: false });
+        }, {passive: false});
 
-        addEventListener(document, 'touchmove', handleTouchMoveRAF, { passive: false });
+        addEventListener(document, 'touchmove', handleTouchMoveRAF, {passive: false});
         addEventListener(document, 'touchend', handleTouchEnd);
         addEventListener(document, 'touchcancel', handleTouchCancel);
     }
@@ -2152,7 +2152,7 @@ function initEventListeners() {
         if (e.target.closest('.quick-remove-btn')) {
             e.stopPropagation();
         }
-    }, { passive: false });
+    }, {passive: false});
 
     addEventListener(window, 'orientationchange', handleOrientationChange);
     addEventListener(window, 'resize', handleOrientationChange);
@@ -2229,7 +2229,8 @@ export function cleanup() {
     state.clearTouch();
 
     if (state.audioContext) {
-        state.audioContext.close().catch(() => {});
+        state.audioContext.close().catch(() => {
+        });
         state.audioContext = null;
         state.audioContextResumed = false;
     }

@@ -27,7 +27,6 @@ import {
     PITCH_CONFIG,
     repairState,
     ROOF_CONFIG,
-    TIMING_CONFIG,
     UI_TEXTS,
     validateState
 } from './stadium-config.js';

@@ -146,7 +146,7 @@ async function fetchPageHTML(htmlPath) {
         if (!response.ok) {
             const error = new Error(`Failed to fetch page: ${htmlPath}`);
             // @ts-ignore - Error cause is ES2022+ feature
-            error.cause = { status: response.status, statusText: response.statusText };
+            error.cause = {status: response.status, statusText: response.statusText};
             console.error(`HTTP ${response.status}: ${htmlPath}`);
             return null;
         }
@@ -460,7 +460,7 @@ function initNavigation() {
             if (targetPage) {
                 navigateTo(targetPage);
             }
-        }, { signal });
+        }, {signal});
 
         // Keyboard accessibility
         btn.addEventListener('keydown', (e) => {
@@ -471,7 +471,7 @@ function initNavigation() {
                     navigateTo(targetPage);
                 }
             }
-        }, { signal });
+        }, {signal});
     });
 
     // Browser back/forward navigation
@@ -479,7 +479,7 @@ function initNavigation() {
         if (event.state?.page) {
             void loadPage(event.state.page);
         }
-    }, { signal });
+    }, {signal});
 
     // Load initial page
     contentWrapper.classList.add('page-ready');

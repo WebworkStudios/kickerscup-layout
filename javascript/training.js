@@ -1268,22 +1268,22 @@ const setupEventListeners = () => {
 
     // Create new controller
     abortController = new AbortController();
-    const { signal } = abortController;
+    const {signal} = abortController;
 
     // Document-wide events
-    document.addEventListener('click', handleDocumentClick, { signal });
-    document.addEventListener('keydown', handleKeyDown, { signal });
+    document.addEventListener('click', handleDocumentClick, {signal});
+    document.addEventListener('keydown', handleKeyDown, {signal});
 
     // Search input
     const searchInput = document.getElementById('player-search-input');
     if (searchInput) {
-        searchInput.addEventListener('input', handleSearchInput, { signal });
+        searchInput.addEventListener('input', handleSearchInput, {signal});
     }
 
     // Team training buttons
     const btnConfirmPlan = document.getElementById('saveBtn');
     if (btnConfirmPlan) {
-        btnConfirmPlan.addEventListener('click', confirmTrainingPlan, { signal });
+        btnConfirmPlan.addEventListener('click', confirmTrainingPlan, {signal});
     }
 
     // Note: Reset button for team training not present in HTML
@@ -1292,12 +1292,12 @@ const setupEventListeners = () => {
     // Individual training buttons
     const btnConfirmIndividual = document.getElementById('btn-confirm-individual');
     if (btnConfirmIndividual) {
-        btnConfirmIndividual.addEventListener('click', confirmIndividualTraining, { signal });
+        btnConfirmIndividual.addEventListener('click', confirmIndividualTraining, {signal});
     }
 
     const btnResetIndividual = document.getElementById('btn-reset-individual');
     if (btnResetIndividual) {
-        btnResetIndividual.addEventListener('click', resetIndividualTraining, { signal });
+        btnResetIndividual.addEventListener('click', resetIndividualTraining, {signal});
     }
 
     console.log('Event-Listener initialisiert mit AbortController');
