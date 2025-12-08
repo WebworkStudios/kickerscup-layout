@@ -1,22 +1,46 @@
 // =====================================================
-// KICKERSCUP - CHAMPIONS CUP MODULE (ESM)
+// KICKERSCUP - CHAMPIONS CUP MODULE (ESM) - ES2025 MODERNIZED
 // Dedizierte ChampionsCup Seite mit Gruppenphase & K.o.-Baum
+// ✅ AbortController für Event Cleanup
+// ✅ Error Causes für strukturiertes Error Handling
+// ✅ Object.freeze() für immutable Configuration
+// ✅ Optional Chaining für sichere Property-Zugriffe
 // =====================================================
 
-// State Management
-const eventListeners = [];
-let currentTab = 'groups';
-let currentGroup = 'H'; // User's group
-let currentMatchday = 4;
-let zoomLevel = 1.0;
+// =====================================================
+// CONFIGURATION
+// =====================================================
+
+const CONFIG = Object.freeze({
+    DEFAULT_TAB: 'groups',
+    USER_GROUP: 'H',
+    DEFAULT_MATCHDAY: 4,
+    MAX_MATCHDAY: 6,
+    MIN_MATCHDAY: 1,
+    DEFAULT_ZOOM: 1.0,
+    MIN_ZOOM: 0.5,
+    MAX_ZOOM: 2.0,
+    ZOOM_STEP: 0.1
+});
 
 // =====================================================
-// GROUP GENERATOR (A-Z, AA-HZ = 32 Gruppen)
+// STATE MANAGEMENT (ES2025 Modernized)
+// =====================================================
+
+let abortController = new AbortController();
+let currentTab = CONFIG.DEFAULT_TAB;
+let currentGroup = CONFIG.USER_GROUP;
+let currentMatchday = CONFIG.DEFAULT_MATCHDAY;
+let zoomLevel = CONFIG.DEFAULT_ZOOM;
+
+// =====================================================
+// GROUP GENERATOR (A-Z, AA-AF = 32 Gruppen)
 // =====================================================
 
 /**
  * Generiert alle 32 Gruppennamen
  * A-Z (26) + AA-AF (6) = 32 Gruppen
+ * ✅ ES2025: Result ist immutable
  */
 const generateGroupNames = () => {
     const groups = [];
@@ -34,7 +58,8 @@ const generateGroupNames = () => {
     return groups;
 };
 
-const ALL_GROUPS = generateGroupNames();
+// ✅ ES2025: Immutable Configuration
+const ALL_GROUPS = Object.freeze(generateGroupNames());
 
 // =====================================================
 // MOCK DATA GENERATOR
@@ -42,41 +67,49 @@ const ALL_GROUPS = generateGroupNames();
 
 /**
  * Generiert Mock-Daten für eine Gruppe
+ * ✅ ES2025: Strukturiertes Error Handling
  */
 const generateGroupData = (groupName) => {
-    const isUserGroup = groupName === currentGroup;
+    try {
+        const isUserGroup = groupName === currentGroup;
 
-    // Mock Teams
-    const teams = [
-        {id: 1, name: isUserGroup ? 'FC Thunderbolts' : `Team ${groupName}1`, flag: '⚽', isUser: isUserGroup},
-        {id: 2, name: `Team ${groupName}2`, flag: '🏴', isUser: false},
-        {id: 3, name: `Team ${groupName}3`, flag: '🏳️', isUser: false},
-        {id: 4, name: `Team ${groupName}4`, flag: '🚩', isUser: false}
-    ];
+        // Mock Teams
+        const teams = [
+            {id: 1, name: isUserGroup ? 'FC Thunderbolts' : `Team ${groupName}1`, flag: '⚽', isUser: isUserGroup},
+            {id: 2, name: `Team ${groupName}2`, flag: '🏴', isUser: false},
+            {id: 3, name: `Team ${groupName}3`, flag: '🏳️', isUser: false},
+            {id: 4, name: `Team ${groupName}4`, flag: '🚩', isUser: false}
+        ];
 
-    // Mock Tabelle
-    const table = teams.map((team, index) => ({
-        rank: index + 1,
-        team: team.name,
-        flag: team.flag,
-        isUser: team.isUser,
-        played: 4,
-        won: 4 - index,
-        drawn: index === 2 ? 1 : 0,
-        lost: index,
-        goalsFor: 12 - (index * 2),
-        goalsAgainst: 3 + index,
-        goalDiff: (12 - (index * 2)) - (3 + index),
-        points: (4 - index) * 3 + (index === 2 ? 1 : 0)
-    }));
+        // Mock Tabelle
+        const table = teams.map((team, index) => ({
+            rank: index + 1,
+            team: team.name,
+            flag: team.flag,
+            isUser: team.isUser,
+            played: 4,
+            won: 4 - index,
+            drawn: index === 2 ? 1 : 0,
+            lost: index,
+            goalsFor: 12 - (index * 2),
+            goalsAgainst: 3 + index,
+            goalDiff: (12 - (index * 2)) - (3 + index),
+            points: (4 - index) * 3 + (index === 2 ? 1 : 0)
+        }));
 
-    // Nach Punkten sortieren
-    table.sort((a, b) => b.points - a.points);
+        // Nach Punkten sortieren
+        table.sort((a, b) => b.points - a.points);
 
-    // Mock Fixtures
-    const fixtures = generateFixtures(teams, groupName);
+        // Mock Fixtures
+        const fixtures = generateFixtures(teams, groupName);
 
-    return {table, fixtures};
+        return {table, fixtures};
+    } catch (error) {
+        const contextError = new Error(`Failed to generate group data: ${groupName}`);
+        contextError.cause = error;
+        console.error('❌ Group data generation failed:', contextError);
+        throw contextError;
+    }
 };
 
 /**
@@ -220,16 +253,17 @@ const generateKnockoutData = () => {
 };
 
 // =====================================================
-// HELPER FUNCTIONS
+// EVENT LISTENER HELPER (ES2025 Modernized)
 // =====================================================
 
 /**
- * Event Listener mit Cleanup-Tracking registrieren
+ * Event Listener mit AbortController registrieren
+ * ✅ ES2025: Automatisches Cleanup via AbortController
  */
-const addEventListener = (element, event, handler, options = false) => {
-    if (!element) return;
-    element.addEventListener(event, handler, options);
-    eventListeners.push({element, event, handler, options});
+const addEventListener = (element, event, handler) => {
+    element?.addEventListener(event, handler, {
+        signal: abortController.signal
+    });
 };
 
 // =====================================================
@@ -268,71 +302,85 @@ const switchTab = (tabName) => {
 // =====================================================
 
 const initGroupNavigation = () => {
-    // Dropdown füllen
-    const groupSelect = document.getElementById('groupSelect');
-    if (groupSelect) {
-        groupSelect.innerHTML = ALL_GROUPS.map(group =>
-            `<option value="${group}" ${group === currentGroup ? 'selected' : ''}>
-                Gruppe ${group}
-            </option>`
-        ).join('');
+    try {
+        // Dropdown füllen
+        const groupSelect = document.getElementById('groupSelect');
+        if (groupSelect) {
+            groupSelect.innerHTML = ALL_GROUPS.map(group =>
+                `<option value="${group}" ${group === currentGroup ? 'selected' : ''}>
+                    Gruppe ${group}
+                </option>`
+            ).join('');
 
-        addEventListener(groupSelect, 'change', (e) => {
-            switchToGroup(e.target.value);
-        });
-    }
-
-    // Quick Navigation Grid
-    const quickNav = document.getElementById('groupQuickNav');
-    if (quickNav) {
-        quickNav.innerHTML = ALL_GROUPS.map(group => {
-            const isUserGroup = group === currentGroup;
-            const isActive = group === currentGroup;
-            return `
-                <button 
-                    class="group-nav-btn ${isActive ? 'active' : ''} ${isUserGroup ? 'user-group' : ''}"
-                    data-group="${group}"
-                >
-                    ${group}
-                </button>
-            `;
-        }).join('');
-
-        // Event Listeners für Quick Nav Buttons
-        quickNav.querySelectorAll('.group-nav-btn').forEach(btn => {
-            addEventListener(btn, 'click', () => {
-                switchToGroup(btn.dataset.group);
+            addEventListener(groupSelect, 'change', (e) => {
+                switchToGroup(e.target.value);
             });
-        });
-    }
+        }
 
-    // "Meine Gruppe" Button
-    const btnJumpToUser = document.getElementById('btnJumpToUserGroup');
-    if (btnJumpToUser) {
-        addEventListener(btnJumpToUser, 'click', () => {
-            switchToGroup(currentGroup);
-        });
+        // Quick Navigation Grid
+        const quickNav = document.getElementById('groupQuickNav');
+        if (quickNav) {
+            quickNav.innerHTML = ALL_GROUPS.map(group => {
+                const isUserGroup = group === currentGroup;
+                const isActive = group === currentGroup;
+                return `
+                    <button 
+                        class="group-nav-btn ${isActive ? 'active' : ''} ${isUserGroup ? 'user-group' : ''}"
+                        data-group="${group}"
+                    >
+                        ${group}
+                    </button>
+                `;
+            }).join('');
+
+            // Event Listeners für Quick Nav Buttons
+            quickNav.querySelectorAll('.group-nav-btn').forEach(btn => {
+                addEventListener(btn, 'click', () => {
+                    switchToGroup(btn.dataset.group);
+                });
+            });
+        }
+
+        // "Meine Gruppe" Button
+        const btnJumpToUser = document.getElementById('btnJumpToUserGroup');
+        if (btnJumpToUser) {
+            addEventListener(btnJumpToUser, 'click', () => {
+                switchToGroup(currentGroup);
+            });
+        }
+    } catch (error) {
+        const contextError = new Error('Failed to initialize group navigation');
+        contextError.cause = error;
+        console.error('❌ Group navigation initialization failed:', contextError);
+        throw contextError;
     }
 };
 
 const switchToGroup = (groupName) => {
-    // Quick Nav aktualisieren
-    document.querySelectorAll('.group-nav-btn').forEach(btn => {
-        if (btn.dataset.group === groupName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
+    try {
+        // Quick Nav aktualisieren
+        document.querySelectorAll('.group-nav-btn').forEach(btn => {
+            if (btn.dataset.group === groupName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Dropdown aktualisieren
+        const groupSelect = document.getElementById('groupSelect');
+        if (groupSelect) {
+            groupSelect.value = groupName;
         }
-    });
 
-    // Dropdown aktualisieren
-    const groupSelect = document.getElementById('groupSelect');
-    if (groupSelect) {
-        groupSelect.value = groupName;
+        // Gruppe rendern
+        renderGroup(groupName);
+    } catch (error) {
+        const contextError = new Error(`Failed to switch to group: ${groupName}`);
+        contextError.cause = error;
+        console.error('❌ Group switch failed:', contextError);
+        // Don't throw - allow partial functionality
     }
-
-    // Gruppe rendern
-    renderGroup(groupName);
 };
 
 // =====================================================
@@ -340,19 +388,26 @@ const switchToGroup = (groupName) => {
 // =====================================================
 
 const renderGroup = (groupName) => {
-    const {table, fixtures} = generateGroupData(groupName);
+    try {
+        const {table, fixtures} = generateGroupData(groupName);
 
-    // Group Header aktualisieren
-    const groupNameEl = document.getElementById('currentGroupName');
-    if (groupNameEl) {
-        groupNameEl.textContent = `Gruppe ${groupName}`;
+        // Group Header aktualisieren
+        const groupNameEl = document.getElementById('currentGroupName');
+        if (groupNameEl) {
+            groupNameEl.textContent = `Gruppe ${groupName}`;
+        }
+
+        // Tabelle rendern
+        renderGroupTable(table);
+
+        // Fixtures rendern
+        renderGroupFixtures(fixtures, currentMatchday);
+    } catch (error) {
+        const contextError = new Error(`Failed to render group: ${groupName}`);
+        contextError.cause = error;
+        console.error('❌ Group rendering failed:', contextError);
+        throw contextError;
     }
-
-    // Tabelle rendern
-    renderGroupTable(table);
-
-    // Fixtures rendern
-    renderGroupFixtures(fixtures, currentMatchday);
 };
 
 const renderGroupTable = (table) => {
@@ -362,6 +417,7 @@ const renderGroupTable = (table) => {
     tbody.innerHTML = table.map(team => {
         const isQualified = team.rank <= 2;
         const isEliminated = team.rank > 2;
+        const goalDiff = team.goalDiff > 0 ? `+${team.goalDiff}` : team.goalDiff;
 
         return `
             <tr class="${isQualified ? 'qualified' : ''} ${isEliminated ? 'eliminated' : ''} ${team.isUser ? 'user-team' : ''}">
@@ -379,7 +435,7 @@ const renderGroupTable = (table) => {
                 <td class="col-stat">${team.drawn}</td>
                 <td class="col-stat">${team.lost}</td>
                 <td class="col-stat">${team.goalsFor}:${team.goalsAgainst}</td>
-                <td class="col-stat">${team.goalDiff > 0 ? '+' : ''}${team.goalDiff}</td>
+                <td class="col-stat">${goalDiff}</td>
                 <td class="col-points">${team.points}</td>
             </tr>
         `;
@@ -393,29 +449,33 @@ const renderGroupFixtures = (fixtures, matchday) => {
     // Filter fixtures für aktuellen Spieltag
     const matchdayFixtures = fixtures.filter(f => f.matchday === matchday);
 
-    fixturesList.innerHTML = matchdayFixtures.map(fixture => `
-        <div class="fixture-item ${fixture.isUserMatch ? 'user-match' : ''}">
-            <div class="fixture-date">
-                <span>📅</span>
-                <span>${fixture.date} • 18:00 Uhr</span>
+    fixturesList.innerHTML = matchdayFixtures.map(fixture => {
+        const scoreDisplay = fixture.isPlayed
+            ? `${fixture.homeScore} : ${fixture.awayScore}`
+            : 'vs';
+
+        return `
+            <div class="fixture-item ${fixture.isUserMatch ? 'user-match' : ''}">
+                <div class="fixture-date">
+                    <span>📅</span>
+                    <span>${fixture.date} • 18:00 Uhr</span>
+                </div>
+                <div class="fixture-match">
+                    <div class="fixture-team home">
+                        <span class="fixture-team-flag">${fixture.homeFlag}</span>
+                        <span>${fixture.homeTeam}</span>
+                    </div>
+                    <div class="fixture-score ${fixture.isPlayed ? '' : 'upcoming'}">
+                        ${scoreDisplay}
+                    </div>
+                    <div class="fixture-team away">
+                        <span>${fixture.awayTeam}</span>
+                        <span class="fixture-team-flag">${fixture.awayFlag}</span>
+                    </div>
+                </div>
             </div>
-            <div class="fixture-match">
-                <div class="fixture-team home">
-                    <span class="fixture-team-flag">${fixture.homeFlag}</span>
-                    <span>${fixture.homeTeam}</span>
-                </div>
-                <div class="fixture-score ${fixture.isPlayed ? '' : 'upcoming'}">
-                    ${fixture.isPlayed
-        ? `${fixture.homeScore} : ${fixture.awayScore}`
-        : 'vs'}
-                </div>
-                <div class="fixture-team away">
-                    <span>${fixture.awayTeam}</span>
-                    <span class="fixture-team-flag">${fixture.awayFlag}</span>
-                </div>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     // Matchday Display aktualisieren
     const fixturesMatchday = document.getElementById('fixturesMatchday');
@@ -428,10 +488,10 @@ const renderGroupFixtures = (fixtures, matchday) => {
     const btnNext = document.getElementById('btnNextMatchday');
 
     if (btnPrev) {
-        btnPrev.disabled = matchday === 1;
+        btnPrev.disabled = matchday === CONFIG.MIN_MATCHDAY;
     }
     if (btnNext) {
-        btnNext.disabled = matchday === 6;
+        btnNext.disabled = matchday === CONFIG.MAX_MATCHDAY;
     }
 };
 
@@ -445,9 +505,9 @@ const initMatchdayNavigation = () => {
 
     if (btnPrev) {
         addEventListener(btnPrev, 'click', () => {
-            if (currentMatchday > 1) {
+            if (currentMatchday > CONFIG.MIN_MATCHDAY) {
                 currentMatchday--;
-                const currentGroupName = document.getElementById('groupSelect')?.value || currentGroup;
+                const currentGroupName = document.getElementById('groupSelect')?.value ?? currentGroup;
                 const {fixtures} = generateGroupData(currentGroupName);
                 renderGroupFixtures(fixtures, currentMatchday);
             }
@@ -456,9 +516,9 @@ const initMatchdayNavigation = () => {
 
     if (btnNext) {
         addEventListener(btnNext, 'click', () => {
-            if (currentMatchday < 6) {
+            if (currentMatchday < CONFIG.MAX_MATCHDAY) {
                 currentMatchday++;
-                const currentGroupName = document.getElementById('groupSelect')?.value || currentGroup;
+                const currentGroupName = document.getElementById('groupSelect')?.value ?? currentGroup;
                 const {fixtures} = generateGroupData(currentGroupName);
                 renderGroupFixtures(fixtures, currentMatchday);
             }
@@ -471,14 +531,21 @@ const initMatchdayNavigation = () => {
 // =====================================================
 
 const renderKnockoutBracket = () => {
-    const rounds = generateKnockoutData();
+    try {
+        const rounds = generateKnockoutData();
 
-    // Render each round
-    renderKnockoutRound('round32Matches', rounds.round32);
-    renderKnockoutRound('round16Matches', rounds.round16);
-    renderKnockoutRound('quarterMatches', rounds.quarter);
-    renderKnockoutRound('semiMatches', rounds.semi);
-    renderKnockoutRound('finalMatches', rounds.final);
+        // Render each round
+        renderKnockoutRound('round32Matches', rounds.round32);
+        renderKnockoutRound('round16Matches', rounds.round16);
+        renderKnockoutRound('quarterMatches', rounds.quarter);
+        renderKnockoutRound('semiMatches', rounds.semi);
+        renderKnockoutRound('finalMatches', rounds.final);
+    } catch (error) {
+        const contextError = new Error('Failed to render knockout bracket');
+        contextError.cause = error;
+        console.error('❌ Knockout bracket rendering failed:', contextError);
+        throw contextError;
+    }
 };
 
 const renderKnockoutRound = (containerId, matches) => {
@@ -508,32 +575,29 @@ const initZoomControls = () => {
     const btnZoomIn = document.getElementById('btnZoomIn');
     const btnZoomOut = document.getElementById('btnZoomOut');
     const btnResetView = document.getElementById('btnResetView');
-    const bracketContainer = document.getElementById('bracketContainer');
 
     if (btnZoomIn) {
         addEventListener(btnZoomIn, 'click', () => {
-            zoomLevel = Math.min(zoomLevel + 0.1, 2.0);
+            zoomLevel = Math.min(zoomLevel + CONFIG.ZOOM_STEP, CONFIG.MAX_ZOOM);
             updateZoom();
         });
     }
 
     if (btnZoomOut) {
         addEventListener(btnZoomOut, 'click', () => {
-            zoomLevel = Math.max(zoomLevel - 0.1, 0.5);
+            zoomLevel = Math.max(zoomLevel - CONFIG.ZOOM_STEP, CONFIG.MIN_ZOOM);
             updateZoom();
         });
     }
 
     if (btnResetView) {
         addEventListener(btnResetView, 'click', () => {
-            zoomLevel = 1.0;
+            zoomLevel = CONFIG.DEFAULT_ZOOM;
             updateZoom();
 
             // Scroll zu User-Match
             const userMatch = document.querySelector('.bracket-match.user-match');
-            if (userMatch) {
-                userMatch.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
-            }
+            userMatch?.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
         });
     }
 };
@@ -605,47 +669,50 @@ const initBackNavigation = () => {
 export function init() {
     console.log('ChampionsCup-Modul wird initialisiert...');
 
-    // Tab Navigation
-    document.querySelectorAll('.cc-tab').forEach(tab => {
-        addEventListener(tab, 'click', () => {
-            switchTab(tab.dataset.tab);
+    try {
+        // Tab Navigation
+        document.querySelectorAll('.cc-tab').forEach(tab => {
+            addEventListener(tab, 'click', () => {
+                switchTab(tab.dataset.tab);
+            });
         });
-    });
 
-    // Group Navigation
-    initGroupNavigation();
-    initMatchdayNavigation();
+        // Group Navigation
+        initGroupNavigation();
+        initMatchdayNavigation();
 
-    // Initial: User's Group anzeigen
-    renderGroup(currentGroup);
+        // Initial: User's Group anzeigen
+        renderGroup(currentGroup);
 
-    // Zoom Controls
-    initZoomControls();
+        // Zoom Controls
+        initZoomControls();
 
-    // Stage Selector
-    initStageSelector();
+        // Stage Selector
+        initStageSelector();
 
-    // Back Navigation
-    initBackNavigation();
+        // Back Navigation
+        initBackNavigation();
 
-    console.log('ChampionsCup-Modul initialisiert ✓');
+        console.log('ChampionsCup-Modul initialisiert ✓');
+    } catch (error) {
+        const contextError = new Error('ChampionsCup module initialization failed');
+        contextError.cause = error;
+        console.error('❌ Initialization failed:', contextError);
+        throw contextError;
+    }
 }
 
 export function cleanup() {
     console.log('ChampionsCup-Modul cleanup wird ausgeführt...');
 
-    // Event Listeners entfernen
-    eventListeners.forEach(({element, event, handler, options}) => {
-        if (element) {
-            element.removeEventListener(event, handler, options);
-        }
-    });
-    eventListeners.length = 0;
+    // ✅ ES2025: Ein Aufruf entfernt ALLE Event Listener
+    abortController.abort();
+    abortController = new AbortController();
 
     // State zurücksetzen
-    currentTab = 'groups';
-    currentMatchday = 4;
-    zoomLevel = 1.0;
+    currentTab = CONFIG.DEFAULT_TAB;
+    currentMatchday = CONFIG.DEFAULT_MATCHDAY;
+    zoomLevel = CONFIG.DEFAULT_ZOOM;
 
     console.log('ChampionsCup-Modul cleanup ✓');
 }
