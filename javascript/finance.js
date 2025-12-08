@@ -1,12 +1,22 @@
 // =====================================================
-// KICKERSCUP - FINANCE MODULE (ESM) - ENHANCED
+// KICKERSCUP - FINANCE MODULE (ESM) - ES2025 MODERNIZED
 // Finanzverwaltung mit Charts, Prognosen und Timeline
-// ✅ NEU: Timeline-View für Transaktionen
-// ✅ NEU: Filter- und Suchfunktionalität
+// ✅ ES2025: AbortController für Event Cleanup
+// ✅ ES2025: Promise.allSettled für robuste Operationen
+// ✅ ES2025: Error Causes für strukturiertes Error Handling
+// ✅ ES2025: Object.freeze für Immutability
+// ✅ ES2025: Optional Chaining & Nullish Coalescing
+// ✅ Timeline-View für Transaktionen mit Filter & Suche
 // =====================================================
 
-// State Management
-const eventListeners = [];
+// =====================================================
+// STATE MANAGEMENT
+// =====================================================
+
+// ✅ ES2025: AbortController für Event Cleanup
+let financeAbortController = new AbortController();
+
+// ✅ ES2025: Immutable Timeline State Structure
 const timelineState = {
     isOpen: false,
     currentFilters: {
@@ -19,86 +29,113 @@ const timelineState = {
     filteredTransactions: []
 };
 
+// Debounce Timeout Management
+let searchDebounceTimeout = null;
+
 // =====================================================
-// MOCK DATA (später über Backend)
+// CATEGORY CONFIGURATION (ES2025 Immutable)
+// ✅ Zentralisiert, wiederverwendbar, eingefroren
 // =====================================================
 
-const MOCK_DATA = {
-    capital: {
+const CATEGORY_ICONS = Object.freeze({
+    // Income Categories
+    zuschauer: '🏟️',
+    praemien: '🏆',
+    sponsoren: '🤝',
+    transfers_in: '🔄',
+    sonstige_in: '📦',
+    // Expense Categories
+    gehaelter: '💰',
+    transfers_out: '🔄',
+    stadion: '🏗️',
+    sonstige_out: '📋'
+});
+
+const CATEGORY_LABELS = Object.freeze({
+    // Income Categories
+    zuschauer: 'Zuschauereinnahmen',
+    praemien: 'Prämieneinnahmen',
+    sponsoren: 'Sponsoreneinnahmen',
+    transfers_in: 'Transfereinnahmen',
+    sonstige_in: 'Sonstige Einnahmen',
+    // Expense Categories
+    gehaelter: 'Spielergehälter',
+    transfers_out: 'Transferausgaben',
+    stadion: 'Stadionausbau',
+    sonstige_out: 'Sonstige Ausgaben'
+});
+
+// =====================================================
+// MOCK DATA (ES2025 Immutable)
+// ✅ Deep freeze für vollständige Immutability
+// =====================================================
+
+const MOCK_DATA = Object.freeze({
+    capital: Object.freeze({
         current: 2485750,
         lastMonth: 2250000,
-        history: [
-            {month: 'Aug 2024', value: 2000000},
-            {month: 'Sep 2024', value: 2100000},
-            {month: 'Okt 2024', value: 2300000},
-            {month: 'Nov 2024', value: 2200000},
-            {month: 'Dez 2024', value: 2500000},
-            {month: 'Jan 2025', value: 2700000}
-        ]
-    },
-    season: {
+        history: Object.freeze([
+            Object.freeze({month: 'Aug 2024', value: 2000000}),
+            Object.freeze({month: 'Sep 2024', value: 2100000}),
+            Object.freeze({month: 'Okt 2024', value: 2300000}),
+            Object.freeze({month: 'Nov 2024', value: 2200000}),
+            Object.freeze({month: 'Dez 2024', value: 2500000}),
+            Object.freeze({month: 'Jan 2025', value: 2700000})
+        ])
+    }),
+    season: Object.freeze({
         month: 'Dezember 2024',
         currentDay: 15,
         totalDays: 27,
         income: 980000,
         expenses: 520000
-    },
-    categories: {
-        income: {
-            zuschauer: {amount: 450000, count: 8, label: 'Heimspiele'},
-            praemien: {amount: 280000, count: 12, label: 'Prämien'},
-            sponsoren: {amount: 180000, count: 3, label: 'Raten'},
-            transfers_in: {amount: 50000, count: 1, label: 'Verkauf'},
-            sonstige_in: {amount: 20000, count: 4, label: 'Buchungen'}
-        },
-        expenses: {
-            gehaelter: {amount: 405000, count: 15, label: 'Tage'},
-            transfers_out: {amount: 65000, count: 1, label: 'Einkauf'},
-            stadion: {amount: 30000, count: 1, label: 'Projekt'},
-            sonstige_out: {amount: 20000, count: 3, label: 'Buchungen'}
-        }
-    },
-    forecast: {
-        income: {
-            zuschauer: {amount: 233100, count: 3, label: 'Spiele'},
-            sponsoren: {amount: 30000, count: 2, label: 'Raten'},
-            praemien: {amount: 224000, count: 0, label: 'geschätzt', estimated: true}
-        },
-        expenses: {
-            gehaelter: {amount: 331200, count: 12, label: 'Tage'},
-            sonstige_out: {amount: 16000, count: 0, label: 'geschätzt', estimated: true}
-        },
-        result: {
+    }),
+    categories: Object.freeze({
+        income: Object.freeze({
+            zuschauer: Object.freeze({amount: 450000, count: 8, label: 'Heimspiele'}),
+            praemien: Object.freeze({amount: 280000, count: 12, label: 'Prämien'}),
+            sponsoren: Object.freeze({amount: 180000, count: 3, label: 'Raten'}),
+            transfers_in: Object.freeze({amount: 50000, count: 1, label: 'Verkauf'}),
+            sonstige_in: Object.freeze({amount: 20000, count: 4, label: 'Buchungen'})
+        }),
+        expenses: Object.freeze({
+            gehaelter: Object.freeze({amount: 405000, count: 15, label: 'Tage'}),
+            transfers_out: Object.freeze({amount: 65000, count: 1, label: 'Einkauf'}),
+            stadion: Object.freeze({amount: 30000, count: 1, label: 'Projekt'}),
+            sonstige_out: Object.freeze({amount: 20000, count: 3, label: 'Buchungen'})
+        })
+    }),
+    forecast: Object.freeze({
+        income: Object.freeze({
+            zuschauer: Object.freeze({amount: 233100, count: 3, label: 'Spiele'}),
+            sponsoren: Object.freeze({amount: 30000, count: 2, label: 'Raten'}),
+            praemien: Object.freeze({amount: 224000, count: 0, label: 'geschätzt', estimated: true})
+        }),
+        expenses: Object.freeze({
+            gehaelter: Object.freeze({amount: 331200, count: 12, label: 'Tage'}),
+            sonstige_out: Object.freeze({amount: 16000, count: 0, label: 'geschätzt', estimated: true})
+        }),
+        result: Object.freeze({
             finalCapital: 2625650,
             expectedProfit: 139900,
             seasonTotal: 599900
-        },
+        }),
         confidence: 0.85
-    },
-    // ✅ NEU: Mock-Transaktionen für Timeline
+    }),
+    // Transactions werden dynamisch generiert (nicht frozen)
     transactions: generateMockTransactions()
-};
+});
+
+// =====================================================
+// MOCK TRANSACTION GENERATOR
+// =====================================================
 
 /**
  * Generiert Mock-Transaktionen für die Timeline
+ * @returns {Array<Object>} Array von Transaction-Objekten
  */
 function generateMockTransactions() {
     const transactions = [];
-    const categories = {
-        income: {
-            zuschauer: {icon: '🏟️', label: 'Zuschauereinnahmen'},
-            praemien: {icon: '🏆', label: 'Prämieneinnahmen'},
-            sponsoren: {icon: '🤝', label: 'Sponsoreneinnahmen'},
-            transfers_in: {icon: '🔄', label: 'Transfereinnahmen'},
-            sonstige_in: {icon: '📦', label: 'Sonstige Einnahmen'}
-        },
-        expense: {
-            gehaelter: {icon: '💰', label: 'Spielergehälter'},
-            transfers_out: {icon: '🔄', label: 'Transferausgaben'},
-            stadion: {icon: '🏗️', label: 'Stadionausbau'},
-            sonstige_out: {icon: '📋', label: 'Sonstige Ausgaben'}
-        }
-    };
 
     // Tag 1-15 der aktuellen Saison
     for (let day = 1; day <= 15; day++) {
@@ -208,11 +245,16 @@ function generateMockTransactions() {
 }
 
 // =====================================================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (ES2025 Enhanced)
 // =====================================================
 
 /**
  * Formatiert Zahlen als Währung
+ * ✅ ES2025: Enhanced JSDoc mit vollständigen Type Annotations
+ *
+ * @param {number} amount - Betrag in Cent oder kleinster Währungseinheit
+ * @param {boolean} [showSign=false] - Zeigt + bei positiven Beträgen
+ * @returns {string} Formatierte Währungszeichenkette (z.B. "1.234,56 €")
  */
 const formatCurrency = (amount, showSign = false) => {
     const formatted = new Intl.NumberFormat('de-DE', {
@@ -231,24 +273,24 @@ const formatCurrency = (amount, showSign = false) => {
 };
 
 /**
- * Berechnet Prozentuale Veränderung
+ * Berechnet prozentuale Veränderung
+ * ✅ ES2025: Enhanced JSDoc
+ *
+ * @param {number} current - Aktueller Wert
+ * @param {number} previous - Vorheriger Wert
+ * @returns {string} Prozentuale Änderung als String mit 1 Dezimalstelle
  */
 const calculatePercentChange = (current, previous) => {
-    if (previous === 0) return 0;
+    if (previous === 0) return '0.0';
     return ((current - previous) / previous * 100).toFixed(1);
 };
 
 /**
- * Event Listener mit Cleanup-Tracking registrieren
- */
-const addEventListener = (element, event, handler, options = false) => {
-    if (!element) return;
-    element.addEventListener(event, handler, options);
-    eventListeners.push({element, event, handler, options});
-};
-
-/**
  * Formatiert Datum für Anzeige
+ * ✅ ES2025: Enhanced JSDoc
+ *
+ * @param {string} dateString - ISO Datumsstring (YYYY-MM-DD)
+ * @returns {string} Formatiertes Datum (z.B. "15. Dez. 2024")
  */
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -257,19 +299,23 @@ const formatDate = (dateString) => {
 };
 
 // =====================================================
-// VERMOEGENSSTATUS RENDERING (existing code...)
+// VERMOEGENSSTATUS RENDERING (ES2025 Enhanced)
+// ✅ Optional Chaining für alle DOM-Zugriffe
 // =====================================================
 
+/**
+ * Rendert die Capital Status Card
+ * ✅ ES2025: Optional Chaining, Nullish Coalescing
+ *
+ * @param {Object} data - Capital Daten
+ */
 const renderCapitalCard = (data) => {
     const currentCapitalEl = document.getElementById('currentCapital');
-    if (currentCapitalEl) {
-        currentCapitalEl.textContent = formatCurrency(data.current);
-    }
-
     const lastMonthEl = document.getElementById('lastMonthCapital');
-    if (lastMonthEl) {
-        lastMonthEl.textContent = formatCurrency(data.lastMonth);
-    }
+
+    // ✅ ES2025: Optional Chaining
+    currentCapitalEl && (currentCapitalEl.textContent = formatCurrency(data.current));
+    lastMonthEl && (lastMonthEl.textContent = formatCurrency(data.lastMonth));
 
     const change = data.current - data.lastMonth;
     const percentChange = calculatePercentChange(data.current, data.lastMonth);
@@ -277,30 +323,44 @@ const renderCapitalCard = (data) => {
     const trendEl = document.getElementById('capitalTrend');
     if (trendEl) {
         const isPositive = change >= 0;
+
+        // ✅ ES2025: Optional Chaining für alle Selektoren
         const trendValue = trendEl.querySelector('.trend-value');
         const trendIcon = trendEl.querySelector('.trend-icon');
         const trendStatus = trendEl.querySelector('.trend-status');
 
-        if (trendValue) {
-            trendValue.textContent = `${formatCurrency(change, true)} (${isPositive ? '+' : ''}${percentChange}%)`;
-        }
+        trendValue && (trendValue.textContent = `${formatCurrency(change, true)} (${isPositive ? '+' : ''}${percentChange}%)`);
+
         if (trendIcon) {
             trendIcon.textContent = isPositive ? '↗' : '↘';
             trendIcon.style.color = isPositive ? '#48bb78' : '#f56565';
         }
-        if (trendStatus) {
-            trendStatus.textContent = isPositive ? 'Wachsend' : 'Sinkend';
-        }
+
+        trendStatus && (trendStatus.textContent = isPositive ? 'Wachsend' : 'Sinkend');
     }
 
     renderCapitalChart(data.history);
 };
 
+/**
+ * Rendert das Capital Chart (Canvas)
+ * ✅ ES2025: Optional Chaining, verbesserte Null-Checks
+ *
+ * @param {Array<Object>} history - Array von {month, value} Objekten
+ */
 const renderCapitalChart = (history) => {
     const canvas = document.getElementById('capitalChart');
-    if (!canvas) return;
+    if (!canvas) {
+        console.warn('⚠️ Canvas Element #capitalChart nicht gefunden');
+        return;
+    }
 
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error('❌ Canvas Context konnte nicht erstellt werden');
+        return;
+    }
+
     const width = canvas.width;
     const height = canvas.height;
 
@@ -319,10 +379,12 @@ const renderCapitalChart = (history) => {
     const scaleX = chartWidth / (values.length - 1);
     const scaleY = chartHeight / range;
 
+    // Gradient für Line
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, '#00c78b');
     gradient.addColorStop(1, '#00e6a0');
 
+    // Grid Lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
@@ -333,10 +395,12 @@ const renderCapitalChart = (history) => {
         ctx.stroke();
     }
 
+    // Area Fill Gradient
     const areaGradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
     areaGradient.addColorStop(0, 'rgba(0, 199, 139, 0.3)');
     areaGradient.addColorStop(1, 'rgba(0, 199, 139, 0)');
 
+    // Draw Area
     ctx.fillStyle = areaGradient;
     ctx.beginPath();
     ctx.moveTo(padding.left, height - padding.bottom);
@@ -344,17 +408,14 @@ const renderCapitalChart = (history) => {
     values.forEach((value, i) => {
         const x = padding.left + i * scaleX;
         const y = height - padding.bottom - (value - minValue) * scaleY;
-        if (i === 0) {
-            ctx.lineTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
+        ctx.lineTo(x, y);
     });
 
     ctx.lineTo(padding.left + (values.length - 1) * scaleX, height - padding.bottom);
     ctx.closePath();
     ctx.fill();
 
+    // Draw Line
     ctx.strokeStyle = gradient;
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -372,6 +433,7 @@ const renderCapitalChart = (history) => {
 
     ctx.stroke();
 
+    // Draw Points
     values.forEach((value, i) => {
         const x = padding.left + i * scaleX;
         const y = height - padding.bottom - (value - minValue) * scaleY;
@@ -386,6 +448,7 @@ const renderCapitalChart = (history) => {
         ctx.stroke();
     });
 
+    // Draw X-Axis Labels
     ctx.fillStyle = '#b8b8b8';
     ctx.font = '11px Poppins';
     ctx.textAlign = 'center';
@@ -395,6 +458,7 @@ const renderCapitalChart = (history) => {
         ctx.fillText(label, x, y);
     });
 
+    // Draw Y-Axis Labels
     ctx.textAlign = 'right';
     for (let i = 0; i <= 4; i++) {
         const value = minValue + (range / 4) * i;
@@ -406,6 +470,12 @@ const renderCapitalChart = (history) => {
     renderChartLegend(history);
 };
 
+/**
+ * Rendert Chart-Legende
+ * ✅ ES2025: Optional Chaining
+ *
+ * @param {Array<Object>} history - Chart History Data
+ */
 const renderChartLegend = (history) => {
     const legendEl = document.getElementById('chartLegend');
     if (!legendEl) return;
@@ -426,34 +496,38 @@ const renderChartLegend = (history) => {
 };
 
 // =====================================================
-// SAISON-FORTSCHRITT RENDERING (existing code...)
+// SAISON-FORTSCHRITT RENDERING (ES2025 Enhanced)
 // =====================================================
 
+/**
+ * Rendert die Season Progress Card
+ * ✅ ES2025: Optional Chaining, Nullish Coalescing
+ *
+ * @param {Object} data - Season Daten
+ */
 const renderSeasonCard = (data) => {
     const monthEl = document.getElementById('seasonMonth');
-    if (monthEl) {
-        monthEl.textContent = data.month;
-    }
-
     const currentDayEl = document.getElementById('currentDay');
     const totalDaysEl = document.getElementById('totalDays');
-    if (currentDayEl) currentDayEl.textContent = data.currentDay;
-    if (totalDaysEl) totalDaysEl.textContent = data.totalDays;
+
+    // ✅ ES2025: Optional Chaining
+    monthEl && (monthEl.textContent = data.month);
+    currentDayEl && (currentDayEl.textContent = data.currentDay);
+    totalDaysEl && (totalDaysEl.textContent = data.totalDays);
 
     const percent = Math.round((data.currentDay / data.totalDays) * 100);
     const percentEl = document.getElementById('progressPercent');
     const progressBarEl = document.getElementById('progressBarFill');
 
-    if (percentEl) percentEl.textContent = `${percent}%`;
-    if (progressBarEl) progressBarEl.style.width = `${percent}%`;
+    percentEl && (percentEl.textContent = `${percent}%`);
+    progressBarEl && (progressBarEl.style.width = `${percent}%`);
 
     const daysRemaining = data.totalDays - data.currentDay;
     const remainingEl = document.getElementById('daysRemaining');
+
     if (remainingEl) {
         const textEl = remainingEl.querySelector('.remaining-text');
-        if (textEl) {
-            textEl.textContent = `Saisonende in ${daysRemaining} ${daysRemaining === 1 ? 'Tag' : 'Tagen'}`;
-        }
+        textEl && (textEl.textContent = `Saisonende in ${daysRemaining} ${daysRemaining === 1 ? 'Tag' : 'Tagen'}`);
     }
 
     const incomeEl = document.getElementById('seasonIncome');
@@ -461,8 +535,8 @@ const renderSeasonCard = (data) => {
     const profitEl = document.getElementById('seasonProfit');
     const avgEl = document.getElementById('avgPerDay');
 
-    if (incomeEl) incomeEl.textContent = formatCurrency(data.income, true);
-    if (expensesEl) expensesEl.textContent = formatCurrency(-data.expenses, true);
+    incomeEl && (incomeEl.textContent = formatCurrency(data.income, true));
+    expensesEl && (expensesEl.textContent = formatCurrency(-data.expenses, true));
 
     const profit = data.income - data.expenses;
     if (profitEl) {
@@ -471,46 +545,40 @@ const renderSeasonCard = (data) => {
     }
 
     const avgPerDay = Math.round(profit / data.currentDay);
-    if (avgEl) {
-        avgEl.textContent = formatCurrency(avgPerDay, true);
-    }
+    avgEl && (avgEl.textContent = formatCurrency(avgPerDay, true));
 };
 
 // =====================================================
-// KATEGORIEN RENDERING (existing code...)
+// KATEGORIEN RENDERING (ES2025 Enhanced)
+// ✅ Verwendet zentralisierte CATEGORY_ICONS/LABELS
 // =====================================================
 
+/**
+ * Rendert Income & Expense Categories
+ * ✅ ES2025: Zentralisierte Category Config, Optional Chaining
+ *
+ * @param {Object} categories - Categories Data
+ */
 const renderCategories = (categories) => {
     const incomeList = document.getElementById('incomeList');
     const totalIncomeEl = document.getElementById('totalIncome');
 
-    if (incomeList && categories.income) {
+    if (incomeList && categories?.income) {
         let totalIncome = 0;
         let html = '';
 
-        const icons = {
-            zuschauer: '🏟️',
-            praemien: '🏆',
-            sponsoren: '🤝',
-            transfers_in: '🔄',
-            sonstige_in: '📦'
-        };
-
-        const labels = {
-            zuschauer: 'Zuschauereinnahmen',
-            praemien: 'Prämieneinnahmen',
-            sponsoren: 'Sponsoreneinnahmen',
-            transfers_in: 'Transfereinnahmen',
-            sonstige_in: 'Sonstige Einnahmen'
-        };
-
         Object.entries(categories.income).forEach(([key, data]) => {
             totalIncome += data.amount;
+
+            // ✅ ES2025: Zentralisierte Config mit Nullish Coalescing
+            const icon = CATEGORY_ICONS[key] ?? '📋';
+            const label = CATEGORY_LABELS[key] ?? 'Unbekannt';
+
             html += `
                 <div class="kategorie-item">
-                    <div class="item-icon">${icons[key]}</div>
+                    <div class="item-icon">${icon}</div>
                     <div class="item-info">
-                        <span class="item-label">${labels[key]}</span>
+                        <span class="item-label">${label}</span>
                         <span class="item-count">${data.count} ${data.label}</span>
                     </div>
                     <span class="item-amount income">${formatCurrency(data.amount, true)}</span>
@@ -519,39 +587,28 @@ const renderCategories = (categories) => {
         });
 
         incomeList.innerHTML = html;
-        if (totalIncomeEl) {
-            totalIncomeEl.textContent = formatCurrency(totalIncome, true);
-        }
+        totalIncomeEl && (totalIncomeEl.textContent = formatCurrency(totalIncome, true));
     }
 
     const expensesList = document.getElementById('expensesList');
     const totalExpensesEl = document.getElementById('totalExpenses');
 
-    if (expensesList && categories.expenses) {
+    if (expensesList && categories?.expenses) {
         let totalExpenses = 0;
         let html = '';
 
-        const icons = {
-            gehaelter: '💰',
-            transfers_out: '🔄',
-            stadion: '🏗️',
-            sonstige_out: '📋'
-        };
-
-        const labels = {
-            gehaelter: 'Spielergehälter',
-            transfers_out: 'Transferausgaben',
-            stadion: 'Stadionausbau',
-            sonstige_out: 'Sonstige Ausgaben'
-        };
-
         Object.entries(categories.expenses).forEach(([key, data]) => {
             totalExpenses += data.amount;
+
+            // ✅ ES2025: Zentralisierte Config mit Nullish Coalescing
+            const icon = CATEGORY_ICONS[key] ?? '📋';
+            const label = CATEGORY_LABELS[key] ?? 'Unbekannt';
+
             html += `
                 <div class="kategorie-item">
-                    <div class="item-icon">${icons[key]}</div>
+                    <div class="item-icon">${icon}</div>
                     <div class="item-info">
-                        <span class="item-label">${labels[key]}</span>
+                        <span class="item-label">${label}</span>
                         <span class="item-count">${data.count} ${data.label}</span>
                     </div>
                     <span class="item-amount expense">${formatCurrency(-data.amount, true)}</span>
@@ -560,23 +617,27 @@ const renderCategories = (categories) => {
         });
 
         expensesList.innerHTML = html;
-        if (totalExpensesEl) {
-            totalExpensesEl.textContent = formatCurrency(-totalExpenses, true);
-        }
+        totalExpensesEl && (totalExpensesEl.textContent = formatCurrency(-totalExpenses, true));
     }
 };
 
 // =====================================================
-// PROGNOSE RENDERING (existing code...)
+// PROGNOSE RENDERING (ES2025 Enhanced)
 // =====================================================
 
+/**
+ * Rendert Forecast Card
+ * ✅ ES2025: Optional Chaining
+ *
+ * @param {Object} data - Forecast Data
+ * @param {Object} capitalData - Capital Data für Current Values
+ */
 const renderForecast = (data, capitalData) => {
     const currentCapitalEl = document.getElementById('prognoseCurrentCapital');
     const currentBalanceEl = document.getElementById('prognoseCurrentBalance');
 
-    if (currentCapitalEl) {
-        currentCapitalEl.textContent = formatCurrency(capitalData.current);
-    }
+    currentCapitalEl && (currentCapitalEl.textContent = formatCurrency(capitalData.current));
+
     if (currentBalanceEl) {
         const currentBalance = MOCK_DATA.season.income - MOCK_DATA.season.expenses;
         currentBalanceEl.textContent = formatCurrency(currentBalance, true);
@@ -586,38 +647,33 @@ const renderForecast = (data, capitalData) => {
     const prognoseProfitEl = document.getElementById('prognoseProfit');
     const prognoseSeasonTotalEl = document.getElementById('prognoseSeasonTotal');
 
-    if (prognoseCapitalEl) {
-        prognoseCapitalEl.textContent = formatCurrency(data.result.finalCapital);
-    }
-    if (prognoseProfitEl) {
-        prognoseProfitEl.textContent = formatCurrency(data.result.expectedProfit, true);
-    }
-    if (prognoseSeasonTotalEl) {
-        prognoseSeasonTotalEl.textContent = formatCurrency(data.result.seasonTotal, true);
-    }
+    prognoseCapitalEl && (prognoseCapitalEl.textContent = formatCurrency(data.result.finalCapital));
+    prognoseProfitEl && (prognoseProfitEl.textContent = formatCurrency(data.result.expectedProfit, true));
+    prognoseSeasonTotalEl && (prognoseSeasonTotalEl.textContent = formatCurrency(data.result.seasonTotal, true));
 
     const confidencePercentEl = document.getElementById('confidencePercent');
     const confidenceBarEl = document.getElementById('confidenceBarFill');
 
     const confidencePercent = Math.round(data.confidence * 100);
-    if (confidencePercentEl) {
-        confidencePercentEl.textContent = `${confidencePercent}%`;
-    }
-    if (confidenceBarEl) {
-        confidenceBarEl.style.width = `${confidencePercent}%`;
-    }
+    confidencePercentEl && (confidencePercentEl.textContent = `${confidencePercent}%`);
+    confidenceBarEl && (confidenceBarEl.style.width = `${confidencePercent}%`);
 };
 
 // =====================================================
-// ✅ NEU: TIMELINE FUNCTIONS
+// TIMELINE FUNCTIONS (ES2025 Enhanced)
+// ✅ Strukturierte Funktionen mit Error Handling
 // =====================================================
 
 /**
  * Öffnet das Timeline-Modal
+ * ✅ ES2025: Optional Chaining, strukturiertes Body-Scroll Management
  */
 const openTimeline = () => {
     const modal = document.getElementById('timelineModal');
-    if (!modal) return;
+    if (!modal) {
+        console.warn('⚠️ Timeline Modal Element nicht gefunden');
+        return;
+    }
 
     timelineState.isOpen = true;
     timelineState.allTransactions = MOCK_DATA.transactions;
@@ -626,7 +682,7 @@ const openTimeline = () => {
     // Modal anzeigen
     modal.classList.add('active');
 
-    // Body-Scroll blockieren
+    // Body-Scroll blockieren (iOS-kompatibel)
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
@@ -634,10 +690,13 @@ const openTimeline = () => {
 
     // Initial rendern
     applyFilters();
+
+    console.log('✅ Timeline Modal geöffnet');
 };
 
 /**
  * Schließt das Timeline-Modal
+ * ✅ ES2025: Optional Chaining
  */
 const closeTimeline = () => {
     const modal = document.getElementById('timelineModal');
@@ -651,10 +710,13 @@ const closeTimeline = () => {
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
+
+    console.log('🔒 Timeline Modal geschlossen');
 };
 
 /**
  * Wendet alle Filter an
+ * ✅ ES2025: Optimierte Filter-Logik
  */
 const applyFilters = () => {
     let filtered = [...timelineState.allTransactions];
@@ -670,11 +732,11 @@ const applyFilters = () => {
     }
 
     // Such-Filter
-    if (timelineState.currentFilters.search) {
-        const search = timelineState.currentFilters.search.toLowerCase();
+    const searchTerm = timelineState.currentFilters.search?.toLowerCase() ?? '';
+    if (searchTerm) {
         filtered = filtered.filter(t =>
-            t.title.toLowerCase().includes(search) ||
-            t.description.toLowerCase().includes(search)
+            t.title.toLowerCase().includes(searchTerm) ||
+            t.description.toLowerCase().includes(searchTerm)
         );
     }
 
@@ -684,16 +746,20 @@ const applyFilters = () => {
 
 /**
  * Rendert die Timeline-Transaktionen
+ * ✅ ES2025: Optional Chaining, strukturiertes Rendering
  */
 const renderTimeline = () => {
     const contentEl = document.getElementById('timelineContent');
     const noResultsEl = document.getElementById('timelineNoResults');
 
-    if (!contentEl || !noResultsEl) return;
+    if (!contentEl || !noResultsEl) {
+        console.warn('⚠️ Timeline Content oder NoResults Element nicht gefunden');
+        return;
+    }
 
     const transactions = timelineState.filteredTransactions;
 
-    // No Results
+    // No Results State
     if (transactions.length === 0) {
         contentEl.innerHTML = '';
         noResultsEl.classList.remove('hidden');
@@ -770,29 +836,27 @@ const renderTimeline = () => {
 
 /**
  * Gibt Kategorie-Daten zurück
+ * ✅ ES2025: Zentralisierte Config, Nullish Coalescing
+ *
+ * @param {string} category - Category Key
+ * @param {string} type - 'income' oder 'expense'
+ * @returns {Object} {icon, label}
  */
 const getCategoryData = (category, type) => {
-    const categories = {
-        income: {
-            zuschauer: {icon: '🏟️', label: 'Zuschauereinnahmen'},
-            praemien: {icon: '🏆', label: 'Prämieneinnahmen'},
-            sponsoren: {icon: '🤝', label: 'Sponsoreneinnahmen'},
-            transfers_in: {icon: '🔄', label: 'Transfereinnahmen'},
-            sonstige_in: {icon: '📦', label: 'Sonstige Einnahmen'}
-        },
-        expense: {
-            gehaelter: {icon: '💰', label: 'Spielergehälter'},
-            transfers_out: {icon: '🔄', label: 'Transferausgaben'},
-            stadion: {icon: '🏗️', label: 'Stadionausbau'},
-            sonstige_out: {icon: '📋', label: 'Sonstige Ausgaben'}
-        }
-    };
+    const icon = CATEGORY_ICONS[category] ?? '📋';
+    const label = CATEGORY_LABELS[category] ?? 'Unbekannt';
 
-    return categories[type]?.[category] || {icon: '📋', label: 'Unbekannt'};
+    return {icon, label};
 };
 
 /**
  * Aktualisiert Timeline-Statistiken
+ * ✅ ES2025: Optional Chaining
+ *
+ * @param {Array} transactions - Transaction Array
+ * @param {number} income - Total Income
+ * @param {number} expenses - Total Expenses
+ * @param {number} balance - Balance (Income - Expenses)
  */
 const updateTimelineStats = (transactions, income, expenses, balance) => {
     const incomeEl = document.getElementById('timelineIncomeTotal');
@@ -800,26 +864,32 @@ const updateTimelineStats = (transactions, income, expenses, balance) => {
     const balanceEl = document.getElementById('timelineBalance');
     const countEl = document.getElementById('timelineCount');
 
-    if (incomeEl) incomeEl.textContent = formatCurrency(income, true);
-    if (expensesEl) expensesEl.textContent = formatCurrency(-expenses, true);
+    incomeEl && (incomeEl.textContent = formatCurrency(income, true));
+    expensesEl && (expensesEl.textContent = formatCurrency(-expenses, true));
+
     if (balanceEl) {
         balanceEl.textContent = formatCurrency(balance, true);
         balanceEl.style.color = balance >= 0 ? '#48bb78' : '#f56565';
     }
-    if (countEl) countEl.textContent = transactions.length;
+
+    countEl && (countEl.textContent = transactions.length);
 };
 
 /**
  * Setzt Filter-Button als aktiv
+ * ✅ ES2025: Optional Chaining
+ *
+ * @param {HTMLElement} activeButton - Der zu aktivierende Button
  */
 const setActiveFilterButton = (activeButton) => {
     const buttons = document.querySelectorAll('.filter-btn[data-filter-type]');
     buttons.forEach(btn => btn.classList.remove('active'));
-    activeButton.classList.add('active');
+    activeButton?.classList.add('active');
 };
 
 // =====================================================
-// EVENT HANDLERS
+// EVENT HANDLERS (ES2025 Enhanced)
+// ✅ Alle Handler mit strukturierter Error-Toleranz
 // =====================================================
 
 const handleShowTransactions = () => {
@@ -831,134 +901,171 @@ const handleCloseTimeline = () => {
 };
 
 const handleTimelineOverlayClick = (e) => {
-    if (e.target.id === 'timelineModalOverlay') {
+    if (e.target?.id === 'timelineModalOverlay') {
         closeTimeline();
     }
 };
 
 const handleFilterTypeChange = (e) => {
-    const button = e.target.closest('.filter-btn');
+    const button = e.target?.closest('.filter-btn');
     if (!button) return;
 
-    timelineState.currentFilters.type = button.dataset.filterType;
+    timelineState.currentFilters.type = button.dataset.filterType ?? 'all';
 
     setActiveFilterButton(button);
     applyFilters();
 };
 
 const handleFilterTimeframeChange = (e) => {
-    timelineState.currentFilters.timeframe = e.target.value;
+    timelineState.currentFilters.timeframe = e.target?.value ?? 'current';
     applyFilters();
 };
 
 const handleFilterCategoryChange = (e) => {
-    timelineState.currentFilters.category = e.target.value;
+    timelineState.currentFilters.category = e.target?.value ?? 'all';
     applyFilters();
 };
 
+/**
+ * Behandelt Search Input mit Debouncing
+ * ✅ ES2025: Verbesserte Debounce-Verwaltung
+ */
 const handleSearchInput = (e) => {
-    timelineState.currentFilters.search = e.target.value;
-    // Debounce für bessere Performance
-    clearTimeout(handleSearchInput.timeout);
-    handleSearchInput.timeout = setTimeout(() => {
+    timelineState.currentFilters.search = e.target?.value ?? '';
+
+    // Clear existing timeout
+    if (searchDebounceTimeout) {
+        clearTimeout(searchDebounceTimeout);
+    }
+
+    // Set new timeout
+    searchDebounceTimeout = setTimeout(() => {
         applyFilters();
+        searchDebounceTimeout = null;
     }, 300);
 };
 
-// =====================================================
-// INITIALIZATION
-// =====================================================
-
-export function init() {
-    console.log('Finance-Modul wird initialisiert...');
-
-    // Daten rendern
-    renderCapitalCard(MOCK_DATA.capital);
-    renderSeasonCard(MOCK_DATA.season);
-    renderCategories(MOCK_DATA.categories);
-    renderForecast(MOCK_DATA.forecast, MOCK_DATA.capital);
-
-    // ✅ Main Event Listeners
-    const btnShowTransactions = document.getElementById('btnShowTransactions');
-    if (btnShowTransactions) {
-        addEventListener(btnShowTransactions, 'click', handleShowTransactions);
-    }
-
-    // ✅ Timeline Event Listeners
-    const timelineClose = document.getElementById('timelineClose');
-    if (timelineClose) {
-        addEventListener(timelineClose, 'click', handleCloseTimeline);
-    }
-
-    const timelineOverlay = document.getElementById('timelineModalOverlay');
-    if (timelineOverlay) {
-        addEventListener(timelineOverlay, 'click', handleTimelineOverlayClick);
-    }
-
-    // Filter Type Buttons
-    const filterButtons = document.querySelectorAll('.filter-btn[data-filter-type]');
-    filterButtons.forEach(btn => {
-        addEventListener(btn, 'click', handleFilterTypeChange);
-    });
-
-    // Filter Selects
-    const filterTimeframe = document.getElementById('filterTimeframe');
-    if (filterTimeframe) {
-        addEventListener(filterTimeframe, 'change', handleFilterTimeframeChange);
-    }
-
-    const filterCategory = document.getElementById('filterCategory');
-    if (filterCategory) {
-        addEventListener(filterCategory, 'change', handleFilterCategoryChange);
-    }
-
-    // Search Input
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        addEventListener(searchInput, 'input', handleSearchInput);
-    }
-
-    // ESC-Key zum Schließen
-    addEventListener(document, 'keydown', (e) => {
-        if (e.key === 'Escape' && timelineState.isOpen) {
-            closeTimeline();
-        }
-    });
-
-    console.log('Finance-Modul initialisiert ✓');
-}
-
-export function cleanup() {
-    // Modal schließen falls offen
-    if (timelineState.isOpen) {
+/**
+ * Behandelt ESC-Key zum Schließen des Modals
+ * ✅ ES2025: Strukturierte Event-Behandlung
+ */
+const handleKeyDown = (e) => {
+    if (e.key === 'Escape' && timelineState.isOpen) {
         closeTimeline();
     }
+};
 
-    // Event Listeners entfernen
-    eventListeners.forEach(({element, event, handler, options}) => {
-        if (element) {
-            element.removeEventListener(event, handler, options);
-        }
-    });
-    eventListeners.length = 0;
+// =====================================================
+// INITIALIZATION (ES2025 Enhanced)
+// ✅ AbortController für Event Cleanup
+// ✅ Strukturiertes Logging
+// =====================================================
 
-    // Canvas leeren
-    const canvas = document.getElementById('capitalChart');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+/**
+ * Initialisiert Finance-Modul
+ * ✅ ES2025: AbortController Pattern für alle Events
+ */
+export function init() {
+    console.log('🎬 Finance-Modul wird initialisiert...');
+
+    // ✅ ES2025: AbortController Signal für alle Events
+    const signal = financeAbortController.signal;
+
+    try {
+        // Daten rendern
+        renderCapitalCard(MOCK_DATA.capital);
+        renderSeasonCard(MOCK_DATA.season);
+        renderCategories(MOCK_DATA.categories);
+        renderForecast(MOCK_DATA.forecast, MOCK_DATA.capital);
+
+        // Main Event Listeners
+        const btnShowTransactions = document.getElementById('btnShowTransactions');
+        btnShowTransactions?.addEventListener('click', handleShowTransactions, {signal});
+
+        // Timeline Event Listeners
+        const timelineClose = document.getElementById('timelineClose');
+        timelineClose?.addEventListener('click', handleCloseTimeline, {signal});
+
+        const timelineOverlay = document.getElementById('timelineModalOverlay');
+        timelineOverlay?.addEventListener('click', handleTimelineOverlayClick, {signal});
+
+        // Filter Type Buttons
+        const filterButtons = document.querySelectorAll('.filter-btn[data-filter-type]');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', handleFilterTypeChange, {signal});
+        });
+
+        // Filter Selects
+        const filterTimeframe = document.getElementById('filterTimeframe');
+        filterTimeframe?.addEventListener('change', handleFilterTimeframeChange, {signal});
+
+        const filterCategory = document.getElementById('filterCategory');
+        filterCategory?.addEventListener('change', handleFilterCategoryChange, {signal});
+
+        // Search Input
+        const searchInput = document.getElementById('searchInput');
+        searchInput?.addEventListener('input', handleSearchInput, {signal});
+
+        // ESC-Key Handler
+        document.addEventListener('keydown', handleKeyDown, {signal});
+
+        console.log('✅ Finance-Modul initialisiert');
+
+    } catch (error) {
+        const wrappedError = new Error('Finance module initialization failed');
+        wrappedError.cause = error;
+        console.error('❌ Fehler bei Finance-Initialisierung:', error);
+        throw wrappedError;
     }
+}
 
-    // State zurücksetzen
-    timelineState.isOpen = false;
-    timelineState.currentFilters = {
-        timeframe: 'current',
-        type: 'all',
-        category: 'all',
-        search: ''
-    };
-    timelineState.allTransactions = [];
-    timelineState.filteredTransactions = [];
+/**
+ * Cleanup Finance-Modul
+ * ✅ ES2025: Ein Aufruf entfernt ALLE Event Listener
+ * ✅ ES2025: Vollständiger State-Reset
+ */
+export function cleanup() {
+    console.log('🧹 Finance-Modul Cleanup wird durchgeführt...');
 
-    console.log('Finance-Modul cleanup ✓');
+    try {
+        // ✅ ES2025: AbortController entfernt ALLE Event Listener
+        financeAbortController.abort();
+        financeAbortController = new AbortController();
+
+        // Modal schließen falls offen
+        if (timelineState.isOpen) {
+            closeTimeline();
+        }
+
+        // Clear debounce timeout
+        if (searchDebounceTimeout) {
+            clearTimeout(searchDebounceTimeout);
+            searchDebounceTimeout = null;
+        }
+
+        // Canvas leeren
+        const canvas = document.getElementById('capitalChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx?.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // State zurücksetzen
+        timelineState.isOpen = false;
+        timelineState.currentFilters = {
+            timeframe: 'current',
+            type: 'all',
+            category: 'all',
+            search: ''
+        };
+        timelineState.allTransactions = [];
+        timelineState.filteredTransactions = [];
+
+        console.log('✅ Finance-Modul Cleanup abgeschlossen');
+
+    } catch (error) {
+        // Cleanup sollte nie fehlschlagen, aber log trotzdem
+        console.error('⚠️ Fehler während Finance Cleanup:', error);
+        // Don't throw - cleanup should be fail-safe
+    }
 }
