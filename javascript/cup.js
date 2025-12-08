@@ -1,17 +1,26 @@
 // =====================================================
-// KICKERSCUP - CUP MODULE (ESM)
+// KICKERSCUP - CUP MODULE (ESM) - ES2025 MODERNIZED
 // Pokalwettbewerbe & Turniere
+// ✅ AbortController für Event Cleanup
+// ✅ Strukturierte Error Causes
+// ✅ Object.freeze für immutable Configuration
+// ✅ Konsistentes Error Handling
 // =====================================================
 
-// State Management
-const eventListeners = [];
-
 // =====================================================
-// MOCK DATA (später über Backend)
+// STATE MANAGEMENT
 // =====================================================
 
-const MOCK_DATA = {
-    championsCup: {
+// ✅ ES2025: AbortController statt manuelles Array-Tracking
+let cupAbortController = new AbortController();
+
+// =====================================================
+// MOCK DATA - ES2025 MODERNIZED
+// ✅ Object.freeze für immutable Configuration
+// =====================================================
+
+const MOCK_DATA = Object.freeze({
+    championsCup: Object.freeze({
         status: 'active',
         phase: 'Gruppenphase',
         group: 'Gruppe H',
@@ -21,66 +30,72 @@ const MOCK_DATA = {
         wins: 4,
         draws: 0,
         losses: 0
-    },
-    euroCup: {
+    }),
+    euroCup: Object.freeze({
         status: 'active',
         round: 'Achtelfinale',
-        nextMatch: {
+        nextMatch: Object.freeze({
             day: 18,
             opponent: 'FC Valencia'
-        },
+        }),
         wins: 3,
         qualified: true
-    },
-    premiumCup: {
+    }),
+    premiumCup: Object.freeze({
         status: 'locked',
-        requirements: {
+        requirements: Object.freeze({
             isPremium: false,
             teamStrength: 38,
             requiredStrength: 45,
             hasEntryFee: true,
             entryFee: 50000,
             availableCapital: 2485750
-        }
-    },
-    history: {
+        })
+    }),
+    history: Object.freeze({
         totalTitles: 3,
         finalsReached: 5,
         totalGames: 47,
         winRate: 68,
-        trophies: [
-            {
+        trophies: Object.freeze([
+            Object.freeze({
                 id: 'cc-2023',
                 name: 'ChampionsCup Sieger',
                 season: 'Saison 2023/24',
                 icon: '🏆',
                 count: 1
-            },
-            {
+            }),
+            Object.freeze({
                 id: 'ec-2023',
                 name: 'EuroCup Sieger',
                 season: 'Saison 2023/24 & 2022/23',
                 icon: '🥇',
                 count: 2
-            },
-            {
+            }),
+            Object.freeze({
                 id: 'pc-none',
                 name: 'PremiumCup',
                 season: 'Noch nicht gewonnen',
                 icon: '💎',
                 count: 0,
                 locked: true
-            }
-        ]
-    }
-};
+            })
+        ])
+    })
+});
 
 // =====================================================
 // HELPER FUNCTIONS
 // =====================================================
 
 /**
- * Formatiert Zahlen als Währung
+ * Formatiert Zahlen als Währung im deutschen Format
+ *
+ * @param {number} amount - Betrag in Euro
+ * @returns {string} Formatierter Currency-String (z.B. "2.485.750 €")
+ *
+ * @example
+ * formatCurrency(2485750) // "2.485.750 €"
  */
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('de-DE', {
@@ -91,21 +106,13 @@ const formatCurrency = (amount) => {
     }).format(amount);
 };
 
-/**
- * Event Listener mit Cleanup-Tracking registrieren
- */
-const addEventListener = (element, event, handler, options = false) => {
-    if (!element) return;
-    element.addEventListener(event, handler, options);
-    eventListeners.push({element, event, handler, options});
-};
-
 // =====================================================
 // UI UPDATE FUNCTIONS
 // =====================================================
 
 /**
  * Aktualisiert die ChampionsCup Card mit echten Daten
+ * @param {Object} data - ChampionsCup Daten
  */
 const updateChampionsCupCard = (data) => {
     // Diese Funktion könnte in Zukunft dynamische Daten einbinden
@@ -114,6 +121,7 @@ const updateChampionsCupCard = (data) => {
 
 /**
  * Aktualisiert die EuroCup Card mit echten Daten
+ * @param {Object} data - EuroCup Daten
  */
 const updateEuroCupCard = (data) => {
     // Diese Funktion könnte in Zukunft dynamische Daten einbinden
@@ -122,6 +130,7 @@ const updateEuroCupCard = (data) => {
 
 /**
  * Aktualisiert die PremiumCup Card mit echten Daten
+ * @param {Object} data - PremiumCup Daten
  */
 const updatePremiumCupCard = (data) => {
     // Diese Funktion könnte in Zukunft dynamische Daten einbinden
@@ -130,6 +139,7 @@ const updatePremiumCupCard = (data) => {
 
 /**
  * Aktualisiert die History Card mit echten Daten
+ * @param {Object} data - History Daten
  */
 const updateHistoryCard = (data) => {
     // Diese Funktion könnte in Zukunft dynamische Daten einbinden
@@ -140,36 +150,38 @@ const updateHistoryCard = (data) => {
 // CHAMPIONS CUP EVENT HANDLERS
 // =====================================================
 
+/**
+ * Navigiert zum ChampionsCup
+ * ✅ ES2025: Strukturierte Error Causes statt dreifacher Fallback
+ */
 const handleOpenChampionsCup = () => {
     console.log('🏆 ChampionsCup Button geklickt');
 
-    // Methode 1: Versuche über globale navigateTo Funktion
-    if (typeof window.navigateTo === 'function') {
-        console.log('✓ Navigiere via window.navigateTo');
+    try {
+        if (typeof window.navigateTo !== 'function') {
+            const error = new Error('Navigation system not initialized');
+            // @ts-ignore - Error cause is ES2022+ feature
+            error.cause = {
+                requiredFunction: 'window.navigateTo',
+                targetPage: 'championscup',
+                availableMethods: Object.keys(window).filter(k => k.includes('navigate'))
+            };
+            throw error;
+        }
+
         window.navigateTo('championscup');
-        return;
+    } catch (error) {
+        console.error('❌ Navigation failed:', error);
+        showNotification(
+            '❌ Navigation Error',
+            'Could not navigate to ChampionsCup. Please reload the page.'
+        );
     }
-
-    // Methode 2: Simuliere Click auf Navigation-Button (falls vorhanden)
-    const navBtn = document.querySelector('[data-page="championscup"]');
-    if (navBtn) {
-        console.log('✓ Navigiere via Navigation-Button');
-        navBtn.click();
-        return;
-    }
-
-    // Methode 3: Custom Event dispatchen
-    console.log('✓ Navigiere via Custom Event');
-    window.dispatchEvent(new CustomEvent('navigate', {
-        detail: {page: 'championscup'}
-    }));
-
-    // Fallback: Info-Alert
-    setTimeout(() => {
-        alert('⚠️ Navigation-System nicht gefunden.\n\nBitte stelle sicher, dass das ChampionsCup-Modul registriert ist in:\n- module-manager.js\n- navigation.js');
-    }, 100);
 };
 
+/**
+ * Zeigt ChampionsCup Statistiken
+ */
 const handleViewCCStats = () => {
     showNotification('📊 Statistiken', 'Detaillierte ChampionsCup Statistiken werden geladen...');
     // TODO: Modal mit erweiterten Statistiken
@@ -179,12 +191,27 @@ const handleViewCCStats = () => {
 // EURO CUP EVENT HANDLERS
 // =====================================================
 
+/**
+ * Navigiert zum EuroCup K.o.-Baum
+ */
 const handleViewECBracket = () => {
-    if (typeof window.navigateTo === 'function') {
+    try {
+        if (typeof window.navigateTo !== 'function') {
+            const error = new Error('Navigation system not initialized');
+            // @ts-ignore
+            error.cause = {targetPage: 'eurocup'};
+            throw error;
+        }
         window.navigateTo('eurocup');
+    } catch (error) {
+        console.error('❌ Navigation failed:', error);
+        showNotification('❌ Navigation Error', 'Could not navigate to EuroCup.');
     }
 };
 
+/**
+ * Zeigt EuroCup Spielplan
+ */
 const handleViewECSchedule = () => {
     showNotification('📅 Spielplan', 'Der EuroCup Spielplan wird geladen...');
     // TODO: Modal oder neue Ansicht mit Spielplan öffnen
@@ -194,6 +221,9 @@ const handleViewECSchedule = () => {
 // PREMIUM CUP EVENT HANDLERS
 // =====================================================
 
+/**
+ * Startet Premium-Upgrade Prozess
+ */
 const handleUpgradePremium = () => {
     showNotification(
         '⭐ Premium freischalten',
@@ -206,6 +236,9 @@ const handleUpgradePremium = () => {
 // HISTORY EVENT HANDLERS
 // =====================================================
 
+/**
+ * Zeigt vollständige Pokal-Historie
+ */
 const handleViewHistory = () => {
     showNotification('📜 Pokal-Historie', 'Deine komplette Pokal-Geschichte wird geladen...');
     // TODO: Modal oder neue Ansicht mit vollständiger Historie
@@ -216,73 +249,92 @@ const handleViewHistory = () => {
 // =====================================================
 
 /**
- * Zeigt eine einfache Benachrichtigung (temporär mit alert)
+ * Zeigt eine Benachrichtigung (temporär mit console.log)
  * TODO: Durch elegantes Toast/Modal-System ersetzen
+ * ✅ ES2025: Non-blocking, dispatcht Event für zukünftiges System
+ *
+ * @param {string} title - Titel der Benachrichtigung
+ * @param {string} message - Nachrichtentext
  */
 const showNotification = (title, message) => {
-    alert(`${title}\n\n${message}`);
+    console.log(`📢 ${title}`, message);
+
+    // ✅ ES2025: Event-basierte Architektur für zukünftiges Toast-System
+    window.dispatchEvent(new CustomEvent('app:notification', {
+        detail: Object.freeze({
+            title,
+            message,
+            type: 'info',
+            timestamp: Date.now()
+        })
+    }));
 };
 
 // =====================================================
-// INITIALIZATION
+// INITIALIZATION - ES2025 MODERNIZED
 // =====================================================
 
+/**
+ * Initialisiert Cup-Modul
+ * ✅ ES2025: AbortController für automatisches Event Cleanup
+ * ✅ ES2025: Strukturiertes Error Handling mit Error Causes
+ */
 export function init() {
-    console.log('Cup-Modul wird initialisiert...');
+    try {
+        console.log('Cup-Modul wird initialisiert...');
 
-    // UI mit Mock-Daten aktualisieren
-    updateChampionsCupCard(MOCK_DATA.championsCup);
-    updateEuroCupCard(MOCK_DATA.euroCup);
-    updatePremiumCupCard(MOCK_DATA.premiumCup);
-    updateHistoryCard(MOCK_DATA.history);
+        const signal = cupAbortController.signal;
 
-    // ========== CHAMPIONS CUP EVENT LISTENERS ==========
-    const btnOpenChampionsCup = document.getElementById('btnOpenChampionsCup');
-    if (btnOpenChampionsCup) {
-        addEventListener(btnOpenChampionsCup, 'click', handleOpenChampionsCup);
+        // UI mit Mock-Daten aktualisieren
+        updateChampionsCupCard(MOCK_DATA.championsCup);
+        updateEuroCupCard(MOCK_DATA.euroCup);
+        updatePremiumCupCard(MOCK_DATA.premiumCup);
+        updateHistoryCard(MOCK_DATA.history);
+
+        // ========== CHAMPIONS CUP EVENT LISTENERS ==========
+        // ✅ ES2025: Optional Chaining & AbortController
+        document.getElementById('btnOpenChampionsCup')
+            ?.addEventListener('click', handleOpenChampionsCup, {signal});
+
+        document.getElementById('btnViewCCStats')
+            ?.addEventListener('click', handleViewCCStats, {signal});
+
+        // ========== EURO CUP EVENT LISTENERS ==========
+        document.getElementById('btnViewECBracket')
+            ?.addEventListener('click', handleViewECBracket, {signal});
+
+        document.getElementById('btnViewECSchedule')
+            ?.addEventListener('click', handleViewECSchedule, {signal});
+
+        // ========== PREMIUM CUP EVENT LISTENERS ==========
+        document.getElementById('btnUpgradePremium')
+            ?.addEventListener('click', handleUpgradePremium, {signal});
+
+        // ========== HISTORY EVENT LISTENERS ==========
+        document.getElementById('btnViewHistory')
+            ?.addEventListener('click', handleViewHistory, {signal});
+
+        console.log('Cup-Modul initialisiert ✓');
+    } catch (error) {
+        // ✅ ES2025: Strukturierte Error Chain
+        const initError = new Error('Cup module initialization failed');
+        // @ts-ignore
+        initError.cause = error;
+        console.error('❌ Cup init error:', initError);
+        throw initError;
     }
-
-    const btnViewCCStats = document.getElementById('btnViewCCStats');
-    if (btnViewCCStats) {
-        addEventListener(btnViewCCStats, 'click', handleViewCCStats);
-    }
-
-    // ========== EURO CUP EVENT LISTENERS ==========
-    const btnViewECBracket = document.getElementById('btnViewECBracket');
-    if (btnViewECBracket) {
-        addEventListener(btnViewECBracket, 'click', handleViewECBracket);
-    }
-
-    const btnViewECSchedule = document.getElementById('btnViewECSchedule');
-    if (btnViewECSchedule) {
-        addEventListener(btnViewECSchedule, 'click', handleViewECSchedule);
-    }
-
-    // ========== PREMIUM CUP EVENT LISTENERS ==========
-    const btnUpgradePremium = document.getElementById('btnUpgradePremium');
-    if (btnUpgradePremium) {
-        addEventListener(btnUpgradePremium, 'click', handleUpgradePremium);
-    }
-
-    // ========== HISTORY EVENT LISTENERS ==========
-    const btnViewHistory = document.getElementById('btnViewHistory');
-    if (btnViewHistory) {
-        addEventListener(btnViewHistory, 'click', handleViewHistory);
-    }
-
-    console.log('Cup-Modul initialisiert ✓');
 }
 
+/**
+ * Cleanup Cup-Modul
+ * ✅ ES2025: AbortController macht manuelles Event-Tracking überflüssig
+ */
 export function cleanup() {
     console.log('Cup-Modul cleanup wird ausgeführt...');
 
-    // Event Listeners entfernen
-    eventListeners.forEach(({element, event, handler, options}) => {
-        if (element) {
-            element.removeEventListener(event, handler, options);
-        }
-    });
-    eventListeners.length = 0;
+    // ✅ ES2025: Ein Aufruf entfernt ALLE Event Listener
+    cupAbortController.abort();
+    cupAbortController = new AbortController();
 
     console.log('Cup-Modul cleanup ✓');
 }
