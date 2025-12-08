@@ -50,6 +50,11 @@ const pages = Object.freeze({
         html: 'team.html',
         module: 'team'
     },
+    'team-profile': {
+        html: 'team-profile.html',
+        module: 'team-profile',
+        title: 'Team-Profil'
+    },
     lineup: {
         html: 'lineup.html',
         module: 'lineup'

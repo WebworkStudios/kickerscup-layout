@@ -35,6 +35,12 @@ const moduleRegistry = Object.freeze({
         cssElements: [],
         module: null
     },
+    'team-profile': {
+        scripts: Object.freeze(['./team-profile.js']),
+        css: Object.freeze(['css/team-profile.css']),
+        cssElements: [],
+        module: null
+    },
     lineup: {
         scripts: Object.freeze(['./lineup-config.js', './lineup.js']),
         css: Object.freeze(['css/lineup.css', 'css/lineup-375px.css']),

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team-Profil - KICKERSCUP</title>
+</head>
+<body>
+<!-- Team Profile Container -->
+<div id="teamProfileContainer" class="team-profile-container">
+
+    <!-- Kompakte Teamkarte -->
+    <div id="teamCard" class="team-card">
+        <!-- Wird dynamisch von JavaScript gefüllt -->
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-navigation" role="tablist" aria-label="Team Profil Tabs">
+        <button class="tab-button active"
+                data-tab="overview"
+                role="tab"
+                aria-selected="true"
+                aria-controls="overviewPanel"
+                tabindex="0">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Übersicht</span>
+        </button>
+
+        <button class="tab-button"
+                data-tab="squad"
+                role="tab"
+                aria-selected="false"
+                aria-controls="squadPanel"
+                tabindex="-1">
+            <i class="fa-solid fa-users"></i>
+            <span>Kader</span>
+        </button>
+
+        <button class="tab-button"
+                data-tab="achievements"
+                role="tab"
+                aria-selected="false"
+                aria-controls="achievementsPanel"
+                tabindex="-1">
+            <i class="fa-solid fa-trophy"></i>
+            <span>Erfolge</span>
+        </button>
+    </nav>
+
+    <!-- Tab Content Panels -->
+    <div class="tab-content">
+
+        <!-- Overview Tab -->
+        <div id="overviewPanel"
+             class="tab-panel active"
+             data-tab="overview"
+             role="tabpanel"
+             aria-labelledby="tab-overview"
+             aria-hidden="false">
+            <div id="overviewContent">
+                <!-- Wird dynamisch von JavaScript gefüllt -->
+            </div>
+        </div>
+
+        <!-- Squad Tab -->
+        <div id="squadPanel"
+             class="tab-panel"
+             data-tab="squad"
+             role="tabpanel"
+             aria-labelledby="tab-squad"
+             aria-hidden="true">
+            <div id="squadContent">
+                <!-- Wird dynamisch von JavaScript gefüllt -->
+            </div>
+        </div>
+
+        <!-- Achievements Tab -->
+        <div id="achievementsPanel"
+             class="tab-panel"
+             data-tab="achievements"
+             role="tabpanel"
+             aria-labelledby="tab-achievements"
+             aria-hidden="true">
+            <div id="achievementsContent">
+                <!-- Wird dynamisch von JavaScript gefüllt -->
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
